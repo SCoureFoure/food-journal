@@ -127,6 +127,19 @@ See `docs/FEATURES.md` for full feature spec.
 - Test on Android phone via USB: enable Developer Options → USB Debugging → plug in → `start.bat` auto-detects
 - Hot reload: `r` | Hot restart: `R` | Quit: `q` (in running flutter session)
 
+## Semantics anchors (explore rig requirement)
+
+Every new interactive widget MUST get a `Semantics(identifier: '...')` immediately when built:
+
+- Screen roots: `Semantics(identifier: 'screen-name')`
+- Buttons / FABs: wrap with `Semantics(identifier: 'btn-action')`
+- List tiles / cards: wrap with `Semantics(identifier: 'item-<id>')`
+- ExpansionTile headers: wrap the `title:` param specifically with `Semantics(identifier: 'item-header-<id>')` so `Tap-Element` hits the header even when expanded
+
+Add the anchor to the Known anchors table in `.claude/skills/explore/SKILL.md` in the same commit.
+
+The explore rig taps ONLY by resource-id via `Tap-Element` — never raw coordinates. Step 4 of the explore skill shows the correct inline PowerShell pattern.
+
 ## Known package constraints
 
 - `flutter_local_notifications: ^18.0.1` — pinned; v21+ requires Dart ≥3.10, we're on 3.9.2

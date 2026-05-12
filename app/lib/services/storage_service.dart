@@ -79,6 +79,16 @@ class StorageService {
     return rows.map(_mealFromRow).toList();
   }
 
+  Future<List<MealEntry>> getAllMeals() async {
+    final rows = await (_db.select(_db.meals)
+          ..orderBy([
+            (t) => OrderingTerm.desc(t.date),
+            (t) => OrderingTerm.asc(t.createdAt),
+          ]))
+        .get();
+    return rows.map(_mealFromRow).toList();
+  }
+
   Future<List<MealEntry>> getMealsForWeek(DateTime weekStart) async {
     final start = DateTime(weekStart.year, weekStart.month, weekStart.day);
     final end = start.add(const Duration(days: 7));

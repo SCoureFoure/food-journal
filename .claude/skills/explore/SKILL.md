@@ -24,11 +24,12 @@ SHOTS    = c:\Users\SCora\Documents\Repositories\food-journal\scratch
 
 Argument maps to `-Scenario` param:
 
-| User says           | `-Scenario` value |
-|---------------------|-------------------|
-| home / (none)       | `home`            |
-| log meal            | `log-meal`        |
-| export              | `export`          |
+| User says                          | `-Scenario` value |
+|------------------------------------|-------------------|
+| home / (none)                      | `home`            |
+| log meal                           | `log-meal`        |
+| export                             | `export`          |
+| collapsible / expandable / tiles   | `collapsible`     |
 
 ## Step 2 — Run the rig
 
@@ -58,36 +59,41 @@ Past task runs are retained in `scratch\` subfolders for reference.
 
 ## Step 4 — Element navigation (beyond what the script handles)
 
-To tap additional elements after the script runs, use `Tap-Element` logic manually:
+Always tap by resource-id — never hardcode coordinates. Use this inline `Tap-Element` pattern:
 
 ```powershell
-# dump fresh hierarchy
-& "ADB" -s emulator-5554 shell uiautomator dump /sdcard/ui.xml
-& "ADB" -s emulator-5554 pull /sdcard/ui.xml "scratch\<task>\ui.xml"
+$adb = "C:\Users\SCora\AppData\Local\Android\Sdk\platform-tools\adb.exe"
+$dev = "emulator-5554"
+$Id  = "some-anchor-id"   # resource-id to tap
+& $adb -s $dev shell uiautomator dump /sdcard/ui.xml 2>$null | Out-Null
+$xml = & $adb -s $dev shell cat /sdcard/ui.xml | Out-String
+if ($xml -match "resource-id=""$([regex]::Escape($Id))""[^>]*bounds=""\[(\d+),(\d+)\]\[(\d+),(\d+)\]""") {
+    $cx = [int](([int]$Matches[1] + [int]$Matches[3]) / 2)
+    $cy = [int](([int]$Matches[2] + [int]$Matches[4]) / 2)
+    & $adb -s $dev shell input tap $cx $cy
+}
+Start-Sleep -Seconds 1   # wait for animation
 ```
 
-Read `ui.xml`. Flutter `Semantics(identifier: 'id')` → `resource-id="id"` in UIAutomator.
-Parse `bounds="[x1,y1][x2,y2]"` → tap center `((x1+x2)/2, (y1+y2)/2)`.
-
-```powershell
-& "ADB" -s emulator-5554 shell input tap <cx> <cy>
-```
+Flutter `Semantics(identifier: 'id')` → `resource-id="id"` in UIAutomator. ADB taps at the center of the element's bounds. For `ExpansionTile`, tap the header-specific anchor (`item-header-<id>`) not the whole tile, so the tap lands on the header even when expanded.
 
 Then wait for the next screen's anchor before screenshotting.
 
 ## Known anchors (resource-id)
 
-| Screen       | Anchor id          | Meaning                        |
-|--------------|--------------------|--------------------------------|
-| Home         | `btn-log-meal`     | FAB — home screen ready        |
-| Home         | `home-empty-state` | No meals — home screen ready   |
-| Home         | `home-meal-list`   | Has meals — home screen ready  |
-| Home         | `btn-export`       | Export icon in app bar         |
-| Home         | `meal-card-<id>`   | Specific meal card             |
-| Home         | `home-loading`     | Still loading                  |
-| Home         | `home-error`       | Error state                    |
-| Log Meal     | `log-meal-input`   | ⚠ not yet added to widget      |
-| Export       | `export-screen`    | ⚠ not yet added to widget      |
+| Screen       | Anchor id                       | Meaning                                        |
+|--------------|---------------------------------|------------------------------------------------|
+| Home         | `btn-log-meal`                  | FAB — home screen ready                        |
+| Home         | `home-empty-state`              | No meals — home screen ready                   |
+| Home         | `home-meal-list`                | Has meals — home screen ready                  |
+| Home         | `btn-export`                    | Export icon in app bar                         |
+| Home         | `home-loading`                  | Still loading                                  |
+| Home         | `home-error`                    | Error state                                    |
+| Home         | `date-section-YYYY-MM-DD`       | Collapsible date group card                    |
+| Home         | `meal-tile-<id>`                | Collapsible meal tile (whole tile)             |
+| Home         | `meal-tile-header-<id>`         | Meal tile header only — use this to tap toggle |
+| Log Meal     | `log-meal-input`                | ⚠ not yet added to widget                      |
+| Export       | `export-screen`                 | ⚠ not yet added to widget                      |
 
 ⚠ = anchor defined in script scenario but not yet added to Flutter widget. Add
 `Semantics(identifier: 'id')` to the relevant widget before relying on it.
