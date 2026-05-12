@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/checkin/checkin_screen.dart';
@@ -14,7 +15,7 @@ Future<void> main() async {
   await dotenv.load(fileName: '.env');
 
   final storage = StorageService();
-  if (!await storage.hasMeals()) {
+  if (kDebugMode && !await storage.hasMeals()) {
     await SeedService().seed(storage);
   }
   storage.dispose();
