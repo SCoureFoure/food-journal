@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Food Journal</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #f5f0e8;
+    --ink: #1a1410;
+    --muted: #7a6e62;
+    --accent: #c4502a;
+    --line: #d6cfc4;
+    --good: #4a7c59;
+    --warn: #c4502a;
+    --neutral: #7a6e62;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    min-height: 100vh;
+    padding: 40px 24px;
+  }
+
+  header {
+    margin-bottom: 40px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 20px;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 42px;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    color: var(--muted);
+    margin-top: 6px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border: 1.5px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  button:hover {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  button.primary:hover {
+    background: #a33e1f;
+    border-color: #a33e1f;
+  }
+
+  .meal-group {
+    margin-bottom: 36px;
+  }
+
+  .meal-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .meal-date {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+  }
+
+  .meal-time {
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .meal-type {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 2px 8px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+  }
+
+  thead th {
+    text-align: left;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--line);
+    transition: background 0.1s;
+  }
+
+  tbody tr:hover {
+    background: rgba(0,0,0,0.03);
+  }
+
+  tbody td {
+    padding: 8px 10px;
+    vertical-align: top;
+  }
+
+  .food-name {
+    font-weight: 500;
+  }
+
+  .symptom-tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 0;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-right: 4px;
+  }
+
+  .tag-none { background: #e8f0ea; color: var(--good); }
+  .tag-mild { background: #fdf3e0; color: #a06020; }
+  .tag-bad  { background: #fce8e4; color: var(--warn); }
+  .tag-pending { background: #eeebe5; color: var(--muted); }
+
+  .notes {
+    color: var(--muted);
+    font-size: 11px;
+    font-style: italic;
+  }
+
+  .symptom-row {
+    background: #fdf5f0;
+    border-left: 3px solid var(--accent);
+  }
+
+  .symptom-row td {
+    padding: 8px 10px 8px 12px;
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  .empty-state .big {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+
+  .csv-note {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  @media print {
+    button { display: none; }
+    body { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Food <em>Journal</em></h1>
+  <div class="subtitle">Tracking meals &amp; symptoms — started May 11, 2026</div>
+</header>
+
+<div class="controls">
+  <button class="primary" onclick="exportCSV()">↓ Export CSV</button>
+  <button onclick="window.print()">Print / Save PDF</button>
+</div>
+
+<div id="journal"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+// Each entry: { date, time, mealType, items: [{food, portion, prep, symptoms, notes}] }
+const journal = [
+  {
+    date: "May 11, 2026",
+    time: "7:30 PM",
+    mealType: "Dinner",
+    symptoms: "",  // overall meal symptoms — fill in after
+    items: [
+      {
+        food: "Sweet potato",
+        portion: "1 medium (~5–6 oz)",
+        prep: "Baked, topped with honey",
+        calories: "~160",
+        macros: "2g / 38g / 0g",
+        symptoms: "pending",
+        notes: ""
+      },
+      {
+        food: "Mixed greens salad",
+        portion: "~3–4 cups",
+        prep: "Feta cheese, balsamic dressing",
+        calories: "~120",
+        macros: "5g / 8g / 7g",
+        symptoms: "pending",
+        notes: ""
+      },
+      {
+        food: "Button/cremini mushrooms",
+        portion: "~5–6 oz",
+        prep: "Sliced, cooked with olive oil, salt, pepper, mustard seed",
+        calories: "~100",
+        macros: "4g / 5g / 7g",
+        symptoms: "pending",
+        notes: ""
+      },
+      {
+        food: "Sourdough bread",
+        portion: "~2 oz (small chunk)",
+        prep: "Plain",
+        calories: "~140",
+        macros: "5g / 27g / 1g",
+        symptoms: "pending",
+        notes: ""
+      }
+    ]
+  }
+];
+
+// ─── RENDER ─────────────────────────────────────────────────────────────────
+function symptomTag(s) {
+  if (!s || s === "pending") return `<span class="symptom-tag tag-pending">Pending</span>`;
+  if (s === "none") return `<span class="symptom-tag tag-none">No reaction</span>`;
+  if (s === "mild") return `<span class="symptom-tag tag-mild">Mild</span>`;
+  if (s === "bad")  return `<span class="symptom-tag tag-bad">Bad</span>`;
+  return `<span class="symptom-tag tag-mild">${s}</span>`;
+}
+
+function render() {
+  const el = document.getElementById('journal');
+  if (!journal.length) {
+    el.innerHTML = `<div class="empty-state"><div class="big">No entries yet.</div><div>Start logging meals to see them here.</div></div>`;
+    return;
+  }
+
+  el.innerHTML = journal.map(meal => `
+    <div class="meal-group">
+      <div class="meal-header">
+        <span class="meal-date">${meal.date}</span>
+        <span class="meal-time">${meal.time}</span>
+        <span class="meal-type">${meal.mealType}</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:18%">Food</th>
+            <th style="width:15%">Portion</th>
+            <th style="width:22%">Preparation</th>
+            <th style="width:7%">Cal</th>
+            <th style="width:14%">P / C / F</th>
+            <th style="width:10%">Reaction</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${meal.items.map(item => `
+            <tr>
+              <td class="food-name">${item.food}</td>
+              <td>${item.portion}</td>
+              <td>${item.prep}</td>
+              <td>${item.calories || '—'}</td>
+              <td class="notes">${item.macros || '—'}</td>
+              <td>${symptomTag(item.symptoms)}</td>
+              <td class="notes">${item.notes || '—'}</td>
+            </tr>
+          `).join('')}
+          ${meal.symptoms ? `
+          <tr class="symptom-row">
+            <td colspan="5">⚑ After-meal symptoms: ${meal.symptoms}</td>
+          </tr>` : ''}
+        </tbody>
+      </table>
+    </div>
+  `).join('');
+}
+
+// ─── EXPORT ─────────────────────────────────────────────────────────────────
+function exportCSV() {
+  const rows = [["Date","Time","Meal","Food","Portion","Preparation","Calories","Protein/Carbs/Fat","Reaction","Notes"]];
+  journal.forEach(meal => {
+    meal.items.forEach(item => {
+      rows.push([
+        meal.date, meal.time, meal.mealType,
+        item.food, item.portion, item.prep,
+        item.calories || "", item.macros || "",
+        item.symptoms || "pending", item.notes || ""
+      ]);
+    });
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'food_journal.csv';
+  a.click();
+}
+
+render();
+</script>
+</body>
+</html>
