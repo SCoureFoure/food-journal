@@ -13,11 +13,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
 
-  if (dotenv.env['DEV_MODE'] == 'true') {
-    final storage = StorageService();
+  final storage = StorageService();
+  if (!await storage.hasMeals()) {
     await SeedService().seed(storage);
-    storage.dispose();
   }
+  storage.dispose();
 
   await NotificationService().initialize();
   runApp(const FoodJournalApp());

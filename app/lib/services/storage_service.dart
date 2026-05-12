@@ -155,6 +155,11 @@ class StorageService {
     });
   }
 
+  Future<bool> hasMeals() async {
+    final row = await (_db.select(_db.meals)..limit(1)).getSingleOrNull();
+    return row != null;
+  }
+
   Future<void> clearAll() async {
     await _db.transaction(() async {
       await _db.delete(_db.reactionLogs).go();
