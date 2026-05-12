@@ -19,7 +19,7 @@ class LogMealScreen extends StatefulWidget {
 
 class _LogMealScreenState extends State<LogMealScreen> {
   final _textController = TextEditingController();
-  final _aiService = AiService();
+  final _aiService = AiService.fromEnv();
   final _storage = StorageService();
 
   bool _isLoading = false;
