@@ -6,10 +6,19 @@ import 'screens/home/home_screen.dart';
 import 'screens/log_meal/log_meal_screen.dart';
 import 'screens/meal_detail/meal_detail_screen.dart';
 import 'services/notification_service.dart';
+import 'services/seed_service.dart';
+import 'services/storage_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
+
+  if (dotenv.env['DEV_MODE'] == 'true') {
+    final storage = StorageService();
+    await SeedService().seed(storage);
+    storage.dispose();
+  }
+
   await NotificationService().initialize();
   runApp(const FoodJournalApp());
 }

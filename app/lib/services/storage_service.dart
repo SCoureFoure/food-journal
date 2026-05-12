@@ -60,6 +60,11 @@ class StorageService {
     });
   }
 
+  Future<MealEntry?> getMealById(int id) async {
+    final row = await (_db.select(_db.meals)..where((t) => t.id.equals(id))).getSingleOrNull();
+    return row == null ? null : _mealFromRow(row);
+  }
+
   Future<List<MealEntry>> getMealsForDay(DateTime date) async {
     final start = DateTime(date.year, date.month, date.day);
     final end = start.add(const Duration(days: 1));
@@ -147,6 +152,16 @@ class StorageService {
           ),
         );
       }
+    });
+  }
+
+  Future<void> clearAll() async {
+    await _db.transaction(() async {
+      await _db.delete(_db.reactionLogs).go();
+      await _db.delete(_db.ingredients).go();
+      await _db.delete(_db.foodItems).go();
+      await _db.delete(_db.meals).go();
+      await _db.delete(_db.foodMemories).go();
     });
   }
 

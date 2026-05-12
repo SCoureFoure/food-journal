@@ -55,51 +55,75 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Food Journal'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.download),
-            onPressed: () => Navigator.pushNamed(context, '/export'),
-            tooltip: 'Export',
+          Semantics(
+            identifier: 'btn-export',
+            child: IconButton(
+              icon: const Icon(Icons.download),
+              onPressed: () => Navigator.pushNamed(context, '/export'),
+              tooltip: 'Export',
+            ),
           ),
         ],
       ),
       body: _buildBody(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await Navigator.pushNamed(context, '/log');
-          _loadMeals();
-        },
-        child: const Icon(Icons.add),
+      floatingActionButton: Semantics(
+        identifier: 'btn-log-meal',
+        child: FloatingActionButton(
+          onPressed: () async {
+            await Navigator.pushNamed(context, '/log');
+            _loadMeals();
+          },
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }
 
   Widget _buildBody() {
-    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_loading) {
+      return Center(
+        child: Semantics(
+          identifier: 'home-loading',
+          child: const CircularProgressIndicator(),
+        ),
+      );
+    }
 
     if (_errorMessage != null) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(_errorMessage!),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _loadMeals,
-              child: const Text('Retry'),
-            ),
-          ],
+        child: Semantics(
+          identifier: 'home-error',
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(_errorMessage!),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: _loadMeals,
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     if (_meals.isEmpty) {
-      return const Center(child: Text('No meals logged yet.'));
+      return Center(
+        child: Semantics(
+          identifier: 'home-empty-state',
+          child: const Text('No meals logged yet.'),
+        ),
+      );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(12),
-      itemCount: _meals.length,
-      itemBuilder: (_, i) => _MealCard(meal: _meals[i]),
+    return Semantics(
+      identifier: 'home-meal-list',
+      child: ListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: _meals.length,
+        itemBuilder: (_, i) => _MealCard(meal: _meals[i]),
+      ),
     );
   }
 }
@@ -111,13 +135,16 @@ class _MealCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.restaurant),
-        title: Text(meal.mealType),
-        subtitle: Text(meal.time),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: () => Navigator.pushNamed(context, '/meal', arguments: meal.id),
+    return Semantics(
+      identifier: 'meal-card-${meal.id}',
+      child: Card(
+        child: ListTile(
+          leading: const Icon(Icons.restaurant),
+          title: Text(meal.mealType),
+          subtitle: Text(meal.time),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.pushNamed(context, '/meal', arguments: meal.id),
+        ),
       ),
     );
   }

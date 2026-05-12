@@ -1,0 +1,109 @@
+---
+name: explore
+description: >
+  Build, install, and run the food-journal app on the Android emulator. Navigates to a target
+  screen, captures a screenshot and UIAutomator hierarchy, reads flutter logs, and analyzes
+  findings — fully autonomous, no user prompts.
+  Trigger when user says "run explore", "check the app", "/explore <screen>", or asks to
+  investigate a specific screen or behavior.
+---
+
+You are the food-journal ADB debugging rig. Execute this loop fully without prompting the user.
+
+## Constants
+
+```
+ADB      = C:\Users\SCora\AppData\Local\Android\Sdk\platform-tools\adb.exe
+PKG      = com.foodjournal.app
+REPO     = c:\Users\SCora\Documents\Repositories\food-journal
+SCRIPT   = c:\Users\SCora\Documents\Repositories\food-journal\test_explore.ps1
+SHOTS    = c:\Users\SCora\Documents\Repositories\food-journal\scratch
+```
+
+## Step 1 — Resolve scenario
+
+Argument maps to `-Scenario` param:
+
+| User says           | `-Scenario` value |
+|---------------------|-------------------|
+| home / (none)       | `home`            |
+| log meal            | `log-meal`        |
+| export              | `export`          |
+
+## Step 2 — Run the rig
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "SCRIPT" -Scenario "<value>"
+```
+
+The script handles: detect device → build → install → pre-grant permissions → launch →
+wait for foreground → wait for anchor element → wait for splash gone → navigate → screenshot → logs.
+
+If device not found, tell user to start emulator and stop.
+
+## Step 3 — Find task folder and read outputs
+
+Each run creates `scratch\explore-<scenario>-<timestamp>\`. Last run's folder name is in:
+```
+scratch\.last
+```
+
+Read `scratch\.last` to get the task folder. Then read:
+
+1. `scratch\<task>\<scenario>.png` — screenshot (Read tool reads images)
+2. `scratch\<task>\ui.xml` — UIAutomator hierarchy
+3. `scratch\<task>\flutter_log_latest.txt` — flutter logcat
+
+Past task runs are retained in `scratch\` subfolders for reference.
+
+## Step 4 — Element navigation (beyond what the script handles)
+
+To tap additional elements after the script runs, use `Tap-Element` logic manually:
+
+```powershell
+# dump fresh hierarchy
+& "ADB" -s emulator-5554 shell uiautomator dump /sdcard/ui.xml
+& "ADB" -s emulator-5554 pull /sdcard/ui.xml "scratch\<task>\ui.xml"
+```
+
+Read `ui.xml`. Flutter `Semantics(identifier: 'id')` → `resource-id="id"` in UIAutomator.
+Parse `bounds="[x1,y1][x2,y2]"` → tap center `((x1+x2)/2, (y1+y2)/2)`.
+
+```powershell
+& "ADB" -s emulator-5554 shell input tap <cx> <cy>
+```
+
+Then wait for the next screen's anchor before screenshotting.
+
+## Known anchors (resource-id)
+
+| Screen       | Anchor id          | Meaning                        |
+|--------------|--------------------|--------------------------------|
+| Home         | `btn-log-meal`     | FAB — home screen ready        |
+| Home         | `home-empty-state` | No meals — home screen ready   |
+| Home         | `home-meal-list`   | Has meals — home screen ready  |
+| Home         | `btn-export`       | Export icon in app bar         |
+| Home         | `meal-card-<id>`   | Specific meal card             |
+| Home         | `home-loading`     | Still loading                  |
+| Home         | `home-error`       | Error state                    |
+| Log Meal     | `log-meal-input`   | ⚠ not yet added to widget      |
+| Export       | `export-screen`    | ⚠ not yet added to widget      |
+
+⚠ = anchor defined in script scenario but not yet added to Flutter widget. Add
+`Semantics(identifier: 'id')` to the relevant widget before relying on it.
+
+## Adding anchors to new screens
+
+When you build a new screen or navigate somewhere new:
+1. Wrap the screen's root or key interactive widget with `Semantics(identifier: 'screen-name')`.
+2. Add the anchor to the table above.
+3. Add a scenario function in `test_explore.ps1` if it needs multi-step navigation.
+
+## Step 5 — Analyze and report
+
+- **Screen** — describe screenshot (layout, text, widgets, any visual anomalies)
+- **Logs** — flutter output, errors, exceptions
+- **Anomalies** — unexpected state in screenshot or ui.xml
+- **Next step** — concrete action to investigate or fix
+
+Do not ask the user for output at any step. Complete the full loop and report.

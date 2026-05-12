@@ -4,3 +4,6 @@
 
 # Claude Code local settings (machine-specific)
 .claude/settings.local.json
+
+# AI scratch space — logs, screenshots, analysis artifacts
+scratch/
