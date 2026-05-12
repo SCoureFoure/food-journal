@@ -250,7 +250,17 @@ class _MealTileState extends State<_MealTile> {
         onExpansionChanged: (expanded) {
           if (expanded) _loadItems();
         },
-        leading: const Icon(Icons.restaurant_outlined),
+        leading: meal.imageData != null
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: Image.memory(
+                  meal.imageData!,
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.cover,
+                ),
+              )
+            : const Icon(Icons.restaurant_outlined),
         title: Semantics(
           identifier: 'meal-tile-header-${meal.id}',
           child: Text(
@@ -266,6 +276,16 @@ class _MealTileState extends State<_MealTile> {
               child: Center(child: CircularProgressIndicator()),
             )
           else ...[
+            if (meal.imageData != null)
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                child: Image.memory(
+                  meal.imageData!,
+                  width: double.infinity,
+                  height: 200,
+                  fit: BoxFit.cover,
+                ),
+              ),
             if (hasMacros)
               MacroTotalsBar(
                 calories: totalCal,

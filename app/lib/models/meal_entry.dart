@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 class MealEntry {
   final int? id;
   final DateTime date;
@@ -6,6 +8,7 @@ class MealEntry {
   final String? overallSymptoms;
   final String? rawInput;
   final DateTime createdAt;
+  final Uint8List? imageData;
 
   const MealEntry({
     this.id,
@@ -15,6 +18,7 @@ class MealEntry {
     this.overallSymptoms,
     this.rawInput,
     required this.createdAt,
+    this.imageData,
   });
 
   MealEntry copyWith({
@@ -25,6 +29,7 @@ class MealEntry {
     String? overallSymptoms,
     String? rawInput,
     DateTime? createdAt,
+    Uint8List? imageData,
   }) {
     return MealEntry(
       id: id ?? this.id,
@@ -34,6 +39,7 @@ class MealEntry {
       overallSymptoms: overallSymptoms ?? this.overallSymptoms,
       rawInput: rawInput ?? this.rawInput,
       createdAt: createdAt ?? this.createdAt,
+      imageData: imageData ?? this.imageData,
     );
   }
 }

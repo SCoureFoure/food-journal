@@ -26,6 +26,7 @@ class StorageService {
           overallSymptoms: Value(meal.overallSymptoms),
           rawInput: Value(meal.rawInput),
           createdAt: meal.createdAt,
+          imageData: Value(meal.imageData),
         ),
       );
 
@@ -165,6 +166,11 @@ class StorageService {
     });
   }
 
+  Future<void> updateMealSymptoms(int mealId, String? symptoms) async {
+    await (_db.update(_db.meals)..where((t) => t.id.equals(mealId)))
+        .write(db.MealsCompanion(overallSymptoms: Value(symptoms)));
+  }
+
   Future<bool> hasMeals() async {
     final row = await (_db.select(_db.meals)..limit(1)).getSingleOrNull();
     return row != null;
@@ -192,6 +198,7 @@ class StorageService {
         overallSymptoms: row.overallSymptoms,
         rawInput: row.rawInput,
         createdAt: row.createdAt,
+        imageData: row.imageData,
       );
 
   FoodItem _foodItemFromRow(db.FoodItem row) => FoodItem(

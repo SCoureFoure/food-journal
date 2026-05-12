@@ -33,7 +33,7 @@ class FoodJournalApp extends StatelessWidget {
       title: 'Food Journal',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFC4502A)),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3B7A5C)),
         useMaterial3: true,
       ),
       initialRoute: '/',

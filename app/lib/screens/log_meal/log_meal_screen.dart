@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 import '../../models/food_item.dart';
 import '../../models/ingredient.dart';
@@ -27,6 +28,8 @@ class _LogMealScreenState extends State<LogMealScreen> {
   List<FoodItemDraft>? _parsedItems;
   String _mealType = _inferMealType();
   Uint8List? _imageBytes;
+  DateTime _mealDate = _today();
+  TimeOfDay _mealTime = TimeOfDay.now();
 
   static const _mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 
@@ -35,6 +38,34 @@ class _LogMealScreenState extends State<LogMealScreen> {
     if (hour < 10) return 'Breakfast';
     if (hour < 14) return 'Lunch';
     return 'Dinner';
+  }
+
+  static DateTime _today() {
+    final n = DateTime.now();
+    return DateTime(n.year, n.month, n.day);
+  }
+
+  String _formatTime(TimeOfDay t) {
+    final h = t.hourOfPeriod == 0 ? 12 : t.hourOfPeriod;
+    final m = t.minute.toString().padLeft(2, '0');
+    final period = t.period == DayPeriod.am ? 'AM' : 'PM';
+    return '$h:$m $period';
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _mealDate,
+      firstDate: DateTime(now.year - 1),
+      lastDate: now,
+    );
+    if (picked != null) setState(() => _mealDate = picked);
+  }
+
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(context: context, initialTime: _mealTime);
+    if (picked != null) setState(() => _mealTime = picked);
   }
 
   @override
@@ -97,6 +128,29 @@ class _LogMealScreenState extends State<LogMealScreen> {
   }
 
   List<Widget> _inputSection() => [
+        Row(
+          children: [
+            DropdownButton<String>(
+              value: _mealType,
+              items: _mealTypes
+                  .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                  .toList(),
+              onChanged: _isLoading ? null : (v) => setState(() => _mealType = v!),
+            ),
+            const Spacer(),
+            TextButton.icon(
+              onPressed: _isLoading ? null : _pickDate,
+              icon: const Icon(Icons.calendar_today, size: 14),
+              label: Text(DateFormat('MMM d').format(_mealDate)),
+            ),
+            TextButton.icon(
+              onPressed: _isLoading ? null : _pickTime,
+              icon: const Icon(Icons.access_time, size: 14),
+              label: Text(_formatTime(_mealTime)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
         TextField(
           controller: _textController,
           maxLines: 4,
@@ -126,20 +180,6 @@ class _LogMealScreenState extends State<LogMealScreen> {
       ];
 
   List<Widget> _reviewSection(List<FoodItemDraft> items) => [
-        Row(
-          children: [
-            const Text('Meal type:'),
-            const SizedBox(width: 12),
-            DropdownButton<String>(
-              value: _mealType,
-              items: _mealTypes
-                  .map((t) => DropdownMenuItem(value: t, child: Text(t)))
-                  .toList(),
-              onChanged: (v) => setState(() => _mealType = v!),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
         ...items.map((item) => _FoodItemCard(item: item)),
         const SizedBox(height: 8),
       ];
@@ -186,13 +226,13 @@ class _LogMealScreenState extends State<LogMealScreen> {
     });
 
     try {
-      final now = DateTime.now();
       final meal = MealEntry(
-        date: DateTime(now.year, now.month, now.day),
-        time: TimeOfDay.now().format(context),
+        date: _mealDate,
+        time: _mealTime.format(context),
         mealType: _mealType,
         rawInput: _textController.text.trim(),
-        createdAt: now,
+        createdAt: DateTime.now(),
+        imageData: _imageBytes,
       );
 
       final items = drafts

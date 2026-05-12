@@ -83,6 +83,17 @@ class $MealsTable extends Meals with TableInfo<$MealsTable, Meal> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _imageDataMeta = const VerificationMeta(
+    'imageData',
+  );
+  @override
+  late final GeneratedColumn<Uint8List> imageData = GeneratedColumn<Uint8List>(
+    'image_data',
+    aliasedName,
+    true,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -92,6 +103,7 @@ class $MealsTable extends Meals with TableInfo<$MealsTable, Meal> {
     overallSymptoms,
     rawInput,
     createdAt,
+    imageData,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -155,6 +167,12 @@ class $MealsTable extends Meals with TableInfo<$MealsTable, Meal> {
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
+    if (data.containsKey('image_data')) {
+      context.handle(
+        _imageDataMeta,
+        imageData.isAcceptableOrUnknown(data['image_data']!, _imageDataMeta),
+      );
+    }
     return context;
   }
 
@@ -192,6 +210,10 @@ class $MealsTable extends Meals with TableInfo<$MealsTable, Meal> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      imageData: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}image_data'],
+      ),
     );
   }
 
@@ -209,6 +231,7 @@ class Meal extends DataClass implements Insertable<Meal> {
   final String? overallSymptoms;
   final String? rawInput;
   final DateTime createdAt;
+  final Uint8List? imageData;
   const Meal({
     required this.id,
     required this.date,
@@ -217,6 +240,7 @@ class Meal extends DataClass implements Insertable<Meal> {
     this.overallSymptoms,
     this.rawInput,
     required this.createdAt,
+    this.imageData,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -232,6 +256,9 @@ class Meal extends DataClass implements Insertable<Meal> {
       map['raw_input'] = Variable<String>(rawInput);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || imageData != null) {
+      map['image_data'] = Variable<Uint8List>(imageData);
+    }
     return map;
   }
 
@@ -248,6 +275,9 @@ class Meal extends DataClass implements Insertable<Meal> {
           ? const Value.absent()
           : Value(rawInput),
       createdAt: Value(createdAt),
+      imageData: imageData == null && nullToAbsent
+          ? const Value.absent()
+          : Value(imageData),
     );
   }
 
@@ -264,6 +294,7 @@ class Meal extends DataClass implements Insertable<Meal> {
       overallSymptoms: serializer.fromJson<String?>(json['overallSymptoms']),
       rawInput: serializer.fromJson<String?>(json['rawInput']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      imageData: serializer.fromJson<Uint8List?>(json['imageData']),
     );
   }
   @override
@@ -277,6 +308,7 @@ class Meal extends DataClass implements Insertable<Meal> {
       'overallSymptoms': serializer.toJson<String?>(overallSymptoms),
       'rawInput': serializer.toJson<String?>(rawInput),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'imageData': serializer.toJson<Uint8List?>(imageData),
     };
   }
 
@@ -288,6 +320,7 @@ class Meal extends DataClass implements Insertable<Meal> {
     Value<String?> overallSymptoms = const Value.absent(),
     Value<String?> rawInput = const Value.absent(),
     DateTime? createdAt,
+    Value<Uint8List?> imageData = const Value.absent(),
   }) => Meal(
     id: id ?? this.id,
     date: date ?? this.date,
@@ -298,6 +331,7 @@ class Meal extends DataClass implements Insertable<Meal> {
         : this.overallSymptoms,
     rawInput: rawInput.present ? rawInput.value : this.rawInput,
     createdAt: createdAt ?? this.createdAt,
+    imageData: imageData.present ? imageData.value : this.imageData,
   );
   Meal copyWithCompanion(MealsCompanion data) {
     return Meal(
@@ -310,6 +344,7 @@ class Meal extends DataClass implements Insertable<Meal> {
           : this.overallSymptoms,
       rawInput: data.rawInput.present ? data.rawInput.value : this.rawInput,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      imageData: data.imageData.present ? data.imageData.value : this.imageData,
     );
   }
 
@@ -322,7 +357,8 @@ class Meal extends DataClass implements Insertable<Meal> {
           ..write('mealType: $mealType, ')
           ..write('overallSymptoms: $overallSymptoms, ')
           ..write('rawInput: $rawInput, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('imageData: $imageData')
           ..write(')'))
         .toString();
   }
@@ -336,6 +372,7 @@ class Meal extends DataClass implements Insertable<Meal> {
     overallSymptoms,
     rawInput,
     createdAt,
+    $driftBlobEquality.hash(imageData),
   );
   @override
   bool operator ==(Object other) =>
@@ -347,7 +384,8 @@ class Meal extends DataClass implements Insertable<Meal> {
           other.mealType == this.mealType &&
           other.overallSymptoms == this.overallSymptoms &&
           other.rawInput == this.rawInput &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          $driftBlobEquality.equals(other.imageData, this.imageData));
 }
 
 class MealsCompanion extends UpdateCompanion<Meal> {
@@ -358,6 +396,7 @@ class MealsCompanion extends UpdateCompanion<Meal> {
   final Value<String?> overallSymptoms;
   final Value<String?> rawInput;
   final Value<DateTime> createdAt;
+  final Value<Uint8List?> imageData;
   const MealsCompanion({
     this.id = const Value.absent(),
     this.date = const Value.absent(),
@@ -366,6 +405,7 @@ class MealsCompanion extends UpdateCompanion<Meal> {
     this.overallSymptoms = const Value.absent(),
     this.rawInput = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.imageData = const Value.absent(),
   });
   MealsCompanion.insert({
     this.id = const Value.absent(),
@@ -375,6 +415,7 @@ class MealsCompanion extends UpdateCompanion<Meal> {
     this.overallSymptoms = const Value.absent(),
     this.rawInput = const Value.absent(),
     required DateTime createdAt,
+    this.imageData = const Value.absent(),
   }) : date = Value(date),
        time = Value(time),
        mealType = Value(mealType),
@@ -387,6 +428,7 @@ class MealsCompanion extends UpdateCompanion<Meal> {
     Expression<String>? overallSymptoms,
     Expression<String>? rawInput,
     Expression<DateTime>? createdAt,
+    Expression<Uint8List>? imageData,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -396,6 +438,7 @@ class MealsCompanion extends UpdateCompanion<Meal> {
       if (overallSymptoms != null) 'overall_symptoms': overallSymptoms,
       if (rawInput != null) 'raw_input': rawInput,
       if (createdAt != null) 'created_at': createdAt,
+      if (imageData != null) 'image_data': imageData,
     });
   }
 
@@ -407,6 +450,7 @@ class MealsCompanion extends UpdateCompanion<Meal> {
     Value<String?>? overallSymptoms,
     Value<String?>? rawInput,
     Value<DateTime>? createdAt,
+    Value<Uint8List?>? imageData,
   }) {
     return MealsCompanion(
       id: id ?? this.id,
@@ -416,6 +460,7 @@ class MealsCompanion extends UpdateCompanion<Meal> {
       overallSymptoms: overallSymptoms ?? this.overallSymptoms,
       rawInput: rawInput ?? this.rawInput,
       createdAt: createdAt ?? this.createdAt,
+      imageData: imageData ?? this.imageData,
     );
   }
 
@@ -443,6 +488,9 @@ class MealsCompanion extends UpdateCompanion<Meal> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (imageData.present) {
+      map['image_data'] = Variable<Uint8List>(imageData.value);
+    }
     return map;
   }
 
@@ -455,7 +503,8 @@ class MealsCompanion extends UpdateCompanion<Meal> {
           ..write('mealType: $mealType, ')
           ..write('overallSymptoms: $overallSymptoms, ')
           ..write('rawInput: $rawInput, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('imageData: $imageData')
           ..write(')'))
         .toString();
   }
@@ -2303,6 +2352,7 @@ typedef $$MealsTableCreateCompanionBuilder =
       Value<String?> overallSymptoms,
       Value<String?> rawInput,
       required DateTime createdAt,
+      Value<Uint8List?> imageData,
     });
 typedef $$MealsTableUpdateCompanionBuilder =
     MealsCompanion Function({
@@ -2313,6 +2363,7 @@ typedef $$MealsTableUpdateCompanionBuilder =
       Value<String?> overallSymptoms,
       Value<String?> rawInput,
       Value<DateTime> createdAt,
+      Value<Uint8List?> imageData,
     });
 
 final class $$MealsTableReferences
@@ -2396,6 +2447,11 @@ class $$MealsTableFilterComposer extends Composer<_$AppDatabase, $MealsTable> {
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<Uint8List> get imageData => $composableBuilder(
+    column: $table.imageData,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2493,6 +2549,11 @@ class $$MealsTableOrderingComposer
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<Uint8List> get imageData => $composableBuilder(
+    column: $table.imageData,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$MealsTableAnnotationComposer
@@ -2526,6 +2587,9 @@ class $$MealsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<Uint8List> get imageData =>
+      $composableBuilder(column: $table.imageData, builder: (column) => column);
 
   Expression<T> foodItemsRefs<T extends Object>(
     Expression<T> Function($$FoodItemsTableAnnotationComposer a) f,
@@ -2613,6 +2677,7 @@ class $$MealsTableTableManager
                 Value<String?> overallSymptoms = const Value.absent(),
                 Value<String?> rawInput = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<Uint8List?> imageData = const Value.absent(),
               }) => MealsCompanion(
                 id: id,
                 date: date,
@@ -2621,6 +2686,7 @@ class $$MealsTableTableManager
                 overallSymptoms: overallSymptoms,
                 rawInput: rawInput,
                 createdAt: createdAt,
+                imageData: imageData,
               ),
           createCompanionCallback:
               ({
@@ -2631,6 +2697,7 @@ class $$MealsTableTableManager
                 Value<String?> overallSymptoms = const Value.absent(),
                 Value<String?> rawInput = const Value.absent(),
                 required DateTime createdAt,
+                Value<Uint8List?> imageData = const Value.absent(),
               }) => MealsCompanion.insert(
                 id: id,
                 date: date,
@@ -2639,6 +2706,7 @@ class $$MealsTableTableManager
                 overallSymptoms: overallSymptoms,
                 rawInput: rawInput,
                 createdAt: createdAt,
+                imageData: imageData,
               ),
           withReferenceMapper: (p0) => p0
               .map(
