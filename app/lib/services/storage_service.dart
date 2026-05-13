@@ -212,7 +212,7 @@ class StorageService {
     });
   }
 
-  void dispose() => _db.close();
+  void dispose() {} // singleton DB — never close
 
   // ── mappers ──────────────────────────────────────────────────────────────────
 

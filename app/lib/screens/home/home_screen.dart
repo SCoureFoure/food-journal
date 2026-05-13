@@ -208,6 +208,9 @@ class _MealTileState extends State<_MealTile> {
   bool _loaded = false;
   bool _loadingItems = false;
   List<_ItemWithIngredients> _items = [];
+  MealEntry? _localMeal;
+
+  MealEntry get _meal => _localMeal ?? widget.meal;
 
   Future<void> _loadItems() async {
     if (_loaded || _loadingItems) return;
@@ -300,15 +303,20 @@ class _MealTileState extends State<_MealTile> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   ..._items.map((i) => FoodItemCard(item: i.item, ingredients: i.ingredients)),
-                  if (meal.overallSymptoms != null && meal.overallSymptoms!.isNotEmpty)
-                    _SymptomsRow(symptoms: meal.overallSymptoms!),
+                  if (_meal.overallSymptoms != null && _meal.overallSymptoms!.isNotEmpty)
+                    _SymptomsRow(symptoms: _meal.overallSymptoms!),
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton.icon(
                       icon: const Icon(Icons.checklist, size: 16),
                       label: const Text('Log Check-in'),
-                      onPressed: () =>
-                          Navigator.pushNamed(context, '/checkin', arguments: meal.id),
+                      onPressed: () async {
+                        await Navigator.pushNamed(context, '/checkin', arguments: widget.meal.id);
+                        if (!mounted) return;
+                        final updated = await widget.storage.getMealById(widget.meal.id!);
+                        if (!mounted || updated == null) return;
+                        setState(() => _localMeal = updated);
+                      },
                     ),
                   ),
                 ],
