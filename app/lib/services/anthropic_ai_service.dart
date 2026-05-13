@@ -15,6 +15,7 @@ You are a meal-logging assistant. Parse the user's meal description (text and/or
 
 Return this exact structure:
 {
+  "title": "string",
   "foods": [
     {
       "name": "string",
@@ -31,6 +32,7 @@ Return this exact structure:
 }
 
 Guidelines:
+- title: short descriptive name for the overall meal (e.g. "Grilled Salmon with Asparagus", "Avocado Toast"). Use the meal type provided as context but make it descriptive, not just "Breakfast" or "Lunch".
 - Estimate calories and macros (protein/carbs/fat in grams) where possible; use null if truly unknown
 - Extract ingredients as simple item names (e.g. "olive oil", "feta cheese")
 - portion: describe size/weight/volume (e.g. "1 medium", "~5 oz", "2 tbsp")
@@ -41,6 +43,7 @@ Guidelines:
   Future<MealParseResult> parseMeal({
     String? text,
     Uint8List? imageBytes,
+    String? mealType,
   }) async {
     if (_apiKey.isEmpty) {
       return MealParseResult(
@@ -63,8 +66,12 @@ Guidelines:
         });
       }
 
-      if (text != null && text.isNotEmpty) {
-        content.add({'type': 'text', 'text': text});
+      final parts = <String>[
+        if (mealType != null) 'Meal type: $mealType',
+        if (text != null && text.isNotEmpty) text,
+      ];
+      if (parts.isNotEmpty) {
+        content.add({'type': 'text', 'text': parts.join('\n')});
       }
 
       if (content.isEmpty) {
@@ -104,8 +111,9 @@ Guidelines:
       final foods = (json['foods'] as List)
           .map((f) => FoodItemDraft.fromJson(f as Map<String, dynamic>))
           .toList();
+      final title = json['title'] as String?;
 
-      return MealParseResult(success: true, items: foods);
+      return MealParseResult(success: true, items: foods, title: title);
     } catch (e) {
       return MealParseResult(success: false, errorMessage: e.toString());
     }

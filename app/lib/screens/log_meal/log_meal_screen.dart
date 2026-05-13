@@ -27,11 +27,18 @@ class _LogMealScreenState extends State<LogMealScreen> {
   String? _errorMessage;
   List<FoodItemDraft>? _parsedItems;
   String _mealType = _inferMealType();
+  late final TextEditingController _titleController;
   Uint8List? _imageBytes;
   DateTime _mealDate = _today();
   TimeOfDay _mealTime = TimeOfDay.now();
 
   static const _mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController();
+  }
 
   static String _inferMealType() {
     final hour = DateTime.now().hour;
@@ -71,6 +78,7 @@ class _LogMealScreenState extends State<LogMealScreen> {
   @override
   void dispose() {
     _textController.dispose();
+    _titleController.dispose();
     super.dispose();
   }
 
@@ -180,6 +188,15 @@ class _LogMealScreenState extends State<LogMealScreen> {
       ];
 
   List<Widget> _reviewSection(List<FoodItemDraft> items) => [
+        TextField(
+          controller: _titleController,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          decoration: const InputDecoration(
+            labelText: 'Meal title',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 12),
         ...items.map((item) => _FoodItemCard(item: item)),
         const SizedBox(height: 8),
       ];
@@ -203,7 +220,7 @@ class _LogMealScreenState extends State<LogMealScreen> {
       _isLoading = true;
     });
 
-    final result = await _aiService.parseMeal(text: text, imageBytes: _imageBytes);
+    final result = await _aiService.parseMeal(text: text, imageBytes: _imageBytes, mealType: _mealType);
 
     if (!mounted) return;
     setState(() => _isLoading = false);
@@ -213,6 +230,7 @@ class _LogMealScreenState extends State<LogMealScreen> {
       return;
     }
 
+    _titleController.text = result.title ?? _mealType;
     setState(() => _parsedItems = result.items);
   }
 
@@ -229,7 +247,7 @@ class _LogMealScreenState extends State<LogMealScreen> {
       final meal = MealEntry(
         date: _mealDate,
         time: _mealTime.format(context),
-        mealType: _mealType,
+        mealType: _titleController.text.trim().isNotEmpty ? _titleController.text.trim() : _mealType,
         rawInput: _textController.text.trim(),
         createdAt: DateTime.now(),
         imageData: _imageBytes,

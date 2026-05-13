@@ -19,7 +19,7 @@ export default {
       return new Response('Method not allowed', { status: 405 });
     }
 
-    const { task, text, image } = await request.json();
+    const { task, text, image, mealType } = await request.json();
 
     const promptEntry = prompts[task];
     if (!promptEntry) {
@@ -31,7 +31,8 @@ export default {
 
     const parts = [];
     if (image) parts.push({ inlineData: { data: image.data, mimeType: image.mimeType ?? 'image/jpeg' } });
-    if (text) parts.push({ text });
+    const userText = [mealType ? `Meal type: ${mealType}` : null, text].filter(Boolean).join('\n');
+    if (userText) parts.push({ text: userText });
 
     if (parts.length === 0) {
       return new Response(JSON.stringify({ error: 'Provide text or image' }), {

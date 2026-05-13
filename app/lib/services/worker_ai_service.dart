@@ -11,7 +11,7 @@ class WorkerAiService implements AiService {
   String get _workerUrl => dotenv.env['MEAL_PARSER_URL'] ?? '';
 
   @override
-  Future<MealParseResult> parseMeal({String? text, Uint8List? imageBytes}) async {
+  Future<MealParseResult> parseMeal({String? text, Uint8List? imageBytes, String? mealType}) async {
     if (_workerUrl.isEmpty) {
       return MealParseResult(
         success: false,
@@ -20,6 +20,7 @@ class WorkerAiService implements AiService {
     }
 
     final body = <String, dynamic>{'task': 'parse_meal'};
+    if (mealType != null) body['mealType'] = mealType;
     if (text != null && text.isNotEmpty) body['text'] = text;
     if (imageBytes != null) {
       body['image'] = {
@@ -53,8 +54,9 @@ class WorkerAiService implements AiService {
       final foods = (json['foods'] as List)
           .map((f) => FoodItemDraft.fromJson(f as Map<String, dynamic>))
           .toList();
+      final title = json['title'] as String?;
 
-      return MealParseResult(success: true, items: foods);
+      return MealParseResult(success: true, items: foods, title: title);
     } catch (e) {
       return MealParseResult(success: false, errorMessage: e.toString());
     }
