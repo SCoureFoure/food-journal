@@ -135,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Semantics(
       identifier: 'home-meal-list',
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.only(top: 8, bottom: 80),
         itemCount: _sortedDates.length,
         itemBuilder: (_, i) {
           final date = _sortedDates[i];
@@ -176,6 +176,7 @@ class _DateSection extends StatelessWidget {
       identifier: 'date-section-${date.toIso8601String().substring(0, 10)}',
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        clipBehavior: Clip.antiAlias,
         child: ExpansionTile(
           initiallyExpanded: isToday,
           title: Text(
@@ -294,7 +295,7 @@ class _MealTileState extends State<_MealTile> {
                 fat: totalFat,
               ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [

@@ -93,7 +93,10 @@ Then wait for the next screen's anchor before screenshotting.
 | Home         | `meal-tile-<id>`                | Collapsible meal tile (whole tile)             |
 | Home         | `meal-tile-header-<id>`         | Meal tile header only — use this to tap toggle |
 | Log Meal     | `log-meal-input`                | ⚠ not yet added to widget                      |
-| Export       | `export-screen`                 | ⚠ not yet added to widget                      |
+| Export       | `export-screen`                 | Export screen root                             |
+| Export       | `btn-date-from`                 | From date picker tile                          |
+| Export       | `btn-date-to`                   | To date picker tile                            |
+| Export       | `btn-export-json`               | Export as JSON button                          |
 
 ⚠ = anchor defined in script scenario but not yet added to Flutter widget. Add
 `Semantics(identifier: 'id')` to the relevant widget before relying on it.

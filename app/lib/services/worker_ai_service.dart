@@ -19,7 +19,7 @@ class WorkerAiService implements AiService {
       );
     }
 
-    final body = <String, dynamic>{};
+    final body = <String, dynamic>{'task': 'parse_meal'};
     if (text != null && text.isNotEmpty) body['text'] = text;
     if (imageBytes != null) {
       body['image'] = {

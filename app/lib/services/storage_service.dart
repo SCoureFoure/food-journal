@@ -90,6 +90,25 @@ class StorageService {
     return rows.map(_mealFromRow).toList();
   }
 
+  Future<List<MealEntry>> getMealsInRange({DateTime? from, DateTime? to}) async {
+    final start = from != null ? DateTime(from.year, from.month, from.day) : null;
+    final end = to != null ? DateTime(to.year, to.month, to.day + 1) : null;
+    final query = _db.select(_db.meals);
+    if (start != null && end != null) {
+      query.where((t) => t.date.isBiggerOrEqualValue(start) & t.date.isSmallerThanValue(end));
+    } else if (start != null) {
+      query.where((t) => t.date.isBiggerOrEqualValue(start));
+    } else if (end != null) {
+      query.where((t) => t.date.isSmallerThanValue(end));
+    }
+    query.orderBy([
+      (t) => OrderingTerm.desc(t.date),
+      (t) => OrderingTerm.asc(t.createdAt),
+    ]);
+    final rows = await query.get();
+    return rows.map(_mealFromRow).toList();
+  }
+
   Future<List<MealEntry>> getMealsForWeek(DateTime weekStart) async {
     final start = DateTime(weekStart.year, weekStart.month, weekStart.day);
     final end = start.add(const Duration(days: 7));
@@ -116,6 +135,13 @@ class StorageService {
           ..where((t) => t.foodItemId.equals(foodItemId)))
         .get();
     return rows.map(_ingredientFromRow).toList();
+  }
+
+  Future<List<ReactionLog>> getReactionLogsForMeal(int mealId) async {
+    final rows = await (_db.select(_db.reactionLogs)
+          ..where((t) => t.mealId.equals(mealId)))
+        .get();
+    return rows.map(_reactionLogFromRow).toList();
   }
 
   Future<void> saveReactionLog(ReactionLog log) async {
@@ -221,6 +247,15 @@ class StorageService {
         name: row.name,
         quantity: row.quantity,
         unit: row.unit,
+      );
+
+  ReactionLog _reactionLogFromRow(db.ReactionLog row) => ReactionLog(
+        id: row.id,
+        mealId: row.mealId,
+        checkinTime: row.checkinTime,
+        symptoms: List<String>.from(jsonDecode(row.symptoms) as List),
+        severity: ReactionLevel.fromInt(row.severity),
+        notes: row.notes,
       );
 
   FoodMemory _foodMemoryFromRow(db.FoodMemory row) => FoodMemory(
