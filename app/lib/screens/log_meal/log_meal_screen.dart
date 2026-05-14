@@ -238,7 +238,10 @@ class _LogMealScreenState extends State<LogMealScreen> {
       appBar: AppBar(title: Text(_isEditing ? 'Edit Meal' : 'Log Meal')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+          : GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -331,6 +334,7 @@ class _LogMealScreenState extends State<LogMealScreen> {
                 ],
               ),
             ),
+          ),
     );
   }
 }

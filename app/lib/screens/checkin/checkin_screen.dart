@@ -60,8 +60,11 @@ class _CheckinScreenState extends State<CheckinScreen> {
       body: Column(
         children: [
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -114,6 +117,7 @@ class _CheckinScreenState extends State<CheckinScreen> {
                 ],
               ),
             ),
+          ),
           ),
           SafeArea(
             child: Padding(

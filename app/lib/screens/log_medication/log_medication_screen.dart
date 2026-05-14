@@ -185,7 +185,10 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(_isEditing ? 'Edit Medication' : 'Log Medication')),
-      body: SingleChildScrollView(
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -294,6 +297,7 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

@@ -102,7 +102,10 @@ class _EditableFoodItemCardState extends State<EditableFoodItemCard> {
           // X button is wrapped opaque so it absorbs delete taps without triggering toggle.
           GestureDetector(
             behavior: HitTestBehavior.translucent,
-            onTap: () => setState(() => _expanded = !_expanded),
+            onTap: () {
+              FocusScope.of(context).unfocus();
+              setState(() => _expanded = !_expanded);
+            },
             child: SizedBox(
               height: 48,
               child: Row(
