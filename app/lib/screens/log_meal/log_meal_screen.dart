@@ -9,7 +9,10 @@ import '../../services/ai_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/settings_service.dart';
 import '../../services/storage_service.dart';
+import '../../utils/date_time_utils.dart';
 import '../../widgets/editable_food_item_card.dart';
+import '../../widgets/error_display.dart';
+import '../../widgets/loading_button.dart';
 import '../../widgets/log_date_time_row.dart';
 import '../../widgets/log_description_section.dart';
 import '../../widgets/log_photo_section.dart';
@@ -37,8 +40,8 @@ class _LogMealScreenState extends State<LogMealScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  String _mealType = _inferMealType();
-  DateTime _mealDate = _today();
+  String _mealType = DateTimeUtils.inferMealType();
+  DateTime _mealDate = DateTimeUtils.today();
   TimeOfDay _mealTime = TimeOfDay.now();
   Uint8List? _imageBytes;
 
@@ -47,18 +50,6 @@ class _LogMealScreenState extends State<LogMealScreen> {
   bool get _isEditing => widget.existingMeal != null;
 
   static const _mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
-
-  static String _inferMealType() {
-    final hour = DateTime.now().hour;
-    if (hour < 10) return 'Breakfast';
-    if (hour < 14) return 'Lunch';
-    return 'Dinner';
-  }
-
-  static DateTime _today() {
-    final n = DateTime.now();
-    return DateTime(n.year, n.month, n.day);
-  }
 
   @override
   void initState() {
@@ -72,17 +63,6 @@ class _LogMealScreenState extends State<LogMealScreen> {
     if (mounted) setState(() => _aiEnabled = enabled);
   }
 
-  TimeOfDay _parseTime(String timeStr) {
-    final m = RegExp(r'(\d+):(\d+)(?:\s*(AM|PM))?', caseSensitive: false).firstMatch(timeStr);
-    if (m == null) return TimeOfDay.now();
-    int hour = int.parse(m.group(1)!);
-    final minute = int.parse(m.group(2)!);
-    final period = m.group(3)?.toUpperCase();
-    if (period == 'PM' && hour != 12) hour += 12;
-    if (period == 'AM' && hour == 12) hour = 0;
-    return TimeOfDay(hour: hour % 24, minute: minute);
-  }
-
   Future<void> _loadExisting() async {
     final meal = widget.existingMeal!;
     setState(() => _isLoading = true);
@@ -93,24 +73,19 @@ class _LogMealScreenState extends State<LogMealScreen> {
 
     final mealType = _mealTypes.contains(meal.mealType) ? meal.mealType : _mealType;
 
-    final foodItems = await _storage.getFoodItemsForMeal(meal.id!);
-    final withIngredients = await Future.wait(
-      foodItems.map((item) async {
-        final ings = item.id != null
-            ? await _storage.getIngredientsForFoodItem(item.id!)
-            : <Ingredient>[];
-        return FoodItemFormData.fromExisting(item, ings);
-      }),
+    final withIngredients = await _storage.getFoodItemsWithIngredients(meal.id!);
+    final formData = await Future.wait(
+      withIngredients.map((r) async => FoodItemFormData.fromExisting(r.item, r.ingredients)),
     );
 
     if (!mounted) return;
     setState(() {
       _mealDate = DateTime(meal.date.year, meal.date.month, meal.date.day);
-      _mealTime = _parseTime(meal.time);
+      _mealTime = DateTimeUtils.parseTime(meal.time);
       _mealType = mealType;
       _foodItems
         ..clear()
-        ..addAll(withIngredients);
+        ..addAll(formData);
       _isLoading = false;
     });
   }
@@ -268,7 +243,6 @@ class _LogMealScreenState extends State<LogMealScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // ── Type / Date / Time ──────────────────────────────────────────
                   LogDateTimeRow(
                     date: _mealDate,
                     time: _mealTime,
@@ -285,8 +259,6 @@ class _LogMealScreenState extends State<LogMealScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // ── Title ───────────────────────────────────────────────────────
                   Semantics(
                     identifier: 'log-meal-title',
                     child: TextField(
@@ -301,8 +273,6 @@ class _LogMealScreenState extends State<LogMealScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // ── Photo ───────────────────────────────────────────────────────
                   LogPhotoSection(
                     imageBytes: _imageBytes,
                     enabled: !_isSaving && !_isAutofilling,
@@ -310,8 +280,6 @@ class _LogMealScreenState extends State<LogMealScreen> {
                     onClear: () => setState(() => _imageBytes = null),
                   ),
                   const SizedBox(height: 12),
-
-                  // ── Description + Autofill ──────────────────────────────────────
                   LogDescriptionSection(
                     controller: _descCtrl,
                     aiEnabled: _aiEnabled,
@@ -320,8 +288,6 @@ class _LogMealScreenState extends State<LogMealScreen> {
                     hintText: 'Describe your meal…',
                   ),
                   const SizedBox(height: 20),
-
-                  // ── Food items ──────────────────────────────────────────────────
                   Row(
                     children: [
                       Text('Food items', style: theme.textTheme.titleSmall),
@@ -350,27 +316,17 @@ class _LogMealScreenState extends State<LogMealScreen> {
                       onDelete: () => _removeItem(i),
                     ),
                   ),
-
-                  // ── Error ───────────────────────────────────────────────────────
                   if (_errorMessage != null) ...[
                     const SizedBox(height: 8),
-                    Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                    ErrorBanner(message: _errorMessage!),
                   ],
                   const SizedBox(height: 16),
-
-                  // ── Save ────────────────────────────────────────────────────────
-                  Semantics(
-                    identifier: 'btn-save-meal',
-                    child: ElevatedButton(
-                      onPressed: _isSaving || _isAutofilling ? null : _save,
-                      child: _isSaving
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(_isEditing ? 'Save Changes' : 'Save Meal'),
-                    ),
+                  LoadingButton(
+                    isLoading: _isSaving,
+                    disabled: _isAutofilling,
+                    label: _isEditing ? 'Save Changes' : 'Save Meal',
+                    onPressed: _save,
+                    semanticsId: 'btn-save-meal',
                   ),
                 ],
               ),

@@ -5,8 +5,10 @@ import '../../models/food_item.dart';
 import '../../models/ingredient.dart';
 import '../../models/meal_entry.dart';
 import '../../services/storage_service.dart';
+import '../../widgets/error_display.dart';
 import '../../widgets/food_item_card.dart';
 import '../../widgets/macro_totals_bar.dart';
+import '../../widgets/symptoms_banner.dart';
 
 class MealDetailScreen extends StatefulWidget {
   final int mealId;
@@ -22,7 +24,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   MealEntry? _meal;
-  List<_ItemWithIngredients> _items = [];
+  List<({FoodItem item, List<Ingredient> ingredients})> _items = [];
 
   @override
   void initState() {
@@ -45,20 +47,12 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       final meal = await _storage.getMealById(widget.mealId);
       if (meal == null) throw Exception('Meal not found.');
 
-      final foodItems = await _storage.getFoodItemsForMeal(widget.mealId);
-      final withIngredients = await Future.wait(
-        foodItems.map((item) async {
-          final ings = item.id != null
-              ? await _storage.getIngredientsForFoodItem(item.id!)
-              : <Ingredient>[];
-          return _ItemWithIngredients(item, ings);
-        }),
-      );
+      final items = await _storage.getFoodItemsWithIngredients(widget.mealId);
 
       if (!mounted) return;
       setState(() {
         _meal = meal;
-        _items = withIngredients;
+        _items = items;
         _isLoading = false;
       });
     } catch (e) {
@@ -93,16 +87,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     if (_isLoading) return const Center(child: CircularProgressIndicator());
 
     if (_errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(_errorMessage!),
-            const SizedBox(height: 12),
-            ElevatedButton(onPressed: _load, child: const Text('Retry')),
-          ],
-        ),
-      );
+      return ErrorRetry(message: _errorMessage!, onRetry: _load);
     }
 
     final meal = _meal!;
@@ -128,19 +113,16 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             children: [
               ..._items.map((i) => FoodItemCard(item: i.item, ingredients: i.ingredients)),
               if (meal.overallSymptoms != null && meal.overallSymptoms!.isNotEmpty)
-                _SymptomsCard(symptoms: meal.overallSymptoms!),
+                SymptomsBanner(
+                  symptoms: meal.overallSymptoms!,
+                  margin: const EdgeInsets.only(top: 4),
+                ),
             ],
           ),
         ),
       ],
     );
   }
-}
-
-class _ItemWithIngredients {
-  final FoodItem item;
-  final List<Ingredient> ingredients;
-  const _ItemWithIngredients(this.item, this.ingredients);
 }
 
 class _MealHeader extends StatelessWidget {
@@ -190,38 +172,6 @@ class _MealHeader extends StatelessWidget {
           Text(
             meal.time,
             style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SymptomsCard extends StatelessWidget {
-  final String symptoms;
-  const _SymptomsCard({required this.symptoms});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final accent = theme.colorScheme.primary;
-    return Container(
-      margin: const EdgeInsets.only(top: 4),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        border: Border(left: BorderSide(color: accent, width: 3)),
-        color: accent.withAlpha(15),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.flag_outlined, size: 14, color: accent),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'After-meal: $symptoms',
-              style: theme.textTheme.bodySmall?.copyWith(color: accent),
-            ),
           ),
         ],
       ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../models/food_item.dart';
 import '../../models/reaction_log.dart';
 import '../../services/storage_service.dart';
+import '../../widgets/error_display.dart';
+import '../../widgets/loading_button.dart';
 
 class CheckinScreen extends StatefulWidget {
   final int? mealId;          // null = standalone new check-in
@@ -107,7 +109,7 @@ class _CheckinScreenState extends State<CheckinScreen> {
                   ),
                   if (_errorMessage != null) ...[
                     const SizedBox(height: 12),
-                    Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                    ErrorBanner(message: _errorMessage!),
                   ],
                 ],
               ),
@@ -116,15 +118,10 @@ class _CheckinScreenState extends State<CheckinScreen> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _save,
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Save'),
+              child: LoadingButton(
+                isLoading: _isLoading,
+                label: 'Save',
+                onPressed: _save,
               ),
             ),
           ),

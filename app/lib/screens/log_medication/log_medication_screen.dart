@@ -1,11 +1,17 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../models/medication.dart';
 import '../../services/ai_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/settings_service.dart';
 import '../../services/storage_service.dart';
+import '../../utils/date_time_utils.dart';
+import '../../widgets/checkin_delay_field.dart';
+import '../../widgets/error_display.dart';
+import '../../widgets/labeled_dropdown.dart';
+import '../../widgets/loading_button.dart';
 import '../../widgets/log_date_time_row.dart';
 import '../../widgets/log_description_section.dart';
 import '../../widgets/log_photo_section.dart';
@@ -36,29 +42,13 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
   bool _isSaving = false;
   String? _errorMessage;
 
-  DateTime _date = _today();
+  DateTime _date = DateTimeUtils.today();
   TimeOfDay _time = TimeOfDay.now();
   Uint8List? _imageBytes;
   String? _selectedUnit;
   String? _selectedRoute;
 
   bool get _isEditing => widget.existingMed != null;
-
-  static DateTime _today() {
-    final n = DateTime.now();
-    return DateTime(n.year, n.month, n.day);
-  }
-
-  TimeOfDay _parseTime(String timeStr) {
-    final m = RegExp(r'(\d+):(\d+)(?:\s*(AM|PM))?', caseSensitive: false).firstMatch(timeStr);
-    if (m == null) return TimeOfDay.now();
-    int hour = int.parse(m.group(1)!);
-    final minute = int.parse(m.group(2)!);
-    final period = m.group(3)?.toUpperCase();
-    if (period == 'PM' && hour != 12) hour += 12;
-    if (period == 'AM' && hour == 12) hour = 0;
-    return TimeOfDay(hour: hour % 24, minute: minute);
-  }
 
   @override
   void initState() {
@@ -85,7 +75,7 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
     _checkinDelayCtrl.text = med.checkinDelayMinutes?.toString() ?? '90';
     _imageBytes = med.imageData;
     _date = DateTime(med.date.year, med.date.month, med.date.day);
-    _time = _parseTime(med.time);
+    _time = DateTimeUtils.parseTime(med.time);
     _selectedUnit = med.unit;
     _selectedRoute = med.route;
   }
@@ -200,7 +190,6 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Date / Time ─────────────────────────────────────────────────
             LogDateTimeRow(
               date: _date,
               time: _time,
@@ -209,8 +198,6 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
               onTimeChanged: (t) => setState(() => _time = t),
             ),
             const SizedBox(height: 12),
-
-            // ── Name ─────────────────────────────────────────────────────────
             Semantics(
               identifier: 'log-med-name',
               child: TextField(
@@ -225,8 +212,6 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
               ),
             ),
             const SizedBox(height: 12),
-
-            // ── Photo ────────────────────────────────────────────────────────
             LogPhotoSection(
               imageBytes: _imageBytes,
               enabled: !_isSaving && !_isAutofilling,
@@ -234,8 +219,6 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
               onClear: () => setState(() => _imageBytes = null),
             ),
             const SizedBox(height: 12),
-
-            // ── Description + Autofill ───────────────────────────────────────
             LogDescriptionSection(
               controller: _descCtrl,
               aiEnabled: _aiEnabled,
@@ -244,8 +227,6 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
               hintText: 'Describe the medication or scan the label…',
             ),
             const SizedBox(height: 16),
-
-            // ── Dose / Unit / Route ──────────────────────────────────────────
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -255,7 +236,6 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
                     controller: _doseCtrl,
                     enabled: !_isSaving,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
                     decoration: const InputDecoration(
                       labelText: 'Dose',
                       border: OutlineInputBorder(),
@@ -264,28 +244,30 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Expanded(child: _LabeledDropdown<String>(
-                  label: 'Unit',
-                  value: _selectedUnit,
-                  items: const [null, ...kMedUnits],
-                  itemLabel: (v) => v ?? '—',
-                  enabled: !_isSaving,
-                  onChanged: (v) => setState(() => _selectedUnit = v),
-                )),
+                Expanded(
+                  child: LabeledDropdown<String>(
+                    label: 'Unit',
+                    value: _selectedUnit,
+                    items: const [null, ...kMedUnits],
+                    itemLabel: (v) => v ?? '—',
+                    enabled: !_isSaving,
+                    onChanged: (v) => setState(() => _selectedUnit = v),
+                  ),
+                ),
                 const SizedBox(width: 8),
-                Expanded(child: _LabeledDropdown<String>(
-                  label: 'Route',
-                  value: _selectedRoute,
-                  items: const [null, ...kMedRoutes],
-                  itemLabel: (v) => v ?? '—',
-                  enabled: !_isSaving,
-                  onChanged: (v) => setState(() => _selectedRoute = v),
-                )),
+                Expanded(
+                  child: LabeledDropdown<String>(
+                    label: 'Route',
+                    value: _selectedRoute,
+                    items: const [null, ...kMedRoutes],
+                    itemLabel: (v) => v ?? '—',
+                    enabled: !_isSaving,
+                    onChanged: (v) => setState(() => _selectedRoute = v),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
-
-            // ── Notes ────────────────────────────────────────────────────────
             TextField(
               controller: _notesCtrl,
               enabled: !_isSaving,
@@ -297,110 +279,20 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // ── Check-in delay ───────────────────────────────────────────────
-            _CheckinDelayField(controller: _checkinDelayCtrl, enabled: !_isSaving),
+            CheckinDelayField(controller: _checkinDelayCtrl, enabled: !_isSaving),
             const SizedBox(height: 16),
-
-            // ── Error ─────────────────────────────────────────────────────────
             if (_errorMessage != null) ...[
-              Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+              ErrorBanner(message: _errorMessage!),
               const SizedBox(height: 8),
             ],
-
-            // ── Save ──────────────────────────────────────────────────────────
-            Semantics(
-              identifier: 'btn-save-medication',
-              child: ElevatedButton(
-                onPressed: _isSaving || _isAutofilling ? null : _save,
-                child: _isSaving
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(_isEditing ? 'Save Changes' : 'Save'),
-              ),
+            LoadingButton(
+              isLoading: _isSaving,
+              disabled: _isAutofilling,
+              label: _isEditing ? 'Save Changes' : 'Save',
+              onPressed: _save,
+              semanticsId: 'btn-save-medication',
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CheckinDelayField extends StatelessWidget {
-  final TextEditingController controller;
-  final bool enabled;
-
-  const _CheckinDelayField({required this.controller, required this.enabled});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Icon(Icons.notifications_outlined, size: 16, color: theme.colorScheme.outline),
-        const SizedBox(width: 8),
-        Text('Check-in after', style: theme.textTheme.bodySmall),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 60,
-          child: TextField(
-            controller: controller,
-            enabled: enabled,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            textAlign: TextAlign.center,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              isDense: true,
-              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text('minutes', style: theme.textTheme.bodySmall),
-      ],
-    );
-  }
-}
-
-class _LabeledDropdown<T> extends StatelessWidget {
-  final String label;
-  final T? value;
-  final List<T?> items;
-  final String Function(T? v) itemLabel;
-  final bool enabled;
-  final ValueChanged<T?> onChanged;
-
-  const _LabeledDropdown({
-    required this.label,
-    required this.value,
-    required this.items,
-    required this.itemLabel,
-    required this.onChanged,
-    this.enabled = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InputDecorator(
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<T?>(
-          value: value,
-          isDense: true,
-          isExpanded: true,
-          onChanged: enabled ? onChanged : null,
-          items: items
-              .map((v) => DropdownMenuItem<T?>(value: v, child: Text(itemLabel(v))))
-              .toList(),
         ),
       ),
     );

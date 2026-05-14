@@ -128,6 +128,18 @@ class StorageService {
     return rows.map(_mealFromRow).toList();
   }
 
+  Future<List<({FoodItem item, List<Ingredient> ingredients})>> getFoodItemsWithIngredients(int mealId) async {
+    final items = await getFoodItemsForMeal(mealId);
+    return Future.wait(
+      items.map((item) async {
+        final ings = item.id != null
+            ? await getIngredientsForFoodItem(item.id!)
+            : <Ingredient>[];
+        return (item: item, ingredients: ings);
+      }),
+    );
+  }
+
   Future<List<FoodItem>> getFoodItemsForMeal(int mealId) async {
     final rows = await (_db.select(_db.foodItems)
           ..where((t) => t.mealId.equals(mealId)))

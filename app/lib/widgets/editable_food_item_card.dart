@@ -97,42 +97,62 @@ class _EditableFoodItemCardState extends State<EditableFoodItemCard> {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(4, 10, 8, 10),
-            child: Row(
-              children: [
-                // Chevron is the only expand/collapse tap target
-                GestureDetector(
-                  onTap: () => setState(() => _expanded = !_expanded),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+          // Whole header row is the expand/collapse target.
+          // TextField absorbs its own taps (editing) so they don't bubble up.
+          // X button is wrapped opaque so it absorbs delete taps without triggering toggle.
+          GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () => setState(() => _expanded = !_expanded),
+            child: SizedBox(
+              height: 48,
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: AnimatedRotation(
                       turns: _expanded ? 0.0 : -0.25,
                       duration: const Duration(milliseconds: 200),
                       child: Icon(Icons.expand_more, size: 18, color: theme.colorScheme.outline),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: TextField(
-                    controller: d.nameCtrl,
-                    style: theme.textTheme.titleSmall,
-                    decoration: const InputDecoration(
-                      hintText: 'Food name *',
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
+                  Expanded(
+                    child: TextField(
+                      controller: d.nameCtrl,
+                      style: theme.textTheme.titleSmall,
+                      decoration: InputDecoration(
+                        hintText: 'Food name *',
+                        border: InputBorder.none,
+                        enabledBorder: _expanded
+                            ? UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: theme.colorScheme.outline.withAlpha(80),
+                                  width: 1,
+                                ),
+                              )
+                            : InputBorder.none,
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.primary,
+                            width: 1.5,
+                          ),
+                        ),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.only(bottom: 3),
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 16),
-                  onPressed: widget.onDelete,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                  color: theme.colorScheme.outline,
-                ),
-              ],
+                  // Opaque GestureDetector consumes the tap so it never reaches the parent toggle.
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: widget.onDelete,
+                    child: SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Icon(Icons.close, size: 18, color: theme.colorScheme.outline),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           if (_expanded) ...[
