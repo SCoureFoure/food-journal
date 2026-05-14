@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'models/meal_entry.dart';
+import 'models/medication.dart';
+import 'models/reaction_log.dart';
 import 'screens/checkin/checkin_screen.dart';
 import 'screens/export/export_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -52,10 +55,27 @@ class FoodJournalApp extends StatelessWidget {
           );
         }
         if (settings.name == '/checkin') {
-          // arguments: int mealId (from meal card) or null (standalone Feeling...)
           final mealId = settings.arguments as int?;
           return MaterialPageRoute(
             builder: (_) => CheckinScreen(mealId: mealId),
+          );
+        }
+        if (settings.name == '/edit_meal') {
+          final meal = settings.arguments as MealEntry;
+          return MaterialPageRoute(
+            builder: (_) => LogMealScreen(existingMeal: meal),
+          );
+        }
+        if (settings.name == '/edit_medication') {
+          final med = settings.arguments as Medication;
+          return MaterialPageRoute(
+            builder: (_) => LogMedicationScreen(existingMed: med),
+          );
+        }
+        if (settings.name == '/edit_checkin') {
+          final log = settings.arguments as ReactionLog;
+          return MaterialPageRoute(
+            builder: (_) => CheckinScreen(existingLog: log),
           );
         }
         return null;

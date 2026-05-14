@@ -147,7 +147,98 @@ class StorageService {
         .write(db.MealsCompanion(overallSymptoms: Value(symptoms)));
   }
 
+  Future<void> updateMeal(
+    MealEntry meal,
+    List<FoodItem> items,
+    List<List<Ingredient>> ingredientsByItem,
+  ) async {
+    await _db.transaction(() async {
+      await (_db.update(_db.meals)..where((t) => t.id.equals(meal.id!))).write(
+        db.MealsCompanion(
+          date: Value(meal.date),
+          time: Value(meal.time),
+          mealType: Value(meal.mealType),
+          rawInput: Value(meal.rawInput),
+          imageData: Value(meal.imageData),
+        ),
+      );
+
+      final oldItems = await (_db.select(_db.foodItems)
+            ..where((t) => t.mealId.equals(meal.id!)))
+          .get();
+      for (final old in oldItems) {
+        await (_db.delete(_db.ingredients)
+              ..where((t) => t.foodItemId.equals(old.id)))
+            .go();
+      }
+      await (_db.delete(_db.foodItems)..where((t) => t.mealId.equals(meal.id!))).go();
+
+      for (var i = 0; i < items.length; i++) {
+        final item = items[i];
+        final foodItemId = await _db.into(_db.foodItems).insert(
+          db.FoodItemsCompanion.insert(
+            mealId: meal.id!,
+            name: item.name,
+            portion: Value(item.portion),
+            prep: Value(item.prep),
+            calories: Value(item.calories),
+            protein: Value(item.protein),
+            carbs: Value(item.carbs),
+            fat: Value(item.fat),
+            reaction: Value(item.reaction.toInt()),
+            notes: Value(item.notes),
+          ),
+        );
+        for (final ing in ingredientsByItem[i]) {
+          await _db.into(_db.ingredients).insert(
+            db.IngredientsCompanion.insert(
+              foodItemId: foodItemId,
+              name: ing.name,
+              quantity: Value(ing.quantity),
+              unit: Value(ing.unit),
+            ),
+          );
+        }
+      }
+    });
+  }
+
+  Future<({int cal, double prot, double carbs, double fat})> getMacroTotalsForMeals(
+    List<int> mealIds,
+  ) async {
+    if (mealIds.isEmpty) return (cal: 0, prot: 0.0, carbs: 0.0, fat: 0.0);
+    int cal = 0;
+    double prot = 0.0, carbs = 0.0, fat = 0.0;
+    for (final id in mealIds) {
+      final rows = await (_db.select(_db.foodItems)..where((t) => t.mealId.equals(id))).get();
+      for (final row in rows) {
+        cal += row.calories ?? 0;
+        prot += (row.protein ?? 0).toDouble();
+        carbs += (row.carbs ?? 0).toDouble();
+        fat += (row.fat ?? 0).toDouble();
+      }
+    }
+    return (cal: cal, prot: prot, carbs: carbs, fat: fat);
+  }
+
   // ── Medications ──────────────────────────────────────────────────────────────
+
+  Future<void> updateMedication(Medication med) async {
+    await (_db.update(_db.medications)..where((t) => t.id.equals(med.id!))).write(
+      db.MedicationsCompanion(
+        date: Value(med.date),
+        time: Value(med.time),
+        name: Value(med.name),
+        dose: Value(med.dose),
+        unit: Value(med.unit),
+        route: Value(med.route),
+        checkinDelayMinutes: Value(med.checkinDelayMinutes),
+        rawInput: Value(med.rawInput),
+        notes: Value(med.notes),
+        imageData: Value(med.imageData),
+      ),
+    );
+  }
 
   Future<int> saveMedication(Medication med) async {
     return _db.into(_db.medications).insert(
@@ -197,6 +288,16 @@ class StorageService {
           ..where((t) => t.mealId.equals(mealId)))
         .get();
     return rows.map(_reactionLogFromRow).toList();
+  }
+
+  Future<void> updateReactionLog(ReactionLog log) async {
+    await (_db.update(_db.reactionLogs)..where((t) => t.id.equals(log.id!))).write(
+      db.ReactionLogsCompanion(
+        symptoms: Value(jsonEncode(log.symptoms)),
+        severity: Value(log.severity.toInt()),
+        notes: Value(log.notes),
+      ),
+    );
   }
 
   Future<void> saveReactionLog(ReactionLog log) async {

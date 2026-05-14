@@ -4,9 +4,10 @@ import '../../models/reaction_log.dart';
 import '../../services/storage_service.dart';
 
 class CheckinScreen extends StatefulWidget {
-  final int? mealId; // null = standalone "Feeling..." check-in
+  final int? mealId;          // null = standalone new check-in
+  final ReactionLog? existingLog; // non-null = editing existing standalone log
 
-  const CheckinScreen({super.key, this.mealId});
+  const CheckinScreen({super.key, this.mealId, this.existingLog});
 
   @override
   State<CheckinScreen> createState() => _CheckinScreenState();
@@ -14,13 +15,28 @@ class CheckinScreen extends StatefulWidget {
 
 class _CheckinScreenState extends State<CheckinScreen> {
   final _storage = StorageService();
-  final Set<String> _selectedSymptoms = {};
-  ReactionLevel _severity = ReactionLevel.none;
+  late final Set<String> _selectedSymptoms;
+  late ReactionLevel _severity;
   final _notesController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
 
-  bool get _isStandalone => widget.mealId == null;
+  bool get _isStandalone => widget.mealId == null && widget.existingLog == null;
+  bool get _isEditing => widget.existingLog != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEditing) {
+      final log = widget.existingLog!;
+      _selectedSymptoms = Set.from(log.symptoms);
+      _severity = log.severity;
+      _notesController.text = log.notes ?? '';
+    } else {
+      _selectedSymptoms = {};
+      _severity = ReactionLevel.none;
+    }
+  }
 
   @override
   void dispose() {
@@ -29,12 +45,16 @@ class _CheckinScreenState extends State<CheckinScreen> {
     super.dispose();
   }
 
+  String get _title {
+    if (_isEditing) return 'Edit feeling';
+    if (_isStandalone) return 'How are you feeling?';
+    return 'How did you feel?';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isStandalone ? 'How are you feeling?' : 'How did you feel?'),
-      ),
+      appBar: AppBar(title: Text(_title)),
       body: Column(
         children: [
           Expanded(
@@ -120,24 +140,36 @@ class _CheckinScreenState extends State<CheckinScreen> {
     });
     try {
       final symptoms = _selectedSymptoms.toList();
-      await _storage.saveReactionLog(ReactionLog(
-        mealId: widget.mealId,
-        checkinTime: DateTime.now(),
-        symptoms: symptoms,
-        severity: _severity,
-        notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
-      ));
 
-      // Only update meal symptoms summary when linked to a meal
-      if (widget.mealId != null) {
-        final parts = [
-          if (_severity != ReactionLevel.none) _severity.label,
-          if (symptoms.isNotEmpty) symptoms.join(', '),
-        ];
-        await _storage.updateMealSymptoms(
-          widget.mealId!,
-          parts.isEmpty ? 'No reaction' : parts.join(' · '),
+      if (_isEditing) {
+        final updated = ReactionLog(
+          id: widget.existingLog!.id,
+          mealId: widget.existingLog!.mealId,
+          checkinTime: widget.existingLog!.checkinTime,
+          symptoms: symptoms,
+          severity: _severity,
+          notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
         );
+        await _storage.updateReactionLog(updated);
+      } else {
+        await _storage.saveReactionLog(ReactionLog(
+          mealId: widget.mealId,
+          checkinTime: DateTime.now(),
+          symptoms: symptoms,
+          severity: _severity,
+          notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+        ));
+
+        if (widget.mealId != null) {
+          final parts = [
+            if (_severity != ReactionLevel.none) _severity.label,
+            if (symptoms.isNotEmpty) symptoms.join(', '),
+          ];
+          await _storage.updateMealSymptoms(
+            widget.mealId!,
+            parts.isEmpty ? 'No reaction' : parts.join(' · '),
+          );
+        }
       }
 
       if (!mounted) return;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/food_item.dart';
+import '../models/ingredient.dart';
 
 class FoodItemFormData {
   final nameCtrl = TextEditingController();
@@ -14,6 +15,22 @@ class FoodItemFormData {
   final notesCtrl = TextEditingController();
 
   FoodItemFormData.blank();
+
+  FoodItemFormData.fromExisting(FoodItem item, List<Ingredient> ingredients) {
+    nameCtrl.text = item.name;
+    portionCtrl.text = item.portion ?? '';
+    prepCtrl.text = item.prep ?? '';
+    caloriesCtrl.text = item.calories?.toString() ?? '';
+    proteinCtrl.text = item.protein?.toString() ?? '';
+    carbsCtrl.text = item.carbs?.toString() ?? '';
+    fatCtrl.text = item.fat?.toString() ?? '';
+    ingredientsCtrl.text = ingredients.map((i) {
+      if (i.quantity != null && i.unit != null) return '${i.quantity} ${i.unit} ${i.name}';
+      if (i.quantity != null) return '${i.quantity} ${i.name}';
+      return i.name;
+    }).join(', ');
+    notesCtrl.text = item.notes ?? '';
+  }
 
   FoodItemFormData.fromDraft(FoodItemDraft d) {
     nameCtrl.text = d.name;
@@ -50,6 +67,7 @@ class FoodItemFormData {
     prepCtrl.dispose();
     caloriesCtrl.dispose();
     proteinCtrl.dispose();
+    carbsCtrl.dispose();
     fatCtrl.dispose();
     ingredientsCtrl.dispose();
     notesCtrl.dispose();

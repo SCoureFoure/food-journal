@@ -11,7 +11,9 @@ import '../../widgets/log_description_section.dart';
 import '../../widgets/log_photo_section.dart';
 
 class LogMedicationScreen extends StatefulWidget {
-  const LogMedicationScreen({super.key});
+  final Medication? existingMed;
+
+  const LogMedicationScreen({super.key, this.existingMed});
 
   @override
   State<LogMedicationScreen> createState() => _LogMedicationScreenState();
@@ -40,20 +42,52 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
   String? _selectedUnit;
   String? _selectedRoute;
 
+  bool get _isEditing => widget.existingMed != null;
+
   static DateTime _today() {
     final n = DateTime.now();
     return DateTime(n.year, n.month, n.day);
+  }
+
+  TimeOfDay _parseTime(String timeStr) {
+    final m = RegExp(r'(\d+):(\d+)(?:\s*(AM|PM))?', caseSensitive: false).firstMatch(timeStr);
+    if (m == null) return TimeOfDay.now();
+    int hour = int.parse(m.group(1)!);
+    final minute = int.parse(m.group(2)!);
+    final period = m.group(3)?.toUpperCase();
+    if (period == 'PM' && hour != 12) hour += 12;
+    if (period == 'AM' && hour == 12) hour = 0;
+    return TimeOfDay(hour: hour % 24, minute: minute);
   }
 
   @override
   void initState() {
     super.initState();
     _loadSettings();
+    if (_isEditing) _populateExisting();
   }
 
   Future<void> _loadSettings() async {
     final enabled = await _settings.isAiEnabled;
     if (mounted) setState(() => _aiEnabled = enabled);
+  }
+
+  void _populateExisting() {
+    final med = widget.existingMed!;
+    _nameCtrl.text = med.name;
+    _doseCtrl.text = med.dose == null
+        ? ''
+        : med.dose! == med.dose!.truncateToDouble()
+            ? med.dose!.toInt().toString()
+            : med.dose!.toStringAsFixed(1);
+    _descCtrl.text = med.rawInput ?? '';
+    _notesCtrl.text = med.notes ?? '';
+    _checkinDelayCtrl.text = med.checkinDelayMinutes?.toString() ?? '90';
+    _imageBytes = med.imageData;
+    _date = DateTime(med.date.year, med.date.month, med.date.day);
+    _time = _parseTime(med.time);
+    _selectedUnit = med.unit;
+    _selectedRoute = med.route;
   }
 
   @override
@@ -124,6 +158,7 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
       final delay = int.tryParse(_checkinDelayCtrl.text.trim());
       final now = DateTime.now();
       final med = Medication(
+        id: widget.existingMed?.id,
         date: _date,
         time: _time.format(context),
         name: name,
@@ -134,20 +169,16 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
         rawInput: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
         notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
         imageData: _imageBytes,
-        createdAt: now,
+        createdAt: widget.existingMed?.createdAt ?? now,
       );
 
-      final medId = await _storage.saveMedication(med);
-
-      final entryTime = DateTime(
-        _date.year, _date.month, _date.day, _time.hour, _time.minute,
-      );
-      await _notifications.scheduleCheckin(
-        medId,
-        name,
-        entryTime,
-        delayMinutes: delay,
-      );
+      if (_isEditing) {
+        await _storage.updateMedication(med);
+      } else {
+        final medId = await _storage.saveMedication(med);
+        final entryTime = DateTime(_date.year, _date.month, _date.day, _time.hour, _time.minute);
+        await _notifications.scheduleCheckin(medId, name, entryTime, delayMinutes: delay);
+      }
 
       if (!mounted) return;
       Navigator.of(context).pop();
@@ -163,7 +194,7 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Log Medication')),
+      appBar: AppBar(title: Text(_isEditing ? 'Edit Medication' : 'Log Medication')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
         child: Column(
@@ -267,7 +298,7 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ── Check-in delay (not shown in card/summary) ───────────────────
+            // ── Check-in delay ───────────────────────────────────────────────
             _CheckinDelayField(controller: _checkinDelayCtrl, enabled: !_isSaving),
             const SizedBox(height: 16),
 
@@ -288,7 +319,7 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Save'),
+                    : Text(_isEditing ? 'Save Changes' : 'Save'),
               ),
             ),
           ],

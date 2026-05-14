@@ -53,13 +53,15 @@ class FoodItemCard extends StatelessWidget {
               const SizedBox(height: 4),
               _LabelRow(label: 'NOTES', value: item.notes!, labelStyle: labelStyle, theme: theme),
             ],
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                SizedBox(width: 88, child: Text('REACTION', style: labelStyle)),
-                ReactionBadge(level: item.reaction),
-              ],
-            ),
+            if (item.reaction != ReactionLevel.pending) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  SizedBox(width: 88, child: Text('REACTION', style: labelStyle)),
+                  ReactionBadge(level: item.reaction),
+                ],
+              ),
+            ],
           ],
         ),
       ),

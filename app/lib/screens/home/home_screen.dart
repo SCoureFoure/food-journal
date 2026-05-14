@@ -210,6 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
             feelings: _feelingsByDate[date] ?? [],
             storage: _storage,
             isToday: _isToday(date),
+            onReload: _load,
           );
         },
       ),
@@ -224,7 +225,6 @@ class _HomeScreenState extends State<HomeScreen> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        // Mini action buttons — visible when fab open
         AnimatedOpacity(
           opacity: _fabOpen ? 1.0 : 0.0,
           duration: dur,
@@ -377,13 +377,14 @@ class _SettingsDialogState extends State<_SettingsDialog> {
 
 // ── Date section ──────────────────────────────────────────────────────────────
 
-class _DateSection extends StatelessWidget {
+class _DateSection extends StatefulWidget {
   final DateTime date;
   final List<MealEntry> meals;
   final List<Medication> medications;
   final List<ReactionLog> feelings;
   final StorageService storage;
   final bool isToday;
+  final VoidCallback onReload;
 
   const _DateSection({
     required this.date,
@@ -392,18 +393,38 @@ class _DateSection extends StatelessWidget {
     required this.feelings,
     required this.storage,
     required this.isToday,
+    required this.onReload,
   });
+
+  @override
+  State<_DateSection> createState() => _DateSectionState();
+}
+
+class _DateSectionState extends State<_DateSection> {
+  ({int cal, double prot, double carbs, double fat})? _totals;
+  bool _totalsLoaded = false;
+
+  Future<void> _loadTotals() async {
+    if (_totalsLoaded) return;
+    final ids = widget.meals.where((m) => m.id != null).map((m) => m.id!).toList();
+    final t = await widget.storage.getMacroTotalsForMeals(ids);
+    if (!mounted) return;
+    setState(() {
+      _totals = t;
+      _totalsLoaded = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final dateStr = isToday
-        ? 'Today · ${DateFormat('MMM d').format(date)}'
-        : DateFormat('EEEE, MMMM d').format(date);
+    final dateStr = widget.isToday
+        ? 'Today · ${DateFormat('MMM d').format(widget.date)}'
+        : DateFormat('EEEE, MMMM d').format(widget.date);
 
-    final mealCount = meals.length;
-    final medCount = medications.length;
-    final feelingCount = feelings.length;
+    final mealCount = widget.meals.length;
+    final medCount = widget.medications.length;
+    final feelingCount = widget.feelings.length;
     final parts = [
       if (mealCount > 0) '$mealCount ${mealCount == 1 ? 'meal' : 'meals'}',
       if (medCount > 0) '$medCount ${medCount == 1 ? 'medication' : 'medications'}',
@@ -412,7 +433,7 @@ class _DateSection extends StatelessWidget {
     final subtitle = parts.isEmpty ? 'No entries' : parts.join(' · ');
 
     return Semantics(
-      identifier: 'date-section-${date.toIso8601String().substring(0, 10)}',
+      identifier: 'date-section-${widget.date.toIso8601String().substring(0, 10)}',
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         clipBehavior: Clip.antiAlias,
@@ -429,15 +450,76 @@ class _DateSection extends StatelessWidget {
           initiallyExpanded: false,
           shape: const Border(),
           collapsedShape: const Border(),
+          onExpansionChanged: (expanded) {
+            if (expanded && widget.meals.isNotEmpty) _loadTotals();
+          },
           title: Text(dateStr,
               style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
           subtitle: Text(subtitle, style: theme.textTheme.bodySmall),
           children: [
-            ...meals.map((m) => _MealTile(meal: m, storage: storage)),
-            ...medications.map((m) => _MedicationTile(med: m)),
-            ...feelings.map((f) => _FeelingTile(log: f)),
+            if (_totals != null && widget.meals.isNotEmpty)
+              _MacroTotalsBar(totals: _totals!, theme: theme),
+            ...widget.meals.map((m) => _MealTile(meal: m, storage: widget.storage, onReload: widget.onReload)),
+            ...widget.medications.map((m) => _MedicationTile(med: m, onReload: widget.onReload)),
+            ...widget.feelings.map((f) => _FeelingTile(log: f, onReload: widget.onReload)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Macro totals bar ──────────────────────────────────────────────────────────
+
+class _MacroTotalsBar extends StatelessWidget {
+  final ({int cal, double prot, double carbs, double fat}) totals;
+  final ThemeData theme;
+
+  const _MacroTotalsBar({required this.totals, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    if (totals.cal == 0 && totals.prot == 0 && totals.carbs == 0 && totals.fat == 0) {
+      return const SizedBox.shrink();
+    }
+    final labelStyle = theme.textTheme.labelSmall?.copyWith(
+      color: theme.colorScheme.outline,
+      letterSpacing: 0.6,
+      fontWeight: FontWeight.w600,
+    );
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: theme.colorScheme.surfaceContainerLow,
+      child: Row(
+        children: [
+          if (totals.cal > 0) _TotalCell(label: 'CAL', value: '${totals.cal}', labelStyle: labelStyle, theme: theme),
+          if (totals.prot > 0) _TotalCell(label: 'PROT', value: '${totals.prot.toInt()}g', labelStyle: labelStyle, theme: theme),
+          if (totals.carbs > 0) _TotalCell(label: 'CARBS', value: '${totals.carbs.toInt()}g', labelStyle: labelStyle, theme: theme),
+          if (totals.fat > 0) _TotalCell(label: 'FAT', value: '${totals.fat.toInt()}g', labelStyle: labelStyle, theme: theme),
+        ],
+      ),
+    );
+  }
+}
+
+class _TotalCell extends StatelessWidget {
+  final String label;
+  final String value;
+  final TextStyle? labelStyle;
+  final ThemeData theme;
+
+  const _TotalCell({required this.label, required this.value, required this.labelStyle, required this.theme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: labelStyle),
+          Text(value, style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+        ],
       ),
     );
   }
@@ -448,8 +530,9 @@ class _DateSection extends StatelessWidget {
 class _MealTile extends StatefulWidget {
   final MealEntry meal;
   final StorageService storage;
+  final VoidCallback onReload;
 
-  const _MealTile({required this.meal, required this.storage});
+  const _MealTile({required this.meal, required this.storage, required this.onReload});
 
   @override
   State<_MealTile> createState() => _MealTileState();
@@ -460,9 +543,6 @@ class _MealTileState extends State<_MealTile> {
   bool _loaded = false;
   bool _loadingItems = false;
   List<_ItemWithIngredients> _items = [];
-  MealEntry? _localMeal;
-
-  MealEntry get _meal => _localMeal ?? widget.meal;
 
   Future<void> _loadItems() async {
     if (_loaded || _loadingItems) return;
@@ -538,25 +618,25 @@ class _MealTileState extends State<_MealTile> {
                 child: Image.memory(meal.imageData!, width: double.infinity, height: 200, fit: BoxFit.cover),
               ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   ..._items.map((i) => FoodItemCard(item: i.item, ingredients: i.ingredients)),
-                  if (_meal.overallSymptoms != null && _meal.overallSymptoms!.isNotEmpty)
-                    _SymptomsRow(symptoms: _meal.overallSymptoms!),
+                  if (meal.overallSymptoms != null && meal.overallSymptoms!.isNotEmpty)
+                    _SymptomsRow(symptoms: meal.overallSymptoms!),
                   Align(
                     alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      icon: const Icon(Icons.checklist, size: 16),
-                      label: const Text('Log Check-in'),
-                      onPressed: () async {
-                        await Navigator.pushNamed(context, '/checkin', arguments: widget.meal.id);
-                        if (!mounted) return;
-                        final updated = await widget.storage.getMealById(widget.meal.id!);
-                        if (!mounted || updated == null) return;
-                        setState(() => _localMeal = updated);
-                      },
+                    child: Semantics(
+                      identifier: 'btn-edit-meal-${meal.id}',
+                      child: TextButton.icon(
+                        icon: const Icon(Icons.edit_outlined, size: 16),
+                        label: const Text('Edit'),
+                        onPressed: () async {
+                          await Navigator.pushNamed(context, '/edit_meal', arguments: meal);
+                          widget.onReload();
+                        },
+                      ),
                     ),
                   ),
                 ],
@@ -573,7 +653,9 @@ class _MealTileState extends State<_MealTile> {
 
 class _MedicationTile extends StatelessWidget {
   final Medication med;
-  const _MedicationTile({required this.med});
+  final VoidCallback onReload;
+
+  const _MedicationTile({required this.med, required this.onReload});
 
   @override
   Widget build(BuildContext context) {
@@ -604,6 +686,16 @@ class _MedicationTile extends StatelessWidget {
         title: Text(med.name,
             style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
         subtitle: Text(subtitle, style: theme.textTheme.bodySmall),
+        trailing: Semantics(
+          identifier: 'btn-edit-med-${med.id}',
+          child: IconButton(
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            onPressed: () async {
+              await Navigator.pushNamed(context, '/edit_medication', arguments: med);
+              onReload();
+            },
+          ),
+        ),
       ),
     );
   }
@@ -613,7 +705,9 @@ class _MedicationTile extends StatelessWidget {
 
 class _FeelingTile extends StatelessWidget {
   final ReactionLog log;
-  const _FeelingTile({required this.log});
+  final VoidCallback onReload;
+
+  const _FeelingTile({required this.log, required this.onReload});
 
   @override
   Widget build(BuildContext context) {
@@ -636,6 +730,16 @@ class _FeelingTile extends StatelessWidget {
           style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(subtitle, style: theme.textTheme.bodySmall),
+        trailing: Semantics(
+          identifier: 'btn-edit-feeling-${log.id}',
+          child: IconButton(
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            onPressed: () async {
+              await Navigator.pushNamed(context, '/edit_checkin', arguments: log);
+              onReload();
+            },
+          ),
+        ),
       ),
     );
   }
