@@ -1522,12 +1522,9 @@ class $ReactionLogsTable extends ReactionLogs
   late final GeneratedColumn<int> mealId = GeneratedColumn<int>(
     'meal_id',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES meals (id)',
-    ),
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _checkinTimeMeta = const VerificationMeta(
     'checkinTime',
@@ -1600,8 +1597,6 @@ class $ReactionLogsTable extends ReactionLogs
         _mealIdMeta,
         mealId.isAcceptableOrUnknown(data['meal_id']!, _mealIdMeta),
       );
-    } else if (isInserting) {
-      context.missing(_mealIdMeta);
     }
     if (data.containsKey('checkin_time')) {
       context.handle(
@@ -1652,7 +1647,7 @@ class $ReactionLogsTable extends ReactionLogs
       mealId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}meal_id'],
-      )!,
+      ),
       checkinTime: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}checkin_time'],
@@ -1680,14 +1675,14 @@ class $ReactionLogsTable extends ReactionLogs
 
 class ReactionLog extends DataClass implements Insertable<ReactionLog> {
   final int id;
-  final int mealId;
+  final int? mealId;
   final DateTime checkinTime;
   final String symptoms;
   final int severity;
   final String? notes;
   const ReactionLog({
     required this.id,
-    required this.mealId,
+    this.mealId,
     required this.checkinTime,
     required this.symptoms,
     required this.severity,
@@ -1697,7 +1692,9 @@ class ReactionLog extends DataClass implements Insertable<ReactionLog> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['meal_id'] = Variable<int>(mealId);
+    if (!nullToAbsent || mealId != null) {
+      map['meal_id'] = Variable<int>(mealId);
+    }
     map['checkin_time'] = Variable<DateTime>(checkinTime);
     map['symptoms'] = Variable<String>(symptoms);
     map['severity'] = Variable<int>(severity);
@@ -1710,7 +1707,9 @@ class ReactionLog extends DataClass implements Insertable<ReactionLog> {
   ReactionLogsCompanion toCompanion(bool nullToAbsent) {
     return ReactionLogsCompanion(
       id: Value(id),
-      mealId: Value(mealId),
+      mealId: mealId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mealId),
       checkinTime: Value(checkinTime),
       symptoms: Value(symptoms),
       severity: Value(severity),
@@ -1727,7 +1726,7 @@ class ReactionLog extends DataClass implements Insertable<ReactionLog> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ReactionLog(
       id: serializer.fromJson<int>(json['id']),
-      mealId: serializer.fromJson<int>(json['mealId']),
+      mealId: serializer.fromJson<int?>(json['mealId']),
       checkinTime: serializer.fromJson<DateTime>(json['checkinTime']),
       symptoms: serializer.fromJson<String>(json['symptoms']),
       severity: serializer.fromJson<int>(json['severity']),
@@ -1739,7 +1738,7 @@ class ReactionLog extends DataClass implements Insertable<ReactionLog> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'mealId': serializer.toJson<int>(mealId),
+      'mealId': serializer.toJson<int?>(mealId),
       'checkinTime': serializer.toJson<DateTime>(checkinTime),
       'symptoms': serializer.toJson<String>(symptoms),
       'severity': serializer.toJson<int>(severity),
@@ -1749,14 +1748,14 @@ class ReactionLog extends DataClass implements Insertable<ReactionLog> {
 
   ReactionLog copyWith({
     int? id,
-    int? mealId,
+    Value<int?> mealId = const Value.absent(),
     DateTime? checkinTime,
     String? symptoms,
     int? severity,
     Value<String?> notes = const Value.absent(),
   }) => ReactionLog(
     id: id ?? this.id,
-    mealId: mealId ?? this.mealId,
+    mealId: mealId.present ? mealId.value : this.mealId,
     checkinTime: checkinTime ?? this.checkinTime,
     symptoms: symptoms ?? this.symptoms,
     severity: severity ?? this.severity,
@@ -1805,7 +1804,7 @@ class ReactionLog extends DataClass implements Insertable<ReactionLog> {
 
 class ReactionLogsCompanion extends UpdateCompanion<ReactionLog> {
   final Value<int> id;
-  final Value<int> mealId;
+  final Value<int?> mealId;
   final Value<DateTime> checkinTime;
   final Value<String> symptoms;
   final Value<int> severity;
@@ -1820,13 +1819,12 @@ class ReactionLogsCompanion extends UpdateCompanion<ReactionLog> {
   });
   ReactionLogsCompanion.insert({
     this.id = const Value.absent(),
-    required int mealId,
+    this.mealId = const Value.absent(),
     required DateTime checkinTime,
     required String symptoms,
     required int severity,
     this.notes = const Value.absent(),
-  }) : mealId = Value(mealId),
-       checkinTime = Value(checkinTime),
+  }) : checkinTime = Value(checkinTime),
        symptoms = Value(symptoms),
        severity = Value(severity);
   static Insertable<ReactionLog> custom({
@@ -1849,7 +1847,7 @@ class ReactionLogsCompanion extends UpdateCompanion<ReactionLog> {
 
   ReactionLogsCompanion copyWith({
     Value<int>? id,
-    Value<int>? mealId,
+    Value<int?>? mealId,
     Value<DateTime>? checkinTime,
     Value<String>? symptoms,
     Value<int>? severity,
@@ -2322,6 +2320,698 @@ class FoodMemoriesCompanion extends UpdateCompanion<FoodMemory> {
   }
 }
 
+class $MedicationsTable extends Medications
+    with TableInfo<$MedicationsTable, Medication> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MedicationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _timeMeta = const VerificationMeta('time');
+  @override
+  late final GeneratedColumn<String> time = GeneratedColumn<String>(
+    'time',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _doseMeta = const VerificationMeta('dose');
+  @override
+  late final GeneratedColumn<double> dose = GeneratedColumn<double>(
+    'dose',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+    'unit',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _routeMeta = const VerificationMeta('route');
+  @override
+  late final GeneratedColumn<String> route = GeneratedColumn<String>(
+    'route',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _checkinDelayMinutesMeta =
+      const VerificationMeta('checkinDelayMinutes');
+  @override
+  late final GeneratedColumn<int> checkinDelayMinutes = GeneratedColumn<int>(
+    'checkin_delay_minutes',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _rawInputMeta = const VerificationMeta(
+    'rawInput',
+  );
+  @override
+  late final GeneratedColumn<String> rawInput = GeneratedColumn<String>(
+    'raw_input',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _imageDataMeta = const VerificationMeta(
+    'imageData',
+  );
+  @override
+  late final GeneratedColumn<Uint8List> imageData = GeneratedColumn<Uint8List>(
+    'image_data',
+    aliasedName,
+    true,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    date,
+    time,
+    name,
+    dose,
+    unit,
+    route,
+    checkinDelayMinutes,
+    rawInput,
+    notes,
+    imageData,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'medications';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Medication> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('time')) {
+      context.handle(
+        _timeMeta,
+        time.isAcceptableOrUnknown(data['time']!, _timeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_timeMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('dose')) {
+      context.handle(
+        _doseMeta,
+        dose.isAcceptableOrUnknown(data['dose']!, _doseMeta),
+      );
+    }
+    if (data.containsKey('unit')) {
+      context.handle(
+        _unitMeta,
+        unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    }
+    if (data.containsKey('route')) {
+      context.handle(
+        _routeMeta,
+        route.isAcceptableOrUnknown(data['route']!, _routeMeta),
+      );
+    }
+    if (data.containsKey('checkin_delay_minutes')) {
+      context.handle(
+        _checkinDelayMinutesMeta,
+        checkinDelayMinutes.isAcceptableOrUnknown(
+          data['checkin_delay_minutes']!,
+          _checkinDelayMinutesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('raw_input')) {
+      context.handle(
+        _rawInputMeta,
+        rawInput.isAcceptableOrUnknown(data['raw_input']!, _rawInputMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('image_data')) {
+      context.handle(
+        _imageDataMeta,
+        imageData.isAcceptableOrUnknown(data['image_data']!, _imageDataMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Medication map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Medication(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+      time: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}time'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      dose: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}dose'],
+      ),
+      unit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}unit'],
+      ),
+      route: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}route'],
+      ),
+      checkinDelayMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}checkin_delay_minutes'],
+      ),
+      rawInput: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}raw_input'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      imageData: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}image_data'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $MedicationsTable createAlias(String alias) {
+    return $MedicationsTable(attachedDatabase, alias);
+  }
+}
+
+class Medication extends DataClass implements Insertable<Medication> {
+  final int id;
+  final DateTime date;
+  final String time;
+  final String name;
+  final double? dose;
+  final String? unit;
+  final String? route;
+  final int? checkinDelayMinutes;
+  final String? rawInput;
+  final String? notes;
+  final Uint8List? imageData;
+  final DateTime createdAt;
+  const Medication({
+    required this.id,
+    required this.date,
+    required this.time,
+    required this.name,
+    this.dose,
+    this.unit,
+    this.route,
+    this.checkinDelayMinutes,
+    this.rawInput,
+    this.notes,
+    this.imageData,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['date'] = Variable<DateTime>(date);
+    map['time'] = Variable<String>(time);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || dose != null) {
+      map['dose'] = Variable<double>(dose);
+    }
+    if (!nullToAbsent || unit != null) {
+      map['unit'] = Variable<String>(unit);
+    }
+    if (!nullToAbsent || route != null) {
+      map['route'] = Variable<String>(route);
+    }
+    if (!nullToAbsent || checkinDelayMinutes != null) {
+      map['checkin_delay_minutes'] = Variable<int>(checkinDelayMinutes);
+    }
+    if (!nullToAbsent || rawInput != null) {
+      map['raw_input'] = Variable<String>(rawInput);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || imageData != null) {
+      map['image_data'] = Variable<Uint8List>(imageData);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  MedicationsCompanion toCompanion(bool nullToAbsent) {
+    return MedicationsCompanion(
+      id: Value(id),
+      date: Value(date),
+      time: Value(time),
+      name: Value(name),
+      dose: dose == null && nullToAbsent ? const Value.absent() : Value(dose),
+      unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
+      route: route == null && nullToAbsent
+          ? const Value.absent()
+          : Value(route),
+      checkinDelayMinutes: checkinDelayMinutes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(checkinDelayMinutes),
+      rawInput: rawInput == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rawInput),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      imageData: imageData == null && nullToAbsent
+          ? const Value.absent()
+          : Value(imageData),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory Medication.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Medication(
+      id: serializer.fromJson<int>(json['id']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      time: serializer.fromJson<String>(json['time']),
+      name: serializer.fromJson<String>(json['name']),
+      dose: serializer.fromJson<double?>(json['dose']),
+      unit: serializer.fromJson<String?>(json['unit']),
+      route: serializer.fromJson<String?>(json['route']),
+      checkinDelayMinutes: serializer.fromJson<int?>(
+        json['checkinDelayMinutes'],
+      ),
+      rawInput: serializer.fromJson<String?>(json['rawInput']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      imageData: serializer.fromJson<Uint8List?>(json['imageData']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'date': serializer.toJson<DateTime>(date),
+      'time': serializer.toJson<String>(time),
+      'name': serializer.toJson<String>(name),
+      'dose': serializer.toJson<double?>(dose),
+      'unit': serializer.toJson<String?>(unit),
+      'route': serializer.toJson<String?>(route),
+      'checkinDelayMinutes': serializer.toJson<int?>(checkinDelayMinutes),
+      'rawInput': serializer.toJson<String?>(rawInput),
+      'notes': serializer.toJson<String?>(notes),
+      'imageData': serializer.toJson<Uint8List?>(imageData),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  Medication copyWith({
+    int? id,
+    DateTime? date,
+    String? time,
+    String? name,
+    Value<double?> dose = const Value.absent(),
+    Value<String?> unit = const Value.absent(),
+    Value<String?> route = const Value.absent(),
+    Value<int?> checkinDelayMinutes = const Value.absent(),
+    Value<String?> rawInput = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    Value<Uint8List?> imageData = const Value.absent(),
+    DateTime? createdAt,
+  }) => Medication(
+    id: id ?? this.id,
+    date: date ?? this.date,
+    time: time ?? this.time,
+    name: name ?? this.name,
+    dose: dose.present ? dose.value : this.dose,
+    unit: unit.present ? unit.value : this.unit,
+    route: route.present ? route.value : this.route,
+    checkinDelayMinutes: checkinDelayMinutes.present
+        ? checkinDelayMinutes.value
+        : this.checkinDelayMinutes,
+    rawInput: rawInput.present ? rawInput.value : this.rawInput,
+    notes: notes.present ? notes.value : this.notes,
+    imageData: imageData.present ? imageData.value : this.imageData,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  Medication copyWithCompanion(MedicationsCompanion data) {
+    return Medication(
+      id: data.id.present ? data.id.value : this.id,
+      date: data.date.present ? data.date.value : this.date,
+      time: data.time.present ? data.time.value : this.time,
+      name: data.name.present ? data.name.value : this.name,
+      dose: data.dose.present ? data.dose.value : this.dose,
+      unit: data.unit.present ? data.unit.value : this.unit,
+      route: data.route.present ? data.route.value : this.route,
+      checkinDelayMinutes: data.checkinDelayMinutes.present
+          ? data.checkinDelayMinutes.value
+          : this.checkinDelayMinutes,
+      rawInput: data.rawInput.present ? data.rawInput.value : this.rawInput,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      imageData: data.imageData.present ? data.imageData.value : this.imageData,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Medication(')
+          ..write('id: $id, ')
+          ..write('date: $date, ')
+          ..write('time: $time, ')
+          ..write('name: $name, ')
+          ..write('dose: $dose, ')
+          ..write('unit: $unit, ')
+          ..write('route: $route, ')
+          ..write('checkinDelayMinutes: $checkinDelayMinutes, ')
+          ..write('rawInput: $rawInput, ')
+          ..write('notes: $notes, ')
+          ..write('imageData: $imageData, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    date,
+    time,
+    name,
+    dose,
+    unit,
+    route,
+    checkinDelayMinutes,
+    rawInput,
+    notes,
+    $driftBlobEquality.hash(imageData),
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Medication &&
+          other.id == this.id &&
+          other.date == this.date &&
+          other.time == this.time &&
+          other.name == this.name &&
+          other.dose == this.dose &&
+          other.unit == this.unit &&
+          other.route == this.route &&
+          other.checkinDelayMinutes == this.checkinDelayMinutes &&
+          other.rawInput == this.rawInput &&
+          other.notes == this.notes &&
+          $driftBlobEquality.equals(other.imageData, this.imageData) &&
+          other.createdAt == this.createdAt);
+}
+
+class MedicationsCompanion extends UpdateCompanion<Medication> {
+  final Value<int> id;
+  final Value<DateTime> date;
+  final Value<String> time;
+  final Value<String> name;
+  final Value<double?> dose;
+  final Value<String?> unit;
+  final Value<String?> route;
+  final Value<int?> checkinDelayMinutes;
+  final Value<String?> rawInput;
+  final Value<String?> notes;
+  final Value<Uint8List?> imageData;
+  final Value<DateTime> createdAt;
+  const MedicationsCompanion({
+    this.id = const Value.absent(),
+    this.date = const Value.absent(),
+    this.time = const Value.absent(),
+    this.name = const Value.absent(),
+    this.dose = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.route = const Value.absent(),
+    this.checkinDelayMinutes = const Value.absent(),
+    this.rawInput = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.imageData = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  MedicationsCompanion.insert({
+    this.id = const Value.absent(),
+    required DateTime date,
+    required String time,
+    required String name,
+    this.dose = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.route = const Value.absent(),
+    this.checkinDelayMinutes = const Value.absent(),
+    this.rawInput = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.imageData = const Value.absent(),
+    required DateTime createdAt,
+  }) : date = Value(date),
+       time = Value(time),
+       name = Value(name),
+       createdAt = Value(createdAt);
+  static Insertable<Medication> custom({
+    Expression<int>? id,
+    Expression<DateTime>? date,
+    Expression<String>? time,
+    Expression<String>? name,
+    Expression<double>? dose,
+    Expression<String>? unit,
+    Expression<String>? route,
+    Expression<int>? checkinDelayMinutes,
+    Expression<String>? rawInput,
+    Expression<String>? notes,
+    Expression<Uint8List>? imageData,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (date != null) 'date': date,
+      if (time != null) 'time': time,
+      if (name != null) 'name': name,
+      if (dose != null) 'dose': dose,
+      if (unit != null) 'unit': unit,
+      if (route != null) 'route': route,
+      if (checkinDelayMinutes != null)
+        'checkin_delay_minutes': checkinDelayMinutes,
+      if (rawInput != null) 'raw_input': rawInput,
+      if (notes != null) 'notes': notes,
+      if (imageData != null) 'image_data': imageData,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  MedicationsCompanion copyWith({
+    Value<int>? id,
+    Value<DateTime>? date,
+    Value<String>? time,
+    Value<String>? name,
+    Value<double?>? dose,
+    Value<String?>? unit,
+    Value<String?>? route,
+    Value<int?>? checkinDelayMinutes,
+    Value<String?>? rawInput,
+    Value<String?>? notes,
+    Value<Uint8List?>? imageData,
+    Value<DateTime>? createdAt,
+  }) {
+    return MedicationsCompanion(
+      id: id ?? this.id,
+      date: date ?? this.date,
+      time: time ?? this.time,
+      name: name ?? this.name,
+      dose: dose ?? this.dose,
+      unit: unit ?? this.unit,
+      route: route ?? this.route,
+      checkinDelayMinutes: checkinDelayMinutes ?? this.checkinDelayMinutes,
+      rawInput: rawInput ?? this.rawInput,
+      notes: notes ?? this.notes,
+      imageData: imageData ?? this.imageData,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (time.present) {
+      map['time'] = Variable<String>(time.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (dose.present) {
+      map['dose'] = Variable<double>(dose.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (route.present) {
+      map['route'] = Variable<String>(route.value);
+    }
+    if (checkinDelayMinutes.present) {
+      map['checkin_delay_minutes'] = Variable<int>(checkinDelayMinutes.value);
+    }
+    if (rawInput.present) {
+      map['raw_input'] = Variable<String>(rawInput.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (imageData.present) {
+      map['image_data'] = Variable<Uint8List>(imageData.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MedicationsCompanion(')
+          ..write('id: $id, ')
+          ..write('date: $date, ')
+          ..write('time: $time, ')
+          ..write('name: $name, ')
+          ..write('dose: $dose, ')
+          ..write('unit: $unit, ')
+          ..write('route: $route, ')
+          ..write('checkinDelayMinutes: $checkinDelayMinutes, ')
+          ..write('rawInput: $rawInput, ')
+          ..write('notes: $notes, ')
+          ..write('imageData: $imageData, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2330,6 +3020,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $IngredientsTable ingredients = $IngredientsTable(this);
   late final $ReactionLogsTable reactionLogs = $ReactionLogsTable(this);
   late final $FoodMemoriesTable foodMemories = $FoodMemoriesTable(this);
+  late final $MedicationsTable medications = $MedicationsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2340,6 +3031,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     ingredients,
     reactionLogs,
     foodMemories,
+    medications,
   ];
 }
 
@@ -2383,24 +3075,6 @@ final class $$MealsTableReferences
     ).filter((f) => f.mealId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_foodItemsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<$ReactionLogsTable, List<ReactionLog>>
-  _reactionLogsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-    db.reactionLogs,
-    aliasName: $_aliasNameGenerator(db.meals.id, db.reactionLogs.mealId),
-  );
-
-  $$ReactionLogsTableProcessedTableManager get reactionLogsRefs {
-    final manager = $$ReactionLogsTableTableManager(
-      $_db,
-      $_db.reactionLogs,
-    ).filter((f) => f.mealId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_reactionLogsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -2471,31 +3145,6 @@ class $$MealsTableFilterComposer extends Composer<_$AppDatabase, $MealsTable> {
           }) => $$FoodItemsTableFilterComposer(
             $db: $db,
             $table: $db.foodItems,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> reactionLogsRefs(
-    Expression<bool> Function($$ReactionLogsTableFilterComposer f) f,
-  ) {
-    final $$ReactionLogsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.reactionLogs,
-      getReferencedColumn: (t) => t.mealId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$ReactionLogsTableFilterComposer(
-            $db: $db,
-            $table: $db.reactionLogs,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -2615,31 +3264,6 @@ class $$MealsTableAnnotationComposer
     );
     return f(composer);
   }
-
-  Expression<T> reactionLogsRefs<T extends Object>(
-    Expression<T> Function($$ReactionLogsTableAnnotationComposer a) f,
-  ) {
-    final $$ReactionLogsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.reactionLogs,
-      getReferencedColumn: (t) => t.mealId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$ReactionLogsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.reactionLogs,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$MealsTableTableManager
@@ -2655,7 +3279,7 @@ class $$MealsTableTableManager
           $$MealsTableUpdateCompanionBuilder,
           (Meal, $$MealsTableReferences),
           Meal,
-          PrefetchHooks Function({bool foodItemsRefs, bool reactionLogsRefs})
+          PrefetchHooks Function({bool foodItemsRefs})
         > {
   $$MealsTableTableManager(_$AppDatabase db, $MealsTable table)
     : super(
@@ -2714,59 +3338,28 @@ class $$MealsTableTableManager
                     (e.readTable(table), $$MealsTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback:
-              ({foodItemsRefs = false, reactionLogsRefs = false}) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (foodItemsRefs) db.foodItems,
-                    if (reactionLogsRefs) db.reactionLogs,
-                  ],
-                  addJoins: null,
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (foodItemsRefs)
-                        await $_getPrefetchedData<Meal, $MealsTable, FoodItem>(
-                          currentTable: table,
-                          referencedTable: $$MealsTableReferences
-                              ._foodItemsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$MealsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).foodItemsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.mealId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (reactionLogsRefs)
-                        await $_getPrefetchedData<
-                          Meal,
-                          $MealsTable,
-                          ReactionLog
-                        >(
-                          currentTable: table,
-                          referencedTable: $$MealsTableReferences
-                              ._reactionLogsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$MealsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).reactionLogsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.mealId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
+          prefetchHooksCallback: ({foodItemsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (foodItemsRefs) db.foodItems],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (foodItemsRefs)
+                    await $_getPrefetchedData<Meal, $MealsTable, FoodItem>(
+                      currentTable: table,
+                      referencedTable: $$MealsTableReferences
+                          ._foodItemsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$MealsTableReferences(db, table, p0).foodItemsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.mealId == item.id),
+                      typedResults: items,
+                    ),
+                ];
               },
+            );
+          },
         ),
       );
 }
@@ -2783,7 +3376,7 @@ typedef $$MealsTableProcessedTableManager =
       $$MealsTableUpdateCompanionBuilder,
       (Meal, $$MealsTableReferences),
       Meal,
-      PrefetchHooks Function({bool foodItemsRefs, bool reactionLogsRefs})
+      PrefetchHooks Function({bool foodItemsRefs})
     >;
 typedef $$FoodItemsTableCreateCompanionBuilder =
     FoodItemsCompanion Function({
@@ -3615,7 +4208,7 @@ typedef $$IngredientsTableProcessedTableManager =
 typedef $$ReactionLogsTableCreateCompanionBuilder =
     ReactionLogsCompanion Function({
       Value<int> id,
-      required int mealId,
+      Value<int?> mealId,
       required DateTime checkinTime,
       required String symptoms,
       required int severity,
@@ -3624,35 +4217,12 @@ typedef $$ReactionLogsTableCreateCompanionBuilder =
 typedef $$ReactionLogsTableUpdateCompanionBuilder =
     ReactionLogsCompanion Function({
       Value<int> id,
-      Value<int> mealId,
+      Value<int?> mealId,
       Value<DateTime> checkinTime,
       Value<String> symptoms,
       Value<int> severity,
       Value<String?> notes,
     });
-
-final class $$ReactionLogsTableReferences
-    extends BaseReferences<_$AppDatabase, $ReactionLogsTable, ReactionLog> {
-  $$ReactionLogsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $MealsTable _mealIdTable(_$AppDatabase db) => db.meals.createAlias(
-    $_aliasNameGenerator(db.reactionLogs.mealId, db.meals.id),
-  );
-
-  $$MealsTableProcessedTableManager get mealId {
-    final $_column = $_itemColumn<int>('meal_id')!;
-
-    final manager = $$MealsTableTableManager(
-      $_db,
-      $_db.meals,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_mealIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
 
 class $$ReactionLogsTableFilterComposer
     extends Composer<_$AppDatabase, $ReactionLogsTable> {
@@ -3665,6 +4235,11 @@ class $$ReactionLogsTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get mealId => $composableBuilder(
+    column: $table.mealId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3687,29 +4262,6 @@ class $$ReactionLogsTableFilterComposer
     column: $table.notes,
     builder: (column) => ColumnFilters(column),
   );
-
-  $$MealsTableFilterComposer get mealId {
-    final $$MealsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.mealId,
-      referencedTable: $db.meals,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$MealsTableFilterComposer(
-            $db: $db,
-            $table: $db.meals,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$ReactionLogsTableOrderingComposer
@@ -3723,6 +4275,11 @@ class $$ReactionLogsTableOrderingComposer
   });
   ColumnOrderings<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get mealId => $composableBuilder(
+    column: $table.mealId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -3745,29 +4302,6 @@ class $$ReactionLogsTableOrderingComposer
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
   );
-
-  $$MealsTableOrderingComposer get mealId {
-    final $$MealsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.mealId,
-      referencedTable: $db.meals,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$MealsTableOrderingComposer(
-            $db: $db,
-            $table: $db.meals,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$ReactionLogsTableAnnotationComposer
@@ -3782,6 +4316,9 @@ class $$ReactionLogsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
+  GeneratedColumn<int> get mealId =>
+      $composableBuilder(column: $table.mealId, builder: (column) => column);
+
   GeneratedColumn<DateTime> get checkinTime => $composableBuilder(
     column: $table.checkinTime,
     builder: (column) => column,
@@ -3795,29 +4332,6 @@ class $$ReactionLogsTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
-
-  $$MealsTableAnnotationComposer get mealId {
-    final $$MealsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.mealId,
-      referencedTable: $db.meals,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$MealsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.meals,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$ReactionLogsTableTableManager
@@ -3831,9 +4345,12 @@ class $$ReactionLogsTableTableManager
           $$ReactionLogsTableAnnotationComposer,
           $$ReactionLogsTableCreateCompanionBuilder,
           $$ReactionLogsTableUpdateCompanionBuilder,
-          (ReactionLog, $$ReactionLogsTableReferences),
+          (
+            ReactionLog,
+            BaseReferences<_$AppDatabase, $ReactionLogsTable, ReactionLog>,
+          ),
           ReactionLog,
-          PrefetchHooks Function({bool mealId})
+          PrefetchHooks Function()
         > {
   $$ReactionLogsTableTableManager(_$AppDatabase db, $ReactionLogsTable table)
     : super(
@@ -3849,7 +4366,7 @@ class $$ReactionLogsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<int> mealId = const Value.absent(),
+                Value<int?> mealId = const Value.absent(),
                 Value<DateTime> checkinTime = const Value.absent(),
                 Value<String> symptoms = const Value.absent(),
                 Value<int> severity = const Value.absent(),
@@ -3865,7 +4382,7 @@ class $$ReactionLogsTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                required int mealId,
+                Value<int?> mealId = const Value.absent(),
                 required DateTime checkinTime,
                 required String symptoms,
                 required int severity,
@@ -3879,54 +4396,9 @@ class $$ReactionLogsTableTableManager
                 notes: notes,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$ReactionLogsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({mealId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (mealId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.mealId,
-                                referencedTable: $$ReactionLogsTableReferences
-                                    ._mealIdTable(db),
-                                referencedColumn: $$ReactionLogsTableReferences
-                                    ._mealIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -3941,9 +4413,12 @@ typedef $$ReactionLogsTableProcessedTableManager =
       $$ReactionLogsTableAnnotationComposer,
       $$ReactionLogsTableCreateCompanionBuilder,
       $$ReactionLogsTableUpdateCompanionBuilder,
-      (ReactionLog, $$ReactionLogsTableReferences),
+      (
+        ReactionLog,
+        BaseReferences<_$AppDatabase, $ReactionLogsTable, ReactionLog>,
+      ),
       ReactionLog,
-      PrefetchHooks Function({bool mealId})
+      PrefetchHooks Function()
     >;
 typedef $$FoodMemoriesTableCreateCompanionBuilder =
     FoodMemoriesCompanion Function({
@@ -4162,6 +4637,335 @@ typedef $$FoodMemoriesTableProcessedTableManager =
       FoodMemory,
       PrefetchHooks Function()
     >;
+typedef $$MedicationsTableCreateCompanionBuilder =
+    MedicationsCompanion Function({
+      Value<int> id,
+      required DateTime date,
+      required String time,
+      required String name,
+      Value<double?> dose,
+      Value<String?> unit,
+      Value<String?> route,
+      Value<int?> checkinDelayMinutes,
+      Value<String?> rawInput,
+      Value<String?> notes,
+      Value<Uint8List?> imageData,
+      required DateTime createdAt,
+    });
+typedef $$MedicationsTableUpdateCompanionBuilder =
+    MedicationsCompanion Function({
+      Value<int> id,
+      Value<DateTime> date,
+      Value<String> time,
+      Value<String> name,
+      Value<double?> dose,
+      Value<String?> unit,
+      Value<String?> route,
+      Value<int?> checkinDelayMinutes,
+      Value<String?> rawInput,
+      Value<String?> notes,
+      Value<Uint8List?> imageData,
+      Value<DateTime> createdAt,
+    });
+
+class $$MedicationsTableFilterComposer
+    extends Composer<_$AppDatabase, $MedicationsTable> {
+  $$MedicationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get time => $composableBuilder(
+    column: $table.time,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get dose => $composableBuilder(
+    column: $table.dose,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get route => $composableBuilder(
+    column: $table.route,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get checkinDelayMinutes => $composableBuilder(
+    column: $table.checkinDelayMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rawInput => $composableBuilder(
+    column: $table.rawInput,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<Uint8List> get imageData => $composableBuilder(
+    column: $table.imageData,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MedicationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MedicationsTable> {
+  $$MedicationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get time => $composableBuilder(
+    column: $table.time,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get dose => $composableBuilder(
+    column: $table.dose,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get route => $composableBuilder(
+    column: $table.route,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get checkinDelayMinutes => $composableBuilder(
+    column: $table.checkinDelayMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rawInput => $composableBuilder(
+    column: $table.rawInput,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<Uint8List> get imageData => $composableBuilder(
+    column: $table.imageData,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MedicationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MedicationsTable> {
+  $$MedicationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<String> get time =>
+      $composableBuilder(column: $table.time, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<double> get dose =>
+      $composableBuilder(column: $table.dose, builder: (column) => column);
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
+
+  GeneratedColumn<String> get route =>
+      $composableBuilder(column: $table.route, builder: (column) => column);
+
+  GeneratedColumn<int> get checkinDelayMinutes => $composableBuilder(
+    column: $table.checkinDelayMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get rawInput =>
+      $composableBuilder(column: $table.rawInput, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<Uint8List> get imageData =>
+      $composableBuilder(column: $table.imageData, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$MedicationsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MedicationsTable,
+          Medication,
+          $$MedicationsTableFilterComposer,
+          $$MedicationsTableOrderingComposer,
+          $$MedicationsTableAnnotationComposer,
+          $$MedicationsTableCreateCompanionBuilder,
+          $$MedicationsTableUpdateCompanionBuilder,
+          (
+            Medication,
+            BaseReferences<_$AppDatabase, $MedicationsTable, Medication>,
+          ),
+          Medication,
+          PrefetchHooks Function()
+        > {
+  $$MedicationsTableTableManager(_$AppDatabase db, $MedicationsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MedicationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MedicationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MedicationsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<String> time = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<double?> dose = const Value.absent(),
+                Value<String?> unit = const Value.absent(),
+                Value<String?> route = const Value.absent(),
+                Value<int?> checkinDelayMinutes = const Value.absent(),
+                Value<String?> rawInput = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<Uint8List?> imageData = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => MedicationsCompanion(
+                id: id,
+                date: date,
+                time: time,
+                name: name,
+                dose: dose,
+                unit: unit,
+                route: route,
+                checkinDelayMinutes: checkinDelayMinutes,
+                rawInput: rawInput,
+                notes: notes,
+                imageData: imageData,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required DateTime date,
+                required String time,
+                required String name,
+                Value<double?> dose = const Value.absent(),
+                Value<String?> unit = const Value.absent(),
+                Value<String?> route = const Value.absent(),
+                Value<int?> checkinDelayMinutes = const Value.absent(),
+                Value<String?> rawInput = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<Uint8List?> imageData = const Value.absent(),
+                required DateTime createdAt,
+              }) => MedicationsCompanion.insert(
+                id: id,
+                date: date,
+                time: time,
+                name: name,
+                dose: dose,
+                unit: unit,
+                route: route,
+                checkinDelayMinutes: checkinDelayMinutes,
+                rawInput: rawInput,
+                notes: notes,
+                imageData: imageData,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MedicationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MedicationsTable,
+      Medication,
+      $$MedicationsTableFilterComposer,
+      $$MedicationsTableOrderingComposer,
+      $$MedicationsTableAnnotationComposer,
+      $$MedicationsTableCreateCompanionBuilder,
+      $$MedicationsTableUpdateCompanionBuilder,
+      (
+        Medication,
+        BaseReferences<_$AppDatabase, $MedicationsTable, Medication>,
+      ),
+      Medication,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4176,4 +4980,6 @@ class $AppDatabaseManager {
       $$ReactionLogsTableTableManager(_db, _db.reactionLogs);
   $$FoodMemoriesTableTableManager get foodMemories =>
       $$FoodMemoriesTableTableManager(_db, _db.foodMemories);
+  $$MedicationsTableTableManager get medications =>
+      $$MedicationsTableTableManager(_db, _db.medications);
 }

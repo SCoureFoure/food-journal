@@ -1,14 +1,26 @@
 # Food Journal — Feature Spec
 
+---
+
+## Design Constraints (apply to all features)
+
+- **AI-optional**: every feature with AI parsing must work end-to-end without AI. Manual entry is the baseline; AI pre-fills it. Never block the save path on an AI call.
+- **Schema = contract**: the SQLite schema is stable. Any change requires a drift migration + integration test. AI output is validated before write.
+- **Entry types**: the journal feed contains three entry types — `meal`, `medication`, `body_output`. All three share the same feed and date-grouping UI.
+
+---
+
 ## Core Features
 
-### F1 — Meal Logging (text + photo)
+### F1 — Meal Logging (text + photo + camera)
 
 - User describes meal in free text and/or attaches a photo
-- AI parses input → pre-fills structured form
-- User can review/edit before saving
+- "Add photo" opens camera directly (ImageSource.camera); gallery fallback also available
+- AI parses input → pre-fills structured form. If AI unavailable or user skips: manual entry form shown directly
+- User can review/edit all fields before saving
 - Fields: food name, portion, prep method, calories, P/C/F macros, ingredients list
 - Multiple food items per meal entry
+- On save: push notification scheduled for check-in (configurable delay, default 90 min). If notification permission not yet granted, prompt user at this point.
 
 ### F2 — Journal View
 
@@ -63,6 +75,24 @@
 - Freeform notes field per meal (AI-populated from description, editable)
 - Notes visible in journal view and CSV export
 
+### F9 — Medication Tracking
+
+- Same entry flow as meal logging: text/photo input → AI parses → manual review/edit form
+- AI-optional: manual entry form always available
+- Fields: name (drug/supplement), dose, unit (mg/g/ml/etc.), route (oral/topical/inhaled/other), time
+- Notes field
+- Appears in journal feed alongside meals with distinct icon/label
+- Reaction check-in notification scheduled same as meals (configurable, same delay setting)
+- Exported in CSV alongside meals with entry_type column
+
+### F10 — Body Output Tracking (WC Log)
+
+- Quick-log entry, minimal fields
+- Fields: output_type (bowel movement / urine / other), time, urgency (low/medium/high), consistency (for BM: Bristol scale 1–7), notes
+- No AI parsing needed (structured form only)
+- Appears in journal feed with distinct icon
+- Correlates with food_memory over time (stretch: flag foods that precede urgent BM within N hours)
+
 ---
 
 ## Stretch Features
@@ -88,6 +118,18 @@
 
 - If no network: show manual entry form (no AI parsing)
 - Queue AI parse for when network returns
+
+### S5 — Body-output / food correlation
+
+- Flag foods in food_memory that frequently precede urgent BM within configurable window
+- Requires enough logged entries to infer (5+ occurrences)
+
+### S6 — Biometrics / smart device sync
+
+- Capture or sync biometric data from wearables (heart rate, HRV, glucose, sleep)
+- Correlate with meal and reaction entries
+- Integration targets: Apple Health / Google Fit / Garmin Connect (platform-specific)
+- Long-term goal — no implementation planned until F1–F10 are stable
 
 ---
 

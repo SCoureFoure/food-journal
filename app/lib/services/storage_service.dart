@@ -6,18 +6,21 @@ import '../models/food_item.dart';
 import '../models/food_memory.dart';
 import '../models/ingredient.dart';
 import '../models/meal_entry.dart';
+import '../models/medication.dart';
 import '../models/reaction_log.dart';
 import 'database/app_database.dart' as db;
 
 class StorageService {
   final _db = db.AppDatabase();
 
-  Future<void> saveMeal(
+  // ── Meals ────────────────────────────────────────────────────────────────────
+
+  Future<int> saveMeal(
     MealEntry meal,
     List<FoodItem> items,
     List<List<Ingredient>> ingredientsByItem,
   ) async {
-    await _db.transaction(() async {
+    return _db.transaction(() async {
       final mealId = await _db.into(_db.meals).insert(
         db.MealsCompanion.insert(
           date: meal.date,
@@ -58,6 +61,8 @@ class StorageService {
           );
         }
       }
+
+      return mealId;
     });
   }
 
@@ -137,6 +142,56 @@ class StorageService {
     return rows.map(_ingredientFromRow).toList();
   }
 
+  Future<void> updateMealSymptoms(int mealId, String? symptoms) async {
+    await (_db.update(_db.meals)..where((t) => t.id.equals(mealId)))
+        .write(db.MealsCompanion(overallSymptoms: Value(symptoms)));
+  }
+
+  // ── Medications ──────────────────────────────────────────────────────────────
+
+  Future<int> saveMedication(Medication med) async {
+    return _db.into(_db.medications).insert(
+      db.MedicationsCompanion.insert(
+        date: med.date,
+        time: med.time,
+        name: med.name,
+        dose: Value(med.dose),
+        unit: Value(med.unit),
+        route: Value(med.route),
+        checkinDelayMinutes: Value(med.checkinDelayMinutes),
+        rawInput: Value(med.rawInput),
+        notes: Value(med.notes),
+        imageData: Value(med.imageData),
+        createdAt: med.createdAt,
+      ),
+    );
+  }
+
+  Future<List<Medication>> getAllMedications() async {
+    final rows = await (_db.select(_db.medications)
+          ..orderBy([
+            (t) => OrderingTerm.desc(t.date),
+            (t) => OrderingTerm.asc(t.createdAt),
+          ]))
+        .get();
+    return rows.map(_medicationFromRow).toList();
+  }
+
+  Future<Medication?> getMedicationById(int id) async {
+    final row = await (_db.select(_db.medications)..where((t) => t.id.equals(id))).getSingleOrNull();
+    return row == null ? null : _medicationFromRow(row);
+  }
+
+  // ── Reactions ────────────────────────────────────────────────────────────────
+
+  Future<List<ReactionLog>> getStandaloneReactionLogs() async {
+    final rows = await (_db.select(_db.reactionLogs)
+          ..where((t) => t.mealId.isNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.checkinTime)]))
+        .get();
+    return rows.map(_reactionLogFromRow).toList();
+  }
+
   Future<List<ReactionLog>> getReactionLogsForMeal(int mealId) async {
     final rows = await (_db.select(_db.reactionLogs)
           ..where((t) => t.mealId.equals(mealId)))
@@ -147,7 +202,7 @@ class StorageService {
   Future<void> saveReactionLog(ReactionLog log) async {
     await _db.into(_db.reactionLogs).insert(
       db.ReactionLogsCompanion.insert(
-        mealId: log.mealId,
+        mealId: Value(log.mealId),
         checkinTime: log.checkinTime,
         symptoms: jsonEncode(log.symptoms),
         severity: log.severity.toInt(),
@@ -156,15 +211,14 @@ class StorageService {
     );
   }
 
+  // ── Food Memory ──────────────────────────────────────────────────────────────
+
   Future<List<FoodMemory>> getFoodMemory() async {
     final rows = await _db.select(_db.foodMemories).get();
     return rows.map(_foodMemoryFromRow).toList();
   }
 
-  Future<void> upsertFoodMemory(
-    String foodName,
-    ReactionLevel reaction,
-  ) async {
+  Future<void> upsertFoodMemory(String foodName, ReactionLevel reaction) async {
     await _db.transaction(() async {
       final existing = await (_db.select(_db.foodMemories)
             ..where((t) => t.foodName.equals(foodName)))
@@ -192,10 +246,7 @@ class StorageService {
     });
   }
 
-  Future<void> updateMealSymptoms(int mealId, String? symptoms) async {
-    await (_db.update(_db.meals)..where((t) => t.id.equals(mealId)))
-        .write(db.MealsCompanion(overallSymptoms: Value(symptoms)));
-  }
+  // ── Misc ─────────────────────────────────────────────────────────────────────
 
   Future<bool> hasMeals() async {
     final row = await (_db.select(_db.meals)..limit(1)).getSingleOrNull();
@@ -209,12 +260,13 @@ class StorageService {
       await _db.delete(_db.foodItems).go();
       await _db.delete(_db.meals).go();
       await _db.delete(_db.foodMemories).go();
+      await _db.delete(_db.medications).go();
     });
   }
 
   void dispose() {} // singleton DB — never close
 
-  // ── mappers ──────────────────────────────────────────────────────────────────
+  // ── Mappers ──────────────────────────────────────────────────────────────────
 
   MealEntry _mealFromRow(db.Meal row) => MealEntry(
         id: row.id,
@@ -265,5 +317,20 @@ class StorageService {
         occurrences: row.occurrences,
         lastSeen: row.lastSeen,
         flagged: row.flagged,
+      );
+
+  Medication _medicationFromRow(db.Medication row) => Medication(
+        id: row.id,
+        date: row.date,
+        time: row.time,
+        name: row.name,
+        dose: row.dose,
+        unit: row.unit,
+        route: row.route,
+        checkinDelayMinutes: row.checkinDelayMinutes,
+        rawInput: row.rawInput,
+        notes: row.notes,
+        imageData: row.imageData,
+        createdAt: row.createdAt,
       );
 }

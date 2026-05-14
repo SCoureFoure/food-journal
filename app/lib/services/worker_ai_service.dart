@@ -61,4 +61,55 @@ class WorkerAiService implements AiService {
       return MealParseResult(success: false, errorMessage: e.toString());
     }
   }
+
+  @override
+  Future<MedicationParseResult> parseMedication({String? text, Uint8List? imageBytes}) async {
+    if (_workerUrl.isEmpty) {
+      return MedicationParseResult(success: false, errorMessage: 'MEAL_PARSER_URL not set in .env');
+    }
+
+    final body = <String, dynamic>{'task': 'parse_medication'};
+    if (text != null && text.isNotEmpty) body['text'] = text;
+    if (imageBytes != null) {
+      body['image'] = {'data': base64Encode(imageBytes), 'mimeType': 'image/jpeg'};
+    }
+
+    if (body.length == 1) {
+      return MedicationParseResult(success: false, errorMessage: 'Provide text or image to parse.');
+    }
+
+    try {
+      final response = await _client.post(
+        Uri.parse(_workerUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode != 200) {
+        return MedicationParseResult(
+          success: false,
+          errorMessage: 'Worker error ${response.statusCode}: ${response.body}',
+        );
+      }
+
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      return MedicationParseResult(
+        success: true,
+        name: json['name'] as String?,
+        dose: _parseNum(json['dose']),
+        unit: json['unit'] as String?,
+        route: json['route'] as String?,
+        notes: json['notes'] as String?,
+      );
+    } catch (e) {
+      return MedicationParseResult(success: false, errorMessage: e.toString());
+    }
+  }
+
+  static double? _parseNum(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v.toDouble();
+    if (v is String) return double.tryParse(v);
+    return null;
+  }
 }

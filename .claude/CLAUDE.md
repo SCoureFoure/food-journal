@@ -98,20 +98,27 @@ constraints:
 
 ## Key architectural decisions
 
-- **AI input parsing**: Claude API (`claude-sonnet-4-6`) — text + image → structured JSON meal entry
-- **Local storage**: SQLite via `drift` — meals, food_items, ingredients, reactions, food_memory
-- **Notifications**: `flutter_local_notifications` — post-meal check-in (configurable delay, default 90 min)
-- **Export**: CSV for meals, separate grocery list from ingredient aggregation
+- **AI-optional (top-level)**: every AI-powered flow has a complete manual fallback. AI pre-fills; it never blocks. If API unavailable, key missing, or user skips — manual entry form shows directly. Applies to meal logging, medication logging, and all future AI features.
+- **Schema = contract**: SQLite schema is a stable API. No breaking changes without a drift migration + integration test. AI-parsed JSON validated before DB write.
+- **Services as tool interface**: service methods designed to be exposable as Claude tool-use (function calling). Clear typed inputs/outputs, single responsibility. Forward-compatible for AI calling services as tools.
+- **Entry types**: journal tracks `meal` | `medication` | `body_output`. All appear in same chronological feed. Each has its own table; all share date/time/notes/created_at.
+- **AI input parsing**: Claude API (`claude-sonnet-4-6`) — text + image → structured JSON (meals + medications)
+- **Local storage**: SQLite via `drift` — meals, food_items, ingredients, reactions, food_memory, medications, body_outputs
+- **Notifications**: `flutter_local_notifications` — check-in scheduled on save of any entry that warrants follow-up (configurable delay, default 90 min); permission prompt on first save if not yet granted
+- **Camera**: `image_picker` with `ImageSource.camera` as primary; gallery as secondary option on photo attach
+- **Export**: CSV for all entry types (entry_type column), separate grocery list from ingredient aggregation
 - **No backend**: all data local on device
 
 ## Data model (core)
 
 ```text
-MealEntry { id, date, time, mealType, overallSymptoms, rawInput }
-FoodItem { id, mealId, name, portion, prep, calories, protein, carbs, fat, reaction, notes }
-Ingredient { id, foodItemId, name, quantity, unit }
-ReactionLog { id, mealId, checkinTime, symptoms[], severity, notes }
-FoodMemory { id, foodName, reactionPattern, occurrences, lastSeen }
+MealEntry     { id, date, time, mealType, overallSymptoms, rawInput, imageData }
+FoodItem      { id, mealId, name, portion, prep, calories, protein, carbs, fat, reaction, notes }
+Ingredient    { id, foodItemId, name, quantity, unit }
+ReactionLog   { id, mealId, checkinTime, symptoms[], severity, notes }
+FoodMemory    { id, foodName, reactionPattern, occurrences, lastSeen }
+Medication    { id, date, time, name, dose, unit, route, notes }
+BodyOutput    { id, date, time, outputType, urgency, consistency, notes }
 ```
 
 ## Dev commands

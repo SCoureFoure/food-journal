@@ -14,8 +14,29 @@ class MealParseResult {
   MealParseResult({required this.success, this.items, this.title, this.errorMessage});
 }
 
+class MedicationParseResult {
+  final bool success;
+  final String? name;
+  final double? dose;
+  final String? unit;
+  final String? route;
+  final String? notes;
+  final String? errorMessage;
+
+  MedicationParseResult({
+    required this.success,
+    this.name,
+    this.dose,
+    this.unit,
+    this.route,
+    this.notes,
+    this.errorMessage,
+  });
+}
+
 abstract class AiService {
   Future<MealParseResult> parseMeal({String? text, Uint8List? imageBytes, String? mealType});
+  Future<MedicationParseResult> parseMedication({String? text, Uint8List? imageBytes});
 
   factory AiService.fromEnv() {
     return switch (dotenv.env['AI_PROVIDER'] ?? 'anthropic') {

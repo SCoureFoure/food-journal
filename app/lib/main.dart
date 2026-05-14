@@ -5,6 +5,7 @@ import 'screens/checkin/checkin_screen.dart';
 import 'screens/export/export_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/log_meal/log_meal_screen.dart';
+import 'screens/log_medication/log_medication_screen.dart';
 import 'screens/meal_detail/meal_detail_screen.dart';
 import 'services/notification_service.dart';
 import 'services/seed_service.dart';
@@ -40,6 +41,7 @@ class FoodJournalApp extends StatelessWidget {
       routes: {
         '/': (_) => const HomeScreen(),
         '/log': (_) => const LogMealScreen(),
+        '/log_medication': (_) => const LogMedicationScreen(),
         '/export': (_) => const ExportScreen(),
       },
       onGenerateRoute: (settings) {
@@ -50,7 +52,8 @@ class FoodJournalApp extends StatelessWidget {
           );
         }
         if (settings.name == '/checkin') {
-          final mealId = settings.arguments as int;
+          // arguments: int mealId (from meal card) or null (standalone Feeling...)
+          final mealId = settings.arguments as int?;
           return MaterialPageRoute(
             builder: (_) => CheckinScreen(mealId: mealId),
           );

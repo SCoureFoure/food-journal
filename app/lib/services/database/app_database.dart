@@ -40,7 +40,7 @@ class Ingredients extends Table {
 
 class ReactionLogs extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get mealId => integer().references(Meals, #id)();
+  IntColumn get mealId => integer().nullable()(); // null = standalone "Feeling..." check-in
   DateTimeColumn get checkinTime => dateTime()();
   TextColumn get symptoms => text()(); // JSON-encoded List<String>
   IntColumn get severity => integer()(); // ReactionLevel index
@@ -56,9 +56,24 @@ class FoodMemories extends Table {
   BoolColumn get flagged => boolean().withDefault(const Constant(false))();
 }
 
+class Medications extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  DateTimeColumn get date => dateTime()();
+  TextColumn get time => text()();
+  TextColumn get name => text()();
+  RealColumn get dose => real().nullable()();
+  TextColumn get unit => text().nullable()();
+  TextColumn get route => text().nullable()();
+  IntColumn get checkinDelayMinutes => integer().nullable()();
+  TextColumn get rawInput => text().nullable()();
+  TextColumn get notes => text().nullable()();
+  BlobColumn get imageData => blob().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
 // ─── Database ─────────────────────────────────────────────────────────────────
 
-@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories])
+@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories, Medications])
 class AppDatabase extends _$AppDatabase {
   static final AppDatabase _instance = AppDatabase._internal();
 
@@ -67,13 +82,47 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onUpgrade: (migrator, from, to) async {
       if (from < 2) {
         await migrator.addColumn(meals, meals.imageData);
+      }
+      if (from < 3) {
+        // Recreate reaction_logs with nullable meal_id (SQLite can't ALTER NOT NULL)
+        await customStatement('''
+          CREATE TABLE reaction_logs_new (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            meal_id INTEGER,
+            checkin_time INTEGER NOT NULL,
+            symptoms TEXT NOT NULL,
+            severity INTEGER NOT NULL,
+            notes TEXT
+          )
+        ''');
+        await customStatement(
+          'INSERT INTO reaction_logs_new SELECT id, meal_id, checkin_time, symptoms, severity, notes FROM reaction_logs',
+        );
+        await customStatement('DROP TABLE reaction_logs');
+        await customStatement('ALTER TABLE reaction_logs_new RENAME TO reaction_logs');
+        await customStatement('''
+          CREATE TABLE IF NOT EXISTS medications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date INTEGER NOT NULL,
+            time TEXT NOT NULL,
+            name TEXT NOT NULL,
+            dose REAL,
+            unit TEXT,
+            route TEXT,
+            checkin_delay_minutes INTEGER,
+            raw_input TEXT,
+            notes TEXT,
+            image_data BLOB,
+            created_at INTEGER NOT NULL
+          )
+        ''');
       }
     },
   );

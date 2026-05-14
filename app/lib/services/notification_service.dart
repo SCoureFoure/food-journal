@@ -6,11 +6,11 @@ import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
   static const _channelId = 'meal_checkin';
-  static const _channelName = 'Meal Check-ins';
+  static const _channelName = 'Check-ins';
 
   final _plugin = FlutterLocalNotificationsPlugin();
 
-  int get _delayMinutes {
+  int get _defaultDelayMinutes {
     final val = int.tryParse(dotenv.env['CHECKIN_DELAY_MINUTES'] ?? '');
     return val ?? 90;
   }
@@ -33,18 +33,20 @@ class NotificationService {
   }
 
   Future<void> scheduleCheckin(
-    int mealId,
-    String mealLabel,
-    DateTime mealTime,
-  ) async {
+    int entryId,
+    String label,
+    DateTime entryTime, {
+    int? delayMinutes,
+  }) async {
+    final delay = delayMinutes ?? _defaultDelayMinutes;
     final scheduledTime = tz.TZDateTime.from(
-      mealTime.add(Duration(minutes: _delayMinutes)),
+      entryTime.add(Duration(minutes: delay)),
       tz.local,
     );
 
     await _plugin.zonedSchedule(
-      mealId,
-      'How did you feel after $mealLabel?',
+      entryId,
+      'How did you feel after $label?',
       'Tap to log any reactions.',
       scheduledTime,
       NotificationDetails(
@@ -59,11 +61,11 @@ class NotificationService {
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
-      payload: 'checkin:$mealId',
+      payload: 'checkin:$entryId',
     );
   }
 
-  Future<void> cancelCheckin(int mealId) async {
-    await _plugin.cancel(mealId);
+  Future<void> cancelCheckin(int entryId) async {
+    await _plugin.cancel(entryId);
   }
 }

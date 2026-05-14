@@ -2,7 +2,7 @@ import 'food_item.dart';
 
 class ReactionLog {
   final int? id;
-  final int mealId;
+  final int? mealId; // null = standalone "Feeling..." check-in
   final DateTime checkinTime;
   final List<String> symptoms;
   final ReactionLevel severity;
@@ -10,7 +10,7 @@ class ReactionLog {
 
   const ReactionLog({
     this.id,
-    required this.mealId,
+    this.mealId,
     required this.checkinTime,
     required this.symptoms,
     required this.severity,

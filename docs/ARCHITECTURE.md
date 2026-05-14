@@ -1,5 +1,31 @@
 # Food Journal — System Architecture
 
+---
+
+## Design Principles
+
+### 1. AI-Optional
+Every AI-powered flow **must have a complete manual fallback**. AI is enhancement, not a dependency. If the API is unavailable, the key is missing, the user declines AI, or parsing fails — the user can still complete the action by hand. Manual entry is the baseline; AI pre-fills it.
+
+### 2. Schema as Contract
+The SQLite schema is a stable API. Screens and services depend on it the same way a client depends on a REST contract.
+- No column rename or removal without a drift migration.
+- Every new table or migration must have a corresponding integration test in `storage_service_test.dart`.
+- AI-parsed JSON output must also be validated against a schema before being written to DB.
+
+### 3. Services as Tool Interface
+Service methods are designed to be exposable as Claude tool-use functions (function calling). Each method must have: clear typed inputs, clear typed output, single responsibility. This forward-compatibility allows the AI layer to call services as tools rather than only accepting pre-parsed structured output.
+
+### 4. Entry Types
+The app tracks anything that goes *into* or *out of* the body. Three entry types share the journal feed:
+- `meal` — food/drink, with food items + macros + ingredient breakdown
+- `medication` — drug, supplement, or substance with dose/route
+- `body_output` — bathroom/WC visits and other body outputs
+
+All three share: `id`, `date`, `time`, `created_at`, `notes`. Each has its own table with type-specific fields.
+
+---
+
 ## High-Level Data Flow
 
 ```
@@ -130,6 +156,20 @@ lib/
 │ severity        │       │ last_seen        │
 │ notes           │       │ flagged          │
 └─────────────────┘       └──────────────────┘
+
+┌─────────────────┐       ┌──────────────────┐
+│  medications    │       │  body_outputs    │
+├─────────────────┤       ├──────────────────┤
+│ id (PK)         │       │ id (PK)          │
+│ date            │       │ date             │
+│ time            │       │ time             │
+│ name            │       │ output_type      │
+│ dose            │       │ urgency          │
+│ unit            │       │ consistency      │
+│ route           │       │ notes            │
+│ notes           │       │ created_at       │
+│ created_at      │       └──────────────────┘
+└─────────────────┘
 ```
 
 ---

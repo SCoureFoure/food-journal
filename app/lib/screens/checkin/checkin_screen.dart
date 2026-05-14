@@ -4,9 +4,9 @@ import '../../models/reaction_log.dart';
 import '../../services/storage_service.dart';
 
 class CheckinScreen extends StatefulWidget {
-  final int mealId;
+  final int? mealId; // null = standalone "Feeling..." check-in
 
-  const CheckinScreen({super.key, required this.mealId});
+  const CheckinScreen({super.key, this.mealId});
 
   @override
   State<CheckinScreen> createState() => _CheckinScreenState();
@@ -20,6 +20,8 @@ class _CheckinScreenState extends State<CheckinScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
+  bool get _isStandalone => widget.mealId == null;
+
   @override
   void dispose() {
     _notesController.dispose();
@@ -30,7 +32,9 @@ class _CheckinScreenState extends State<CheckinScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('How do you feel?')),
+      appBar: AppBar(
+        title: Text(_isStandalone ? 'How are you feeling?' : 'How did you feel?'),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -124,14 +128,17 @@ class _CheckinScreenState extends State<CheckinScreen> {
         notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
       ));
 
-      final parts = [
-        if (_severity != ReactionLevel.none) _severity.label,
-        if (symptoms.isNotEmpty) symptoms.join(', '),
-      ];
-      await _storage.updateMealSymptoms(
-        widget.mealId,
-        parts.isEmpty ? 'No reaction' : parts.join(' · '),
-      );
+      // Only update meal symptoms summary when linked to a meal
+      if (widget.mealId != null) {
+        final parts = [
+          if (_severity != ReactionLevel.none) _severity.label,
+          if (symptoms.isNotEmpty) symptoms.join(', '),
+        ];
+        await _storage.updateMealSymptoms(
+          widget.mealId!,
+          parts.isEmpty ? 'No reaction' : parts.join(' · '),
+        );
+      }
 
       if (!mounted) return;
       Navigator.pop(context);
