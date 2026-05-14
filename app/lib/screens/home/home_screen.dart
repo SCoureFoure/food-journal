@@ -482,20 +482,44 @@ class _MacroTotalsBar extends StatelessWidget {
     if (totals.cal == 0 && totals.prot == 0 && totals.carbs == 0 && totals.fat == 0) {
       return const SizedBox.shrink();
     }
+    final primary = theme.colorScheme.primary;
     final labelStyle = theme.textTheme.labelSmall?.copyWith(
       color: theme.colorScheme.outline,
       letterSpacing: 0.6,
       fontWeight: FontWeight.w600,
     );
+    final headerStyle = theme.textTheme.labelSmall?.copyWith(
+      color: primary,
+      letterSpacing: 0.8,
+      fontWeight: FontWeight.w700,
+    );
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: theme.colorScheme.surfaceContainerLow,
-      child: Row(
+      margin: const EdgeInsets.fromLTRB(12, 4, 12, 2),
+      padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
+      decoration: BoxDecoration(
+        color: primary.withAlpha(12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border(left: BorderSide(color: primary, width: 3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (totals.cal > 0) _TotalCell(label: 'CAL', value: '${totals.cal}', labelStyle: labelStyle, theme: theme),
-          if (totals.prot > 0) _TotalCell(label: 'PROT', value: '${totals.prot.toInt()}g', labelStyle: labelStyle, theme: theme),
-          if (totals.carbs > 0) _TotalCell(label: 'CARBS', value: '${totals.carbs.toInt()}g', labelStyle: labelStyle, theme: theme),
-          if (totals.fat > 0) _TotalCell(label: 'FAT', value: '${totals.fat.toInt()}g', labelStyle: labelStyle, theme: theme),
+          Row(
+            children: [
+              Icon(Icons.bar_chart_rounded, size: 12, color: primary),
+              const SizedBox(width: 4),
+              Text('DAY TOTALS', style: headerStyle),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              if (totals.cal > 0) _TotalCell(label: 'CAL', value: '${totals.cal}', labelStyle: labelStyle, theme: theme),
+              if (totals.prot > 0) _TotalCell(label: 'PROT', value: '${totals.prot.toInt()}g', labelStyle: labelStyle, theme: theme),
+              if (totals.carbs > 0) _TotalCell(label: 'CARBS', value: '${totals.carbs.toInt()}g', labelStyle: labelStyle, theme: theme),
+              if (totals.fat > 0) _TotalCell(label: 'FAT', value: '${totals.fat.toInt()}g', labelStyle: labelStyle, theme: theme),
+            ],
+          ),
         ],
       ),
     );
