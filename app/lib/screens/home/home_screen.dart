@@ -593,6 +593,63 @@ class _MealTileState extends State<_MealTile> {
     }
   }
 
+  // Scrolls the minimum needed to keep this tile in view.
+  // On expand: only scrolls if content would be off-screen.
+  // On collapse: scrolls back to header if it's above the viewport.
+  void _smartScroll(bool expanded) {
+    final ctx = _tileKey.currentContext;
+    if (ctx == null) return;
+    final box = ctx.findRenderObject() as RenderBox?;
+    if (box == null || !box.attached) return;
+
+    final scrollable = Scrollable.maybeOf(ctx);
+    if (scrollable == null) return;
+    final scrollableBox = scrollable.context.findRenderObject() as RenderBox?;
+    if (scrollableBox == null) return;
+
+    final position = scrollable.position;
+    final viewportH = position.viewportDimension;
+    final tileTop = scrollableBox.globalToLocal(box.localToGlobal(Offset.zero)).dy;
+    final tileH = box.size.height;
+    final tileBottom = tileTop + tileH;
+
+    const pad = 16.0;
+    const headerH = 60.0;
+
+    if (expanded) {
+      if (tileTop >= pad && tileBottom <= viewportH - pad) return; // already fits
+      if (tileTop < pad) {
+        // Header scrolled above viewport — bring it back down
+        position.animateTo(
+          position.pixels + tileTop - pad,
+          duration: const Duration(milliseconds: 420),
+          curve: Curves.easeOutCubic,
+        );
+      } else if (tileBottom > viewportH - pad) {
+        // Content overflows bottom — scroll up just enough, never past header
+        final overflow = tileBottom - (viewportH - pad);
+        final maxScroll = (tileTop - headerH - pad).clamp(0.0, double.infinity);
+        final scrollBy = overflow.clamp(0.0, maxScroll);
+        if (scrollBy > 24) {
+          position.animateTo(
+            position.pixels + scrollBy,
+            duration: const Duration(milliseconds: 420),
+            curve: Curves.easeOutCubic,
+          );
+        }
+      }
+    } else {
+      // On collapse: if header is above the viewport, scroll back to it
+      if (tileTop < 0) {
+        position.animateTo(
+          position.pixels + tileTop - pad,
+          duration: const Duration(milliseconds: 340),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -606,19 +663,11 @@ class _MealTileState extends State<_MealTile> {
         shape: const Border(),
         collapsedShape: const Border(),
         onExpansionChanged: (expanded) {
-          if (expanded) {
-            _loadItems();
-            Future.delayed(const Duration(milliseconds: 100), () {
-              if (_tileKey.currentContext != null) {
-                Scrollable.ensureVisible(
-                  _tileKey.currentContext!,
-                  alignment: 0.1,
-                  duration: const Duration(milliseconds: 350),
-                  curve: Curves.easeInOut,
-                );
-              }
-            });
-          }
+          if (expanded) _loadItems();
+          // Wait for expansion animation (~250ms) then smart-scroll
+          Future.delayed(const Duration(milliseconds: 280), () {
+            if (mounted) _smartScroll(expanded);
+          });
         },
         leading: meal.imageData != null
             ? ClipRRect(
