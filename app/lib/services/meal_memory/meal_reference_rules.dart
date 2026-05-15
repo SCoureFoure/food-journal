@@ -41,7 +41,7 @@ final _temporalRules = <ReferenceRule>[
     key: 'leftovers',
     label: 'Leftover reference',
     patterns: [
-      RegExp(r'\bleftovers?\b', caseSensitive: false),
+      RegExp(r'\bleft\s*overs?\b', caseSensitive: false),
       RegExp(r'\bthe rest of\b', caseSensitive: false),
       RegExp(r"\bwhat(?:'s| was) left\b", caseSensitive: false),
     ],

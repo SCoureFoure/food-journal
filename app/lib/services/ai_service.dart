@@ -1,8 +1,5 @@
 import 'dart:typed_data';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/food_item.dart';
-import 'anthropic_ai_service.dart';
-import 'gemini_ai_service.dart';
 import 'worker_ai_service.dart';
 
 class MealParseResult {
@@ -43,11 +40,5 @@ abstract class AiService {
   });
   Future<MedicationParseResult> parseMedication({String? text, Uint8List? imageBytes});
 
-  factory AiService.fromEnv() {
-    return switch (dotenv.env['AI_PROVIDER'] ?? 'anthropic') {
-      'gemini' => GeminiAiService(),
-      'worker' => WorkerAiService(),
-      _ => AnthropicAiService(),
-    };
-  }
+  factory AiService.fromEnv() => WorkerAiService();
 }

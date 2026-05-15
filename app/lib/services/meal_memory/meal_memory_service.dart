@@ -56,7 +56,8 @@ class MealMemoryService {
   }
 
   // Builds a compact context string (<200 tokens) for injection into the
-  // Gemini prompt. Returns null if no matching fingerprints exist.
+  // AI prompt. Queries meals+food_items directly so pre-fingerprint meals
+  // (schema v4 not backfilled) are included.
   Future<String?> buildContextSnippet(String input) async {
     final profile = detectReferencesCached(
       input,
@@ -67,16 +68,55 @@ class MealMemoryService {
     if (!profile.hasTemporalRef) return null;
 
     final spec = buildQuerySpec(profile);
-    final rows = await _queryFingerprints(spec);
-    if (rows.isEmpty) return null;
-
     final now = DateTime.now();
+
+    final query = _db.select(_db.meals);
+    if (spec.dateOffset != null) {
+      final target = now.subtract(Duration(days: spec.dateOffset!));
+      final dayStart = DateTime(target.year, target.month, target.day);
+      final dayEnd = dayStart.add(const Duration(days: 1));
+      query.where(
+        (t) => t.date.isBiggerOrEqualValue(dayStart) & t.date.isSmallerThanValue(dayEnd),
+      );
+    }
+    if (spec.mealType != null) {
+      // meals table stores title-case ("Dinner"); spec produces lowercase ("dinner")
+      final titleType = spec.mealType![0].toUpperCase() + spec.mealType!.substring(1);
+      query.where((t) => t.mealType.equals(titleType));
+    }
+    query
+      ..orderBy([(t) => OrderingTerm.desc(t.date)])
+      ..limit(5);
+
+    var mealRows = await query.get();
+
+    // Fallback: specific date/type returned nothing → most recent 5 meals
+    if (mealRows.isEmpty) {
+      mealRows = await (_db.select(_db.meals)
+            ..orderBy([(t) => OrderingTerm.desc(t.date)])
+            ..limit(5))
+          .get();
+    }
+    if (mealRows.isEmpty) return null;
+
     final buf = StringBuffer('Recent meals:\n');
-    for (final row in rows) {
-      final label = _dateLabel(row.date, now);
-      final type = row.mealType != null ? ' ${row.mealType}' : '';
-      final macros = _formatMacros(row.totalCals, row.totalProtein);
-      buf.writeln('- $label$type: ${row.foodsSummary}$macros');
+    for (final meal in mealRows) {
+      final items = await (_db.select(_db.foodItems)
+            ..where((t) => t.mealId.equals(meal.id)))
+          .get();
+      final foodsSummary = items.isNotEmpty
+          ? items.map((f) => f.name).join(', ')
+          : 'unknown';
+      final totalCals = items.fold<int>(0, (s, f) => s + (f.calories ?? 0));
+      final totalProtein =
+          items.fold<double>(0.0, (s, f) => s + (f.protein?.toDouble() ?? 0.0));
+      final label = _dateLabel(_toDateString(meal.date), now);
+      final type = ' ${meal.mealType}';
+      final macros = _formatMacros(
+        totalCals > 0 ? totalCals : null,
+        totalProtein > 0 ? totalProtein : null,
+      );
+      buf.writeln('- $label$type: $foodsSummary$macros');
     }
     return buf.toString().trim();
   }
@@ -92,18 +132,53 @@ class MealMemoryService {
       mealTypeKeys: mealTypeKeys,
     );
     final spec = buildQuerySpec(profile);
-    final rows = await _queryFingerprints(spec);
     final now = DateTime.now();
-    return rows
-        .map((r) => MealSuggestion(
-              mealId: r.mealId,
-              dateLabel: _dateLabel(r.date, now),
-              mealType: r.mealType,
-              foodsSummary: r.foodsSummary,
-              totalCals: r.totalCals,
-              totalProtein: r.totalProtein?.round(),
-            ))
-        .toList();
+
+    final query = _db.select(_db.meals);
+    if (spec.dateOffset != null) {
+      final target = now.subtract(Duration(days: spec.dateOffset!));
+      final dayStart = DateTime(target.year, target.month, target.day);
+      final dayEnd = dayStart.add(const Duration(days: 1));
+      query.where(
+        (t) => t.date.isBiggerOrEqualValue(dayStart) & t.date.isSmallerThanValue(dayEnd),
+      );
+    }
+    if (spec.mealType != null) {
+      final titleType = spec.mealType![0].toUpperCase() + spec.mealType!.substring(1);
+      query.where((t) => t.mealType.equals(titleType));
+    }
+    query
+      ..orderBy([(t) => OrderingTerm.desc(t.date)])
+      ..limit(5);
+
+    var mealRows = await query.get();
+    if (mealRows.isEmpty) {
+      mealRows = await (_db.select(_db.meals)
+            ..orderBy([(t) => OrderingTerm.desc(t.date)])
+            ..limit(5))
+          .get();
+    }
+
+    final suggestions = <MealSuggestion>[];
+    for (final meal in mealRows) {
+      final items = await (_db.select(_db.foodItems)
+            ..where((t) => t.mealId.equals(meal.id)))
+          .get();
+      final foodsSummary =
+          items.isNotEmpty ? items.map((f) => f.name).join(', ') : 'unknown';
+      final totalCals = items.fold<int>(0, (s, f) => s + (f.calories ?? 0));
+      final totalProtein =
+          items.fold<double>(0.0, (s, f) => s + (f.protein?.toDouble() ?? 0.0));
+      suggestions.add(MealSuggestion(
+        mealId: meal.id,
+        dateLabel: _dateLabel(_toDateString(meal.date), now),
+        mealType: meal.mealType,
+        foodsSummary: foodsSummary,
+        totalCals: totalCals > 0 ? totalCals : null,
+        totalProtein: totalProtein > 0 ? totalProtein.round() : null,
+      ));
+    }
+    return suggestions;
   }
 
   // Called after every meal save. Inserts a fingerprint row and prunes the
@@ -138,35 +213,6 @@ class MealMemoryService {
   }
 
   // ─── Private ────────────────────────────────────────────────────────────────
-
-  Future<List<db.MealFingerprint>> _queryFingerprints(MealQuerySpec spec) async {
-    final now = DateTime.now();
-    final query = _db.select(_db.mealFingerprints);
-
-    if (spec.dateOffset != null) {
-      final target = now.subtract(Duration(days: spec.dateOffset!));
-      query.where((t) => t.date.equals(_toDateString(target)));
-    }
-
-    if (spec.mealType != null) {
-      query.where((t) => t.mealType.equals(spec.mealType!));
-    }
-
-    query
-      ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
-      ..limit(5);
-
-    final rows = await query.get();
-
-    // Fallback: if specific date returned nothing, return most recent entries
-    if (rows.isEmpty) {
-      return (_db.select(_db.mealFingerprints)
-            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
-            ..limit(5))
-          .get();
-    }
-    return rows;
-  }
 
   String _toDateString(DateTime dt) =>
       '${dt.year.toString().padLeft(4, '0')}-'
