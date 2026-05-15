@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../models/food_item.dart';
 import '../../models/ingredient.dart';
 import '../../models/meal_entry.dart';
+import '../../services/export_service.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/error_display.dart';
 import '../../widgets/food_item_card.dart';
@@ -20,8 +21,10 @@ class MealDetailScreen extends StatefulWidget {
 
 class _MealDetailScreenState extends State<MealDetailScreen> {
   final _storage = StorageService();
+  late final ExportService _export;
 
   bool _isLoading = true;
+  bool _isSharing = false;
   String? _errorMessage;
   MealEntry? _meal;
   List<({FoodItem item, List<Ingredient> ingredients})> _items = [];
@@ -29,6 +32,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _export = ExportService(_storage);
     _load();
   }
 
@@ -71,16 +75,48 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       appBar: AppBar(
         title: Text(meal?.mealType ?? 'Meal Detail'),
         actions: [
-          if (meal != null)
+          if (meal != null) ...[
+            Semantics(
+              identifier: 'btn-share-meal',
+              child: IconButton(
+                icon: _isSharing
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.share),
+                tooltip: 'Share meal',
+                onPressed: _isSharing ? null : _shareMeal,
+              ),
+            ),
             IconButton(
               icon: const Icon(Icons.checklist),
               tooltip: 'Log Check-in',
-              onPressed: () => Navigator.pushNamed(context, '/checkin', arguments: meal.id),
+              onPressed: () =>
+                  Navigator.pushNamed(context, '/checkin', arguments: meal.id),
             ),
+          ],
         ],
       ),
       body: _buildBody(),
     );
+  }
+
+  Future<void> _shareMeal() async {
+    if (_meal == null) return;
+    setState(() => _isSharing = true);
+    try {
+      await _export.exportMealJson(_meal!.id!);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Share failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSharing = false);
+    }
   }
 
   Widget _buildBody() {

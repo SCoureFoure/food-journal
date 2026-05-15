@@ -4,45 +4,127 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../models/food_item.dart';
+import '../models/ingredient.dart';
+import '../models/meal_entry.dart';
+import '../models/medication.dart';
+import '../models/reaction_log.dart';
 import 'storage_service.dart';
+
+class ExportTypes {
+  final bool meals;
+  final bool medications;
+  final bool foodMemories;
+
+  const ExportTypes({
+    this.meals = true,
+    this.medications = true,
+    this.foodMemories = true,
+  });
+}
 
 class ExportService {
   final StorageService _storage;
 
   ExportService(this._storage);
 
-  Future<void> exportMealsJson({DateTime? from, DateTime? to}) async {
-    final meals = await _storage.getMealsInRange(from: from, to: to);
+  Future<void> exportJson({
+    DateTime? from,
+    DateTime? to,
+    ExportTypes types = const ExportTypes(),
+  }) async {
+    final payload = await buildPayload(from: from, to: to, types: types);
+    await _shareJson(payload, 'food_journal');
+  }
 
+  Future<void> exportMealJson(int mealId) async {
+    final meal = await _storage.getMealById(mealId);
+    if (meal == null) throw Exception('Meal not found');
+
+    final foodItems = await _storage.getFoodItemsForMeal(mealId);
+    final itemsList = <Map<String, dynamic>>[];
+    for (final item in foodItems) {
+      final ingredients = item.id != null
+          ? await _storage.getIngredientsForFoodItem(item.id!)
+          : <Ingredient>[];
+      itemsList.add(foodItemToJson(item, ingredients));
+    }
+
+    final reactionLogs = await _storage.getReactionLogsForMeal(mealId);
+    final payload = {
+      'version': 2,
+      'exported_at': DateTime.now().toIso8601String(),
+      'meals': [mealToJson(meal, itemsList, reactionLogs)],
+      'medications': <Map<String, dynamic>>[],
+      'food_memories': <Map<String, dynamic>>[],
+    };
+
+    await _shareJson(payload, 'meal_share');
+  }
+
+  Future<Map<String, dynamic>> buildPayload({
+    DateTime? from,
+    DateTime? to,
+    ExportTypes types = const ExportTypes(),
+  }) async {
     final mealsList = <Map<String, dynamic>>[];
-    for (final meal in meals) {
-      final foodItems = await _storage.getFoodItemsForMeal(meal.id!);
-      final itemsList = <Map<String, dynamic>>[];
+    if (types.meals) {
+      final meals = await _storage.getMealsInRange(from: from, to: to);
+      for (final meal in meals) {
+        final foodItems = await _storage.getFoodItemsForMeal(meal.id!);
+        final itemsList = <Map<String, dynamic>>[];
+        for (final item in foodItems) {
+          final ingredients = item.id != null
+              ? await _storage.getIngredientsForFoodItem(item.id!)
+              : <Ingredient>[];
+          itemsList.add(foodItemToJson(item, ingredients));
+        }
+        final reactionLogs = await _storage.getReactionLogsForMeal(meal.id!);
+        mealsList.add(mealToJson(meal, itemsList, reactionLogs));
+      }
+    }
 
-      for (final item in foodItems) {
-        final ingredients = await _storage.getIngredientsForFoodItem(item.id!);
-        itemsList.add({
-          'name': item.name,
-          'portion': item.portion,
-          'prep': item.prep,
-          'calories': item.calories,
-          'protein': item.protein,
-          'carbs': item.carbs,
-          'fat': item.fat,
-          'reaction': item.reaction.name,
-          'notes': item.notes,
-          'ingredients': ingredients
-              .map((i) => {
-                    'name': i.name,
-                    'quantity': i.quantity,
-                    'unit': i.unit,
-                  })
-              .toList(),
+    final medicationsList = <Map<String, dynamic>>[];
+    if (types.medications) {
+      final medications = await _storage.getMedicationsInRange(from: from, to: to);
+      for (final med in medications) {
+        medicationsList.add(medicationToJson(med));
+      }
+    }
+
+    final foodMemoriesList = <Map<String, dynamic>>[];
+    if (types.foodMemories) {
+      final memories = await _storage.getFoodMemory();
+      for (final m in memories) {
+        foodMemoriesList.add({
+          'food_name': m.foodName,
+          'reaction_pattern': m.reactionPattern,
+          'occurrences': m.occurrences,
+          'last_seen': m.lastSeen.toIso8601String(),
+          'flagged': m.flagged,
         });
       }
+    }
 
-      final reactionLogs = await _storage.getReactionLogsForMeal(meal.id!);
-      mealsList.add({
+    return {
+      'version': 2,
+      'exported_at': DateTime.now().toIso8601String(),
+      'date_range': {
+        'from': from?.toIso8601String(),
+        'to': to?.toIso8601String(),
+      },
+      'meals': mealsList,
+      'medications': medicationsList,
+      'food_memories': foodMemoriesList,
+    };
+  }
+
+  static Map<String, dynamic> mealToJson(
+    MealEntry meal,
+    List<Map<String, dynamic>> itemsList,
+    List<ReactionLog> reactionLogs,
+  ) =>
+      {
         'date': meal.date.toIso8601String().split('T').first,
         'time': meal.time,
         'meal_type': meal.mealType,
@@ -59,35 +141,47 @@ class ExportService {
                   'notes': r.notes,
                 })
             .toList(),
-      });
-    }
+      };
 
-    final foodMemories = await _storage.getFoodMemory();
-    final payload = {
-      'version': 1,
-      'exported_at': DateTime.now().toIso8601String(),
-      'date_range': {
-        'from': from?.toIso8601String(),
-        'to': to?.toIso8601String(),
-      },
-      'meals': mealsList,
-      'food_memories': foodMemories
-          .map((m) => {
-                'food_name': m.foodName,
-                'reaction_pattern': m.reactionPattern,
-                'occurrences': m.occurrences,
-                'last_seen': m.lastSeen.toIso8601String(),
-                'flagged': m.flagged,
-              })
-          .toList(),
-    };
+  static Map<String, dynamic> foodItemToJson(FoodItem item, List<Ingredient> ingredients) => {
+        'name': item.name,
+        'portion': item.portion,
+        'prep': item.prep,
+        'calories': item.calories,
+        'protein': item.protein,
+        'carbs': item.carbs,
+        'fat': item.fat,
+        'reaction': item.reaction.name,
+        'notes': item.notes,
+        'ingredients': ingredients
+            .map((i) => {
+                  'name': i.name,
+                  'quantity': i.quantity,
+                  'unit': i.unit,
+                })
+            .toList(),
+      };
 
+  static Map<String, dynamic> medicationToJson(Medication med) => {
+        'date': med.date.toIso8601String().split('T').first,
+        'time': med.time,
+        'name': med.name,
+        'dose': med.dose,
+        'unit': med.unit,
+        'route': med.route,
+        'checkin_delay_minutes': med.checkinDelayMinutes,
+        'raw_input': med.rawInput,
+        'notes': med.notes,
+        'created_at': med.createdAt.toIso8601String(),
+        'image_data': med.imageData != null ? base64Encode(med.imageData!) : null,
+      };
+
+  Future<void> _shareJson(Map<String, dynamic> payload, String namePrefix) async {
     final jsonStr = const JsonEncoder.withIndent('  ').convert(payload);
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/food_journal_$timestamp.json');
+    final file = File('${dir.path}/${namePrefix}_$timestamp.json');
     await file.writeAsString(jsonStr);
-
     await Share.shareXFiles(
       [XFile(file.path, mimeType: 'application/json')],
       subject: 'Food Journal Export',

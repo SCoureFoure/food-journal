@@ -291,6 +291,25 @@ class StorageService {
     return row == null ? null : _medicationFromRow(row);
   }
 
+  Future<List<Medication>> getMedicationsInRange({DateTime? from, DateTime? to}) async {
+    final start = from != null ? DateTime(from.year, from.month, from.day) : null;
+    final end = to != null ? DateTime(to.year, to.month, to.day + 1) : null;
+    final query = _db.select(_db.medications);
+    if (start != null && end != null) {
+      query.where((t) => t.date.isBiggerOrEqualValue(start) & t.date.isSmallerThanValue(end));
+    } else if (start != null) {
+      query.where((t) => t.date.isBiggerOrEqualValue(start));
+    } else if (end != null) {
+      query.where((t) => t.date.isSmallerThanValue(end));
+    }
+    query.orderBy([
+      (t) => OrderingTerm.desc(t.date),
+      (t) => OrderingTerm.asc(t.createdAt),
+    ]);
+    final rows = await query.get();
+    return rows.map(_medicationFromRow).toList();
+  }
+
   // ── Reactions ────────────────────────────────────────────────────────────────
 
   Future<List<ReactionLog>> getStandaloneReactionLogs() async {
@@ -335,6 +354,19 @@ class StorageService {
   Future<List<FoodMemory>> getFoodMemory() async {
     final rows = await _db.select(_db.foodMemories).get();
     return rows.map(_foodMemoryFromRow).toList();
+  }
+
+  Future<void> insertFoodMemory(FoodMemory memory) async {
+    await _db.into(_db.foodMemories).insert(
+      db.FoodMemoriesCompanion.insert(
+        foodName: memory.foodName,
+        reactionPattern: Value(memory.reactionPattern),
+        occurrences: Value(memory.occurrences),
+        lastSeen: memory.lastSeen,
+        flagged: Value(memory.flagged),
+      ),
+      mode: InsertMode.insertOrReplace,
+    );
   }
 
   Future<void> upsertFoodMemory(String foodName, ReactionLevel reaction) async {

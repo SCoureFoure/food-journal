@@ -1,0 +1,276 @@
+{
+  "version": 2,
+  "exported_at": "2026-05-14T09:00:00.000",
+  "date_range": {
+    "from": null,
+    "to": null
+  },
+  "meals": [
+    {
+      "date": "2026-05-13",
+      "time": "8:15 AM",
+      "meal_type": "breakfast",
+      "overall_symptoms": null,
+      "raw_input": "oatmeal with blueberries and a coffee",
+      "created_at": "2026-05-13T08:15:00.000",
+      "image_data": null,
+      "food_items": [
+        {
+          "name": "Oatmeal",
+          "portion": "1 cup cooked",
+          "prep": "stovetop",
+          "calories": 166,
+          "protein": 6,
+          "carbs": 28,
+          "fat": 4,
+          "reaction": "none",
+          "notes": null,
+          "ingredients": [
+            { "name": "rolled oats", "quantity": "0.5", "unit": "cup dry" },
+            { "name": "water", "quantity": "1", "unit": "cup" },
+            { "name": "salt", "quantity": "1", "unit": "pinch" }
+          ]
+        },
+        {
+          "name": "Blueberries",
+          "portion": "1/2 cup",
+          "prep": null,
+          "calories": 42,
+          "protein": 1,
+          "carbs": 11,
+          "fat": 0,
+          "reaction": "none",
+          "notes": null,
+          "ingredients": []
+        },
+        {
+          "name": "Coffee",
+          "portion": "12 oz",
+          "prep": "black",
+          "calories": 5,
+          "protein": 0,
+          "carbs": 0,
+          "fat": 0,
+          "reaction": "none",
+          "notes": "no cream or sugar",
+          "ingredients": []
+        }
+      ],
+      "reaction_logs": []
+    },
+    {
+      "date": "2026-05-13",
+      "time": "12:45 PM",
+      "meal_type": "lunch",
+      "overall_symptoms": "mild bloating about 1hr after",
+      "raw_input": "turkey sandwich on sourdough, side salad, sparkling water",
+      "created_at": "2026-05-13T12:45:00.000",
+      "image_data": null,
+      "food_items": [
+        {
+          "name": "Turkey sandwich",
+          "portion": "1 sandwich",
+          "prep": null,
+          "calories": 380,
+          "protein": 28,
+          "carbs": 34,
+          "fat": 12,
+          "reaction": "mild",
+          "notes": "sourdough bread — possible trigger",
+          "ingredients": [
+            { "name": "sourdough bread", "quantity": "2", "unit": "slices" },
+            { "name": "turkey breast", "quantity": "4", "unit": "oz" },
+            { "name": "lettuce", "quantity": "2", "unit": "leaves" },
+            { "name": "tomato", "quantity": "2", "unit": "slices" },
+            { "name": "mustard", "quantity": "1", "unit": "tbsp" }
+          ]
+        },
+        {
+          "name": "Side salad",
+          "portion": "1 cup",
+          "prep": null,
+          "calories": 35,
+          "protein": 1,
+          "carbs": 6,
+          "fat": 1,
+          "reaction": "none",
+          "notes": null,
+          "ingredients": [
+            { "name": "mixed greens", "quantity": "1", "unit": "cup" },
+            { "name": "olive oil", "quantity": "1", "unit": "tsp" },
+            { "name": "lemon juice", "quantity": "1", "unit": "tsp" }
+          ]
+        }
+      ],
+      "reaction_logs": [
+        {
+          "checkin_time": "2026-05-13T14:15:00.000",
+          "symptoms": ["Bloating", "Stomach pain"],
+          "severity": "mild",
+          "notes": "came on gradually, resolved after ~2 hours"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-13",
+      "time": "7:00 PM",
+      "meal_type": "dinner",
+      "overall_symptoms": null,
+      "raw_input": "grilled salmon, roasted broccoli, brown rice",
+      "created_at": "2026-05-13T19:00:00.000",
+      "image_data": null,
+      "food_items": [
+        {
+          "name": "Grilled salmon",
+          "portion": "6 oz",
+          "prep": "grilled",
+          "calories": 354,
+          "protein": 39,
+          "carbs": 0,
+          "fat": 20,
+          "reaction": "none",
+          "notes": null,
+          "ingredients": [
+            { "name": "salmon fillet", "quantity": "6", "unit": "oz" },
+            { "name": "olive oil", "quantity": "1", "unit": "tsp" },
+            { "name": "lemon", "quantity": "0.5", "unit": "whole" }
+          ]
+        },
+        {
+          "name": "Roasted broccoli",
+          "portion": "1 cup",
+          "prep": "roasted",
+          "calories": 55,
+          "protein": 4,
+          "carbs": 11,
+          "fat": 0,
+          "reaction": "none",
+          "notes": null,
+          "ingredients": [
+            { "name": "broccoli florets", "quantity": "1", "unit": "cup" },
+            { "name": "olive oil", "quantity": "1", "unit": "tsp" }
+          ]
+        },
+        {
+          "name": "Brown rice",
+          "portion": "0.5 cup cooked",
+          "prep": "boiled",
+          "calories": 108,
+          "protein": 3,
+          "carbs": 22,
+          "fat": 1,
+          "reaction": "none",
+          "notes": null,
+          "ingredients": []
+        }
+      ],
+      "reaction_logs": []
+    },
+    {
+      "date": "2026-05-14",
+      "time": "8:00 AM",
+      "meal_type": "breakfast",
+      "overall_symptoms": "moderate cramping and bloating",
+      "raw_input": "yogurt parfait with granola",
+      "created_at": "2026-05-14T08:00:00.000",
+      "image_data": null,
+      "food_items": [
+        {
+          "name": "Greek yogurt",
+          "portion": "1 cup",
+          "prep": null,
+          "calories": 130,
+          "protein": 17,
+          "carbs": 9,
+          "fat": 0,
+          "reaction": "moderate",
+          "notes": "full-fat next time — may be the lactose",
+          "ingredients": []
+        },
+        {
+          "name": "Granola",
+          "portion": "1/4 cup",
+          "prep": null,
+          "calories": 120,
+          "protein": 3,
+          "carbs": 22,
+          "fat": 3,
+          "reaction": "none",
+          "notes": null,
+          "ingredients": []
+        },
+        {
+          "name": "Blueberries",
+          "portion": "1/4 cup",
+          "prep": null,
+          "calories": 21,
+          "protein": 0,
+          "carbs": 5,
+          "fat": 0,
+          "reaction": "none",
+          "notes": null,
+          "ingredients": []
+        }
+      ],
+      "reaction_logs": [
+        {
+          "checkin_time": "2026-05-14T09:30:00.000",
+          "symptoms": ["Bloating", "Stomach pain", "Nausea"],
+          "severity": "moderate",
+          "notes": "worst in the morning — strongly suspect the yogurt"
+        }
+      ]
+    }
+  ],
+  "medications": [
+    {
+      "date": "2026-05-13",
+      "time": "8:30 AM",
+      "name": "Omeprazole",
+      "dose": 20.0,
+      "unit": "mg",
+      "route": "oral",
+      "checkin_delay_minutes": null,
+      "raw_input": null,
+      "notes": "take 30 min before breakfast",
+      "created_at": "2026-05-13T08:30:00.000",
+      "image_data": null
+    },
+    {
+      "date": "2026-05-14",
+      "time": "8:30 AM",
+      "name": "Omeprazole",
+      "dose": 20.0,
+      "unit": "mg",
+      "route": "oral",
+      "checkin_delay_minutes": null,
+      "raw_input": null,
+      "notes": "take 30 min before breakfast",
+      "created_at": "2026-05-14T08:30:00.000",
+      "image_data": null
+    }
+  ],
+  "food_memories": [
+    {
+      "food_name": "sourdough bread",
+      "reaction_pattern": "mild",
+      "occurrences": 3,
+      "last_seen": "2026-05-13T00:00:00.000",
+      "flagged": true
+    },
+    {
+      "food_name": "greek yogurt",
+      "reaction_pattern": "moderate",
+      "occurrences": 2,
+      "last_seen": "2026-05-14T00:00:00.000",
+      "flagged": true
+    },
+    {
+      "food_name": "blueberries",
+      "reaction_pattern": "none",
+      "occurrences": 5,
+      "last_seen": "2026-05-14T00:00:00.000",
+      "flagged": false
+    }
+  ]
+}
