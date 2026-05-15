@@ -139,23 +139,16 @@ class _MealTileState extends State<MealTile> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ..._items.map((i) => FoodItemCard(item: i.item, ingredients: i.ingredients)),
+                  ..._items.map((i) => FoodItemCard(
+                    item: i.item,
+                    ingredients: i.ingredients,
+                    onEdit: () async {
+                      await Navigator.pushNamed(context, '/edit_meal', arguments: meal);
+                      widget.onReload();
+                    },
+                  )),
                   if (meal.overallSymptoms != null && meal.overallSymptoms!.isNotEmpty)
                     SymptomsBanner(symptoms: meal.overallSymptoms!),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Semantics(
-                      identifier: 'btn-edit-meal-${meal.id}',
-                      child: TextButton.icon(
-                        icon: const Icon(Icons.edit_outlined, size: 16),
-                        label: const Text('Edit'),
-                        onPressed: () async {
-                          await Navigator.pushNamed(context, '/edit_meal', arguments: meal);
-                          widget.onReload();
-                        },
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

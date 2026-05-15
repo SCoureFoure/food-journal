@@ -5,6 +5,7 @@ import '../../models/meal_entry.dart';
 import '../../models/medication.dart';
 import '../../models/reaction_log.dart';
 import '../../services/storage_service.dart';
+import '../../utils/date_time_utils.dart';
 import '../day_totals_bar.dart';
 import 'feeling_tile.dart';
 import 'meal_tile.dart';
@@ -47,6 +48,35 @@ class _DateSectionState extends State<DateSection> {
       _totals = t;
       _totalsLoaded = true;
     });
+  }
+
+  DateTime _toDateTime(DateTime date, String timeStr) {
+    final t = DateTimeUtils.parseTime(timeStr);
+    return DateTime(date.year, date.month, date.day, t.hour, t.minute);
+  }
+
+  List<Widget> _buildSortedEntries() {
+    final entries = <({DateTime sortTime, Widget tile})>[];
+    for (final m in widget.meals) {
+      entries.add((
+        sortTime: _toDateTime(m.date, m.time),
+        tile: MealTile(meal: m, storage: widget.storage, onReload: widget.onReload),
+      ));
+    }
+    for (final m in widget.medications) {
+      entries.add((
+        sortTime: _toDateTime(m.date, m.time),
+        tile: MedicationTile(med: m, onReload: widget.onReload),
+      ));
+    }
+    for (final f in widget.feelings) {
+      entries.add((
+        sortTime: f.checkinTime,
+        tile: FeelingTile(log: f, onReload: widget.onReload),
+      ));
+    }
+    entries.sort((a, b) => b.sortTime.compareTo(a.sortTime));
+    return entries.map((e) => e.tile).toList();
   }
 
   @override
@@ -93,9 +123,7 @@ class _DateSectionState extends State<DateSection> {
           children: [
             if (_totals != null && widget.meals.isNotEmpty)
               DayTotalsBar(cal: _totals!.cal, prot: _totals!.prot, carbs: _totals!.carbs, fat: _totals!.fat),
-            ...widget.meals.map((m) => MealTile(meal: m, storage: widget.storage, onReload: widget.onReload)),
-            ...widget.medications.map((m) => MedicationTile(med: m, onReload: widget.onReload)),
-            ...widget.feelings.map((f) => FeelingTile(log: f, onReload: widget.onReload)),
+            ..._buildSortedEntries(),
           ],
         ),
       ),

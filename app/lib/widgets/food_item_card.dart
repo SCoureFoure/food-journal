@@ -7,8 +7,9 @@ import 'reaction_badge.dart';
 class FoodItemCard extends StatelessWidget {
   final FoodItem item;
   final List<Ingredient> ingredients;
+  final VoidCallback? onEdit;
 
-  const FoodItemCard({super.key, required this.item, required this.ingredients});
+  const FoodItemCard({super.key, required this.item, required this.ingredients, this.onEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +27,17 @@ class FoodItemCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(item.name, style: theme.textTheme.titleSmall),
+            Row(
+              children: [
+                Expanded(child: Text(item.name, style: theme.textTheme.titleSmall)),
+                if (onEdit != null)
+                  GestureDetector(
+                    onTap: onEdit,
+                    child: Icon(Icons.edit_outlined, size: 18,
+                        color: theme.colorScheme.onSurfaceVariant),
+                  ),
+              ],
+            ),
             const SizedBox(height: 8),
             const Divider(height: 1),
             const SizedBox(height: 8),
