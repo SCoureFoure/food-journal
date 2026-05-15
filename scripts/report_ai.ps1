@@ -17,8 +17,27 @@ New-Item -ItemType Directory -Force -Path (Split-Path $HISTORY) | Out-Null
 Write-Host "[..] Running AI layer tests..." -ForegroundColor Cyan
 $START_TIME = Get-Date
 
+# Load MEAL_PARSER_URL from app/.env if not already in environment
+if (-not $env:MEAL_PARSER_URL) {
+    $envFile = Join-Path $APP ".env"
+    if (Test-Path $envFile) {
+        $envLine = Get-Content $envFile | Where-Object { $_ -match '^MEAL_PARSER_URL=' } | Select-Object -First 1
+        if ($envLine) { $env:MEAL_PARSER_URL = ($envLine -split '=', 2)[1].Trim() }
+    }
+}
+
+# Include integration tests when Worker URL is available
+$testPaths = @("test/meal_memory/")
+$workerUrl = $env:MEAL_PARSER_URL
+if ($workerUrl) {
+    $testPaths += "test/integration/ai/"
+    Write-Host "[..] MEAL_PARSER_URL set — including AI integration tests" -ForegroundColor Cyan
+} else {
+    Write-Host "[..] MEAL_PARSER_URL not set — skipping AI integration tests" -ForegroundColor Yellow
+}
+
 Push-Location $APP
-$rawLines = @(& flutter test test/meal_memory/ --reporter json 2>$null)
+$rawLines = @(& flutter test @testPaths --reporter json 2>$null)
 $EXIT_CODE = $LASTEXITCODE
 Pop-Location
 
@@ -102,15 +121,17 @@ function Get-ContractType {
     param([string]$groupName, [string]$testName)
     switch -Regex ($groupName) {
         'isReferential|smoke|new rules|MFT|buildContextSnippet|Context snippet|buildQuerySpec' { return 'MFT' }
-        'invarianc|INV' { return 'INV' }
+        'invarianc|INV|schema invariants' { return 'INV' }
+        'no-inference' { return 'INV' }
         'confidence' {
             # Exact numeric assertions (= N.N) are boundary specs.
             # Directional comparisons (> something) are true DIR tests.
             if ($testName -match '>\s*\w') { return 'DIR' }
             return 'Boundary'
         }
-        'direction|DIR' { return 'DIR' }
+        'direction|DIR|semantic assertions' { return 'DIR' }
         'boundary|resolveNamed|priority bound|Macro tolerance' { return 'Boundary' }
+        'temporal reference|edge cases' { return 'Scenario' }
         default { return 'Scenario' }
     }
 }
