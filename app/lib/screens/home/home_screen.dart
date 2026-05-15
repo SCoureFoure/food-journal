@@ -7,6 +7,7 @@ import '../../services/settings_service.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/error_display.dart';
 import '../../widgets/home/date_section.dart';
+import '../../widgets/lined_paper_background.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -118,9 +119,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Food Journal'),
+    return LinedPaperBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          scrolledUnderElevation: 0,
+          title: const Text('Food Journal'),
         actions: [
           Semantics(
             identifier: 'btn-settings',
@@ -154,6 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       floatingActionButton: _buildFab(context),
+    ),
     );
   }
 

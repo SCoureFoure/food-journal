@@ -102,7 +102,7 @@ class _DateSectionState extends State<DateSection> {
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerLow,
+          color: theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.90),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(color: Colors.black.withAlpha(18), offset: const Offset(0, 1), blurRadius: 2),
