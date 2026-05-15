@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../../models/food_item.dart';
 import '../../models/reaction_log.dart';
 import '../../services/storage_service.dart';
+import '../../utils/date_time_utils.dart';
 import '../../widgets/error_display.dart';
 import '../../widgets/loading_button.dart';
+import '../../widgets/log_date_time_row.dart';
 
 class CheckinScreen extends StatefulWidget {
   final int? mealId;          // null = standalone new check-in
@@ -20,6 +22,8 @@ class _CheckinScreenState extends State<CheckinScreen> {
   late final Set<String> _selectedSymptoms;
   late ReactionLevel _severity;
   final _notesController = TextEditingController();
+  late DateTime _checkinDate;
+  late TimeOfDay _checkinTime;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -34,9 +38,13 @@ class _CheckinScreenState extends State<CheckinScreen> {
       _selectedSymptoms = Set.from(log.symptoms);
       _severity = log.severity;
       _notesController.text = log.notes ?? '';
+      _checkinDate = DateTime(log.checkinTime.year, log.checkinTime.month, log.checkinTime.day);
+      _checkinTime = TimeOfDay.fromDateTime(log.checkinTime);
     } else {
       _selectedSymptoms = {};
       _severity = ReactionLevel.none;
+      _checkinDate = DateTimeUtils.today();
+      _checkinTime = TimeOfDay.now();
     }
   }
 
@@ -68,6 +76,20 @@ class _CheckinScreenState extends State<CheckinScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (_isEditing) ...[
+                    LogDateTimeRow(
+                      date: _checkinDate,
+                      time: _checkinTime,
+                      onDateChanged: (d) => setState(() => _checkinDate = d),
+                      onTimeChanged: (t) => setState(() => _checkinTime = t),
+                      trailing: GestureDetector(
+                        onTap: _confirmDelete,
+                        child: Icon(Icons.delete_outline, size: 22,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   const Text('Symptoms', style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   Wrap(
@@ -134,6 +156,27 @@ class _CheckinScreenState extends State<CheckinScreen> {
     );
   }
 
+  Future<void> _confirmDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete check-in?'),
+        content: const Text('This cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('Delete', style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await _storage.deleteReactionLog(widget.existingLog!.id!);
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
+
   Future<void> _save() async {
     setState(() {
       _errorMessage = null;
@@ -146,7 +189,8 @@ class _CheckinScreenState extends State<CheckinScreen> {
         final updated = ReactionLog(
           id: widget.existingLog!.id,
           mealId: widget.existingLog!.mealId,
-          checkinTime: widget.existingLog!.checkinTime,
+          checkinTime: DateTime(_checkinDate.year, _checkinDate.month, _checkinDate.day,
+              _checkinTime.hour, _checkinTime.minute),
           symptoms: symptoms,
           severity: _severity,
           notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),

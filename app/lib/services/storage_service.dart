@@ -221,6 +221,20 @@ class StorageService {
     });
   }
 
+  Future<void> deleteMeal(int mealId) async {
+    await _db.transaction(() async {
+      final items = await (_db.select(_db.foodItems)
+            ..where((t) => t.mealId.equals(mealId)))
+          .get();
+      for (final item in items) {
+        await (_db.delete(_db.ingredients)..where((t) => t.foodItemId.equals(item.id))).go();
+      }
+      await (_db.delete(_db.foodItems)..where((t) => t.mealId.equals(mealId))).go();
+      await (_db.delete(_db.reactionLogs)..where((t) => t.mealId.equals(mealId))).go();
+      await (_db.delete(_db.meals)..where((t) => t.id.equals(mealId))).go();
+    });
+  }
+
   Future<({int cal, double prot, double carbs, double fat})> getMacroTotalsForMeals(
     List<int> mealIds,
   ) async {
@@ -256,6 +270,10 @@ class StorageService {
         imageData: Value(med.imageData),
       ),
     );
+  }
+
+  Future<void> deleteMedication(int medId) async {
+    await (_db.delete(_db.medications)..where((t) => t.id.equals(medId))).go();
   }
 
   Future<int> saveMedication(Medication med) async {
@@ -330,11 +348,16 @@ class StorageService {
   Future<void> updateReactionLog(ReactionLog log) async {
     await (_db.update(_db.reactionLogs)..where((t) => t.id.equals(log.id!))).write(
       db.ReactionLogsCompanion(
+        checkinTime: Value(log.checkinTime),
         symptoms: Value(jsonEncode(log.symptoms)),
         severity: Value(log.severity.toInt()),
         notes: Value(log.notes),
       ),
     );
+  }
+
+  Future<void> deleteReactionLog(int logId) async {
+    await (_db.delete(_db.reactionLogs)..where((t) => t.id.equals(logId))).go();
   }
 
   Future<void> saveReactionLog(ReactionLog log) async {

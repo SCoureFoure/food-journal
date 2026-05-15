@@ -8,6 +8,7 @@ class LogDateTimeRow extends StatelessWidget {
   final ValueChanged<DateTime> onDateChanged;
   final ValueChanged<TimeOfDay> onTimeChanged;
   final Widget? leading;
+  final Widget? trailing;
 
   const LogDateTimeRow({
     super.key,
@@ -17,6 +18,7 @@ class LogDateTimeRow extends StatelessWidget {
     required this.onTimeChanged,
     this.enabled = true,
     this.leading,
+    this.trailing,
   });
 
   String _formatTime(TimeOfDay t) {
@@ -42,6 +44,7 @@ class LogDateTimeRow extends StatelessWidget {
           icon: const Icon(Icons.access_time, size: 14),
           label: Text(_formatTime(time)),
         ),
+        if (trailing != null) trailing!,
       ],
     );
   }

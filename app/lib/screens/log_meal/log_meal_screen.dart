@@ -241,6 +241,27 @@ class _LogMealScreenState extends State<LogMealScreen> {
     });
   }
 
+  Future<void> _confirmDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete meal?'),
+        content: const Text('This cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('Delete', style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await _storage.deleteMeal(widget.existingMeal!.id!);
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
+
   Future<void> _save() async {
     final title = _titleCtrl.text.trim();
     if (title.isEmpty) {
@@ -353,6 +374,13 @@ class _LogMealScreenState extends State<LogMealScreen> {
                     enabled: !_isSaving,
                     onDateChanged: (d) => setState(() => _mealDate = d),
                     onTimeChanged: (t) => setState(() => _mealTime = t),
+                    trailing: _isEditing
+                        ? GestureDetector(
+                            onTap: _isSaving ? null : _confirmDelete,
+                            child: Icon(Icons.delete_outline,
+                                size: 22, color: theme.colorScheme.onSurfaceVariant),
+                          )
+                        : null,
                     leading: DropdownButton<String>(
                       value: _mealType,
                       underline: const SizedBox.shrink(),

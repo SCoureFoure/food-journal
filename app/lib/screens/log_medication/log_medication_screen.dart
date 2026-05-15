@@ -132,6 +132,27 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
     });
   }
 
+  Future<void> _confirmDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete medication?'),
+        content: const Text('This cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('Delete', style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await _storage.deleteMedication(widget.existingMed!.id!);
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
+
   Future<void> _save() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
@@ -199,6 +220,13 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
               enabled: !_isSaving,
               onDateChanged: (d) => setState(() => _date = d),
               onTimeChanged: (t) => setState(() => _time = t),
+              trailing: _isEditing
+                  ? GestureDetector(
+                      onTap: _isSaving ? null : _confirmDelete,
+                      child: Icon(Icons.delete_outline,
+                          size: 22, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    )
+                  : null,
             ),
             const SizedBox(height: 12),
             Semantics(

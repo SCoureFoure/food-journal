@@ -44,6 +44,8 @@ class NotificationService {
       tz.local,
     );
 
+    if (scheduledTime.isBefore(tz.TZDateTime.now(tz.local))) return;
+
     await _plugin.zonedSchedule(
       entryId,
       'How did you feel after $label?',

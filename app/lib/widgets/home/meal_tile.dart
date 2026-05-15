@@ -24,6 +24,12 @@ class _MealTileState extends State<MealTile> {
   bool _loadingItems = false;
   List<({FoodItem item, List<Ingredient> ingredients})> _items = [];
 
+  @override
+  void initState() {
+    super.initState();
+    _loadItems();
+  }
+
   Future<void> _loadItems() async {
     if (_loaded || _loadingItems) return;
     setState(() => _loadingItems = true);
@@ -108,7 +114,6 @@ class _MealTileState extends State<MealTile> {
         shape: const Border(),
         collapsedShape: const Border(),
         onExpansionChanged: (expanded) {
-          if (expanded) _loadItems();
           Future.delayed(const Duration(milliseconds: 280), () {
             if (mounted) _smartScroll(expanded);
           });
@@ -125,6 +130,15 @@ class _MealTileState extends State<MealTile> {
               style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
         ),
         subtitle: Text(meal.time, style: theme.textTheme.bodySmall),
+        trailing: (_loaded && _items.isEmpty)
+            ? GestureDetector(
+                onTap: () async {
+                  await Navigator.pushNamed(context, '/edit_meal', arguments: meal);
+                  widget.onReload();
+                },
+                child: const Icon(Icons.edit_outlined, size: 24),
+              )
+            : null,
         children: [
           if (_loadingItems)
             const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator()))
