@@ -10,10 +10,12 @@ no DB, no API calls — pure logic tests runnable in milliseconds.
 
 ## Files
 
-| File                          | What it tests                                                            |
-|-------------------------------|--------------------------------------------------------------------------|
-| `reference_engine_test.dart`  | Low-level: rule firing, confidence scoring, named-day resolution         |
-| `scenarios_test.dart`         | High-level: input string -> expected dateOffset + mealType + matchRecent |
+| File                          | What it tests                                                                               |
+|-------------------------------|---------------------------------------------------------------------------------------------|
+| `reference_engine_test.dart`  | Low-level: rule firing, confidence scoring, named-day resolution                            |
+| `scenarios_test.dart`         | High-level: input string -> expected dateOffset + mealType + matchRecent                    |
+| `invariance_test.dart`        | INV: case/punctuation/whitespace/synonym perturbations produce identical output             |
+| `directional_test.dart`       | DIR: monotonic behavioral contracts (vague→specific, additive meal type, priority ordering) |
 
 ## How to add a scenario
 

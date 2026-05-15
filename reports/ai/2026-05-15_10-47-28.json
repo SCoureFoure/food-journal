@@ -1,0 +1,1223 @@
+﻿{
+    "meta":  {
+                 "run_id":  "ai_2026-05-15_10-47-28",
+                 "layer":  "ai",
+                 "timestamp":  "2026-05-15T10:47:33.3343364-04:00",
+                 "durationMs":  2524,
+                 "runner":  "flutter-test",
+                 "exitCode":  0,
+                 "label":  "baseline"
+             },
+    "summary":  {
+                    "total":  98,
+                    "passed":  98,
+                    "failed":  0,
+                    "skipped":  0,
+                    "passRate":  1
+                },
+    "generativeMetrics":  {
+                              "scenario":  {
+                                               "violations":  0,
+                                               "total":  56,
+                                               "passed":  56
+                                           },
+                              "inv":  {
+                                          "violations":  0,
+                                          "total":  0,
+                                          "passed":  0
+                                      },
+                              "mft":  {
+                                          "violations":  0,
+                                          "total":  26,
+                                          "passed":  26
+                                      },
+                              "boundary":  {
+                                               "violations":  0,
+                                               "total":  13,
+                                               "passed":  13
+                                           },
+                              "dir":  {
+                                          "violations":  0,
+                                          "total":  3,
+                                          "passed":  3
+                                      }
+                          },
+    "tests":  [
+                  {
+                      "id":  "78",
+                      "durationMs":  2380,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"had it thursday\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "77",
+                      "durationMs":  2376,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"the tuesday lunch\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "63",
+                      "durationMs":  2285,
+                      "group":  "new rules smoke tests",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "new rules smoke tests \"last week\" → referential, offset 3",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "30",
+                      "durationMs":  2119,
+                      "group":  "buildQuerySpec — dateOffset",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "buildQuerySpec — dateOffset \"leftovers from last night\" → offset 1",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "87",
+                      "durationMs":  2410,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"same old lunch\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "49",
+                      "durationMs":  2217,
+                      "group":  "_resolveNamedDayOffset (via buildQuerySpec)",
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "name":  "_resolveNamedDayOffset (via buildQuerySpec) the other day → matchRecent, no specific offset",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "109",
+                      "durationMs":  2483,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"I just made a salad\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "22",
+                      "durationMs":  2089,
+                      "group":  "isReferential",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "isReferential yesterday → true",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "13",
+                      "durationMs":  1747,
+                      "group":  "Context snippet format",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "Context snippet format snippet embeds exact protein integer (rounded from double)",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "47",
+                      "durationMs":  2206,
+                      "group":  "_resolveNamedDayOffset (via buildQuerySpec)",
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "name":  "_resolveNamedDayOffset (via buildQuerySpec) tuesday from thursday → 2 days ago",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "73",
+                      "durationMs":  2365,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"leftovers from last night\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "91",
+                      "durationMs":  2425,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"the dinner from the day before yesterday\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "113",
+                      "durationMs":  2495,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"protein shake\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "68",
+                      "durationMs":  2353,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"I had some of the leftovers from last friday\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "12",
+                      "durationMs":  1743,
+                      "group":  "Context snippet format",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "Context snippet format snippet embeds exact calorie integer",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "65",
+                      "durationMs":  2292,
+                      "group":  "new rules smoke tests",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "new rules smoke tests \"couple nights ago\" → referential, offset 3",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "40",
+                      "durationMs":  2172,
+                      "group":  "buildQuerySpec — mealType",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "buildQuerySpec — mealType no meal type → null",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "14",
+                      "durationMs":  1750,
+                      "group":  "Context snippet format",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "Context snippet format cal-only snippet parses correctly",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "101",
+                      "durationMs":  2458,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"leftovers\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "26",
+                      "durationMs":  2104,
+                      "group":  "isReferential",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "isReferential earlier → true",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "17",
+                      "durationMs":  1770,
+                      "group":  "Context snippet format",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "Context snippet format large calorie values (\u003e1000) parse correctly",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "102",
+                      "durationMs":  2460,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"yesterday yesterday yesterday\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "28",
+                      "durationMs":  2113,
+                      "group":  "isReferential",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "isReferential empty → false",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "99",
+                      "durationMs":  2453,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"saturday brunch\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "76",
+                      "durationMs":  2373,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"what I had on monday\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "36",
+                      "durationMs":  2154,
+                      "group":  "buildQuerySpec — dateOffset",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "buildQuerySpec — dateOffset \"had that again\" → matchRecent true",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "75",
+                      "durationMs":  2370,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"had that for breakfast yesterday\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "35",
+                      "durationMs":  2149,
+                      "group":  "buildQuerySpec — dateOffset",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "buildQuerySpec — dateOffset \"the usual\" → matchRecent true, no offset",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "60",
+                      "durationMs":  2271,
+                      "group":  "new rules smoke tests",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "new rules smoke tests \"the thing I had\" → referential",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "38",
+                      "durationMs":  2158,
+                      "group":  "buildQuerySpec — mealType",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "buildQuerySpec — mealType dinner in input → mealType dinner",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "83",
+                      "durationMs":  2397,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"had some earlier\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "85",
+                      "durationMs":  2403,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"that pasta dish from a few days ago\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "105",
+                      "durationMs":  2470,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"had pasta earlier in the week\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "106",
+                      "durationMs":  2473,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"what I ate on monday\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "82",
+                      "durationMs":  2393,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"my go-to lunch\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "23",
+                      "durationMs":  2093,
+                      "group":  "isReferential",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "isReferential again → true",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "51",
+                      "durationMs":  2223,
+                      "group":  "priority boundaries",
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "name":  "priority boundaries leftovers + named_day → named_day wins",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "92",
+                      "durationMs":  2428,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"day before last\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "114",
+                      "durationMs":  2500,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"\u003cempty\u003e\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "27",
+                      "durationMs":  2108,
+                      "group":  "isReferential",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "isReferential plain food → false",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "71",
+                      "durationMs":  2311,
+                      "group":  "buildContextSnippet format",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "buildContextSnippet format output starts with \"Recent meals:\" header",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "59",
+                      "durationMs":  2267,
+                      "group":  "new rules smoke tests",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "new rules smoke tests \"repeat\" → referential",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "86",
+                      "durationMs":  2406,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"earlier this week I had salmon\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "69",
+                      "durationMs":  2307,
+                      "group":  "new rules smoke tests",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "new rules smoke tests \"day before last\" → offset 2",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "54",
+                      "durationMs":  2241,
+                      "group":  "priority boundaries",
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "name":  "priority boundaries named_day + meal_type → dateOffset and mealType both set",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "66",
+                      "durationMs":  2303,
+                      "group":  "new rules smoke tests",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "new rules smoke tests \"day before yesterday\" → offset 2",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "43",
+                      "durationMs":  2187,
+                      "group":  "confidence scoring",
+                      "tags":  [
+                                   "DIR"
+                               ],
+                      "name":  "confidence scoring double match on same rule = 1.5",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "103",
+                      "durationMs":  2464,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"the night before last I had tacos\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "95",
+                      "durationMs":  2439,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"a while back I had that salmon\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "111",
+                      "durationMs":  2488,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"I had a chicken sandwich\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "80",
+                      "durationMs":  2388,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"had that again\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "8",
+                      "durationMs":  1725,
+                      "group":  "Macro tolerance checker",
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "name":  "Macro tolerance checker values within 10% pass",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "74",
+                      "durationMs":  2368,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"same dinner I had yesterday\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "34",
+                      "durationMs":  2143,
+                      "group":  "buildQuerySpec — dateOffset",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "buildQuerySpec — dateOffset \"same as wednesday\" → offset 2",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "62",
+                      "durationMs":  2280,
+                      "group":  "new rules smoke tests",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "new rules smoke tests \"the other night\" → referential, offset 1",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "53",
+                      "durationMs":  2236,
+                      "group":  "priority boundaries",
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "name":  "priority boundaries two_days_ago + yesterday → two_days_ago wins (offset 2)",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "116",
+                      "durationMs":  2505,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"leftovers!!!\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "44",
+                      "durationMs":  2194,
+                      "group":  "confidence scoring",
+                      "tags":  [
+                                   "DIR"
+                               ],
+                      "name":  "confidence scoring multi-rule total confidence \u003e single",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "98",
+                      "durationMs":  2449,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"sunday dinner\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "72",
+                      "durationMs":  2361,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"leftovers from dinner last friday\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "93",
+                      "durationMs":  2431,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"last week\u0027s dinner\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "58",
+                      "durationMs":  2260,
+                      "group":  "new rules smoke tests",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "new rules smoke tests \"same old\" → referential",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "55",
+                      "durationMs":  2247,
+                      "group":  "priority boundaries",
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "name":  "priority boundaries named_day rule fires but no weekday string → matchRecent",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "33",
+                      "durationMs":  2138,
+                      "group":  "buildQuerySpec — dateOffset",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "buildQuerySpec — dateOffset \"what I had on monday\" → offset 3 (Monday May 11)",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "88",
+                      "durationMs":  2415,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"repeat dinner from last night\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "56",
+                      "durationMs":  2254,
+                      "group":  "priority boundaries",
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "name":  "priority boundaries same_as_before with no temporal → matchRecent true, dateOffset null",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "16",
+                      "durationMs":  1762,
+                      "group":  "Context snippet format",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "Context snippet format stored → snippet → parsed values match exactly (no formatter drift)",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "64",
+                      "durationMs":  2288,
+                      "group":  "new rules smoke tests",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "new rules smoke tests \"a while back\" → referential, offset 3",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "24",
+                      "durationMs":  2097,
+                      "group":  "isReferential",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "isReferential the usual → true",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "10",
+                      "durationMs":  1740,
+                      "group":  "Macro tolerance checker",
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "name":  "Macro tolerance checker zero original skips check (no divide-by-zero)",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "20",
+                      "durationMs":  2080,
+                      "group":  "isReferential",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "isReferential leftovers → true",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "61",
+                      "durationMs":  2275,
+                      "group":  "new rules smoke tests",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "new rules smoke tests \"like what I had\" → referential",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "94",
+                      "durationMs":  2435,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"had it a couple nights ago\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "97",
+                      "durationMs":  2445,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"the breakfast I had on wednesday\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "9",
+                      "durationMs":  1737,
+                      "group":  "Macro tolerance checker",
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "name":  "Macro tolerance checker values beyond 10% fail",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "96",
+                      "durationMs":  2441,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"the other night we had tacos\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "52",
+                      "durationMs":  2230,
+                      "group":  "priority boundaries",
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "name":  "priority boundaries days_ago + this_morning → days_ago wins (offset 3)",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "81",
+                      "durationMs":  2390,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"same thing I always have\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "107",
+                      "durationMs":  2476,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"what I ate for lunch yesterday\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "39",
+                      "durationMs":  2166,
+                      "group":  "buildQuerySpec — mealType",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "buildQuerySpec — mealType breakfast in input → mealType breakfast",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "48",
+                      "durationMs":  2212,
+                      "group":  "_resolveNamedDayOffset (via buildQuerySpec)",
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "name":  "_resolveNamedDayOffset (via buildQuerySpec) thursday from thursday → 7 days ago (same day = last week)",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "108",
+                      "durationMs":  2480,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"what I had for dinner\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "90",
+                      "durationMs":  2421,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"like what I had on tuesday\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "21",
+                      "durationMs":  2085,
+                      "group":  "isReferential",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "isReferential last night → true",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "46",
+                      "durationMs":  2200,
+                      "group":  "_resolveNamedDayOffset (via buildQuerySpec)",
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "name":  "_resolveNamedDayOffset (via buildQuerySpec) friday from thursday → 6 days ago",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "110",
+                      "durationMs":  2486,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"I had a burger and fries\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "112",
+                      "durationMs":  2491,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"eggs with toast\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "79",
+                      "durationMs":  2385,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"the usual breakfast\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "84",
+                      "durationMs":  2400,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"this morning I had oatmeal\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "32",
+                      "durationMs":  2132,
+                      "group":  "buildQuerySpec — dateOffset",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "buildQuerySpec — dateOffset \"leftovers from last friday\" → offset 6 (Friday May 8)",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "89",
+                      "durationMs":  2418,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"the thing I had for breakfast\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "31",
+                      "durationMs":  2125,
+                      "group":  "buildQuerySpec — dateOffset",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "buildQuerySpec — dateOffset \"had that for breakfast yesterday\" → offset 1",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "15",
+                      "durationMs":  1756,
+                      "group":  "Context snippet format",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "Context snippet format protein-only snippet parses correctly",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "25",
+                      "durationMs":  2101,
+                      "group":  "isReferential",
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "name":  "isReferential named day → true",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "104",
+                      "durationMs":  2467,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"had that a couple days back\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "42",
+                      "durationMs":  2176,
+                      "group":  "confidence scoring",
+                      "tags":  [
+                                   "DIR"
+                               ],
+                      "name":  "confidence scoring single match = 1.0",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "115",
+                      "durationMs":  2503,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"I usually have eggs\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  },
+                  {
+                      "id":  "100",
+                      "durationMs":  2455,
+                      "group":  "",
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "\"again\"",
+                      "status":  "pass",
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart",
+                      "failure":  null
+                  }
+              ]
+}

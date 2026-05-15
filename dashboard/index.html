@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Food Journal · Test Dashboard</title>
+  <script src="data.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg:          #080c12;
+      --surface:     #0f1520;
+      --surface2:    #1a2030;
+      --border:      #2a3240;
+      --border2:     #3d4d5c;
+      --text:        #eaf0f8;
+      --text-dim:    #8fa0b3;
+      --green:       #4ac26b;
+      --yellow:      #e3aa3a;
+      --red:         #ff7b72;
+      --gray:        #5c7080;
+      --ai:          #b48ef5;
+      --unit:        #6db5ff;
+      --integration: #3dd9e8;
+      --e2e:         #ffaa7a;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 13px; line-height: 1.5; }
+
+    /* ── Header ── */
+    .header { padding: 13px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--surface); position: sticky; top: 0; z-index: 10; }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .header h1 { font-size: 14px; font-weight: 600; }
+    .badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; background: rgba(163,113,247,.15); color: var(--ai); border: 1px solid rgba(163,113,247,.3); letter-spacing: .04em; }
+    .meta { color: var(--text-dim); font-size: 11px; }
+    .guide-btn { background: rgba(163,113,247,.12); border: 1px solid rgba(163,113,247,.4); border-radius: 6px; color: #d2a8ff; font-size: 12px; font-weight: 600; padding: 6px 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background .15s, border-color .15s; letter-spacing: .01em; }
+    .guide-btn:hover { background: rgba(163,113,247,.22); border-color: var(--ai); }
+
+    /* ── Guide panel (right drawer) ── */
+    .guide-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; }
+    .guide-panel { position: fixed; top: 0; right: -520px; width: 500px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); z-index: 201; overflow-y: auto; transition: right .25s ease; display: flex; flex-direction: column; }
+    .guide-panel.open { right: 0; }
+    .guide-hdr { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--surface); z-index: 1; }
+    .guide-hdr h2 { font-size: 14px; font-weight: 700; }
+    .guide-close { background: none; border: none; color: var(--text-dim); font-size: 16px; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+    .guide-close:hover { color: var(--text); background: var(--surface2); }
+    .guide-body { padding: 20px; flex: 1; }
+    .guide-section { margin-bottom: 28px; }
+    .guide-section h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ai); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .guide-section p { font-size: 12px; color: var(--text-dim); line-height: 1.7; margin-bottom: 8px; }
+    .guide-section p strong { color: var(--text); font-weight: 600; }
+    .guide-section p em { color: var(--text-dim); font-style: normal; }
+    .guide-contract { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; margin-bottom: 8px; }
+    .guide-contract-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .guide-contract-head .detail-tag { font-size: 10px; }
+    .guide-contract-head strong { font-size: 12px; font-weight: 700; }
+    .guide-contract p { margin-bottom: 4px; font-size: 11px; }
+    .guide-contract .g-sev { font-size: 11px; font-weight: 600; margin-top: 6px; }
+    .sev-critical { color: var(--red); }
+    .sev-high     { color: var(--yellow); }
+    .sev-medium   { color: var(--unit); }
+    .guide-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 8px; }
+    .guide-table th { text-align: left; font-weight: 700; color: var(--text-dim); padding: 5px 8px; border-bottom: 1px solid var(--border); font-size: 10px; text-transform: uppercase; letter-spacing: .05em; }
+    .guide-table td { padding: 6px 8px; border-bottom: 1px solid #21262d; color: var(--text-dim); vertical-align: top; }
+    .guide-table td:first-child { color: var(--text); font-weight: 600; }
+    .guide-table tr:last-child td { border-bottom: none; }
+    .guide-tip { background: rgba(163,113,247,.08); border: 1px solid rgba(163,113,247,.2); border-radius: 4px; padding: 10px 12px; font-size: 11px; color: var(--text-dim); line-height: 1.6; }
+    .guide-tip strong { color: var(--ai); }
+
+    /* ── JS tooltips (position:fixed to escape overflow containers) ── */
+    .tip { cursor: help; }
+    #js-tip { position: fixed; background: #000; border: 1px solid #3d4d5c; border-radius: 5px; padding: 9px 13px; font-size: 11px; font-weight: 400; color: #eaf0f8; white-space: normal; max-width: 260px; line-height: 1.6; z-index: 9999; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,.9); text-transform: none; letter-spacing: 0; display: none; }
+
+    /* ── Main ── */
+    .main { padding: 16px 24px; max-width: 1440px; margin: 0 auto; }
+
+    /* ── Layer cards ── */
+    .layer-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 16px; }
+    .layer-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 8px; padding: 16px; cursor: pointer; transition: border-color .15s, box-shadow .15s; user-select: none; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+    .layer-card:hover { border-color: var(--gray); box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+    .layer-card.active { border-color: var(--ai); box-shadow: 0 0 0 1px rgba(180,142,245,.3), 0 4px 14px rgba(0,0,0,.4); }
+    .lc-head { display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-dim); margin-bottom: 10px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-green{background:var(--green)} .dot-yellow{background:var(--yellow)} .dot-red{background:var(--red)} .dot-gray{background:var(--gray)}
+    .lc-rate { font-size: 30px; font-weight: 800; line-height: 1; margin-bottom: 5px; letter-spacing: -.5px; }
+    .lc-rate.green{color:var(--green)} .lc-rate.yellow{color:var(--yellow)} .lc-rate.red{color:var(--red)} .lc-rate.gray{color:var(--gray)}
+    .lc-stats { font-size: 12px; color: var(--text-dim); margin-bottom: 5px; }
+    .lc-time { font-size: 11px; color: var(--gray); }
+
+    /* ── Section wrapper ── */
+    .section-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 8px; margin-bottom: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+    .section-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-dim); padding: 12px 18px; border-bottom: 1px solid var(--border2); background: var(--surface2); display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+    .section-head.ai-accent { color: var(--ai); }
+    .section-head .toggle { font-size: 10px; color: var(--gray); }
+    .section-body { padding: 16px 18px; }
+    .section-body.hidden { display: none; }
+
+    /* ── History chart ── */
+    .chart-wrap { position: relative; height: 140px; }
+
+    /* ── Generative metrics ── */
+    .gm-row { display: grid; grid-template-columns: 52px 1fr 64px 80px; align-items: center; gap: 12px; padding: 9px 10px; border-bottom: 1px solid var(--border); cursor: pointer; border-radius: 4px; transition: background .1s; margin: 0 -4px; }
+    .gm-row:last-child { border-bottom: none; }
+    .gm-row:hover { background: rgba(255,255,255,.05); }
+    .gm-row.ct-active { background: rgba(180,142,245,.12); border-left: 2px solid var(--ai); padding-left: 8px; }
+    .gm-label strong { display: block; font-size: 12px; font-weight: 700; }
+    .gm-label span { font-size: 10px; color: var(--text-dim); }
+    .gm-bar-wrap { height: 4px; background: #21262d; border-radius: 2px; overflow: hidden; }
+    .gm-bar { height: 100%; border-radius: 2px; }
+    .gm-bar.green{background:var(--green)} .gm-bar.yellow{background:var(--yellow)} .gm-bar.red{background:var(--red)} .gm-bar.gray{background:var(--gray)}
+    .gm-ratio { font-size: 12px; font-weight: 600; text-align: right; }
+    .gm-viol { font-size: 11px; text-align: right; }
+    .gm-viol.clean{color:var(--text-dim)} .gm-viol.dirty{color:var(--red);font-weight:700} .gm-viol.na{color:var(--gray)}
+
+    /* ── Split panel ── */
+    .split-panel { display: grid; grid-template-columns: 320px 1fr; gap: 0; }
+
+    /* ── Left: Test list ── */
+    .test-list-pane { border-right: 1px solid var(--border2); display: flex; flex-direction: column; height: 68vh; background: var(--surface); }
+    .ct-tabs { display: flex; flex-wrap: wrap; gap: 3px; padding: 8px 10px; border-bottom: 1px solid var(--border2); background: var(--surface2); flex-shrink: 0; }
+    .ct-tab { padding: 4px 9px; font-size: 10px; font-weight: 700; border: 1px solid transparent; border-radius: 4px; cursor: pointer; color: var(--text-dim); background: none; transition: all .12s; white-space: nowrap; letter-spacing: .02em; }
+    .ct-tab:hover { color: var(--text); border-color: var(--border2); background: var(--surface); }
+    .ct-tab.active { color: var(--text); background: var(--surface); border-color: var(--border2); box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+    .ct-tab .ct-n { margin-left: 4px; opacity: .65; font-weight: 600; }
+    .ct-tab.gap-tab { color: rgba(255,123,114,.7); }
+    .ct-tab.gap-tab.active { border-color: rgba(255,123,114,.5); color: var(--red); }
+    .list-toolbar { display: flex; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--border2); flex-shrink: 0; background: var(--surface); }
+    .status-select { background: var(--surface2); border: 1px solid var(--border2); border-radius: 4px; color: var(--text-dim); font-size: 11px; padding: 4px 6px; flex-shrink: 0; }
+    .search-box { flex: 1; background: var(--surface2); border: 1px solid var(--border2); border-radius: 4px; color: var(--text); font-size: 11px; padding: 4px 9px; }
+    .search-box:focus { outline: none; border-color: var(--ai); }
+    .search-box::placeholder { color: var(--gray); }
+    .test-tree { flex: 1; overflow-y: auto; padding: 6px 0; }
+
+    /* ── Tree nodes ── */
+    .tree-file { padding: 4px 8px 2px; }
+    .tree-file-head { display: flex; align-items: center; justify-content: space-between; padding: 5px 8px; border-radius: 5px; cursor: pointer; user-select: none; background: var(--surface2); margin-bottom: 2px; }
+    .tree-file-head:hover { background: #202a38; }
+    .tree-file-name { font-size: 11px; font-weight: 700; color: var(--text); letter-spacing: .01em; }
+    .tree-file-count { font-size: 10px; color: var(--text-dim); font-weight: 600; }
+    .tree-file-items { padding-left: 4px; }
+    .tree-group-head { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px 4px 12px; cursor: pointer; border-radius: 3px; user-select: none; }
+    .tree-group-head:hover { background: rgba(255,255,255,.04); }
+    .tree-group-name { font-size: 11px; color: var(--text-dim); font-style: italic; }
+    .tree-group-count { font-size: 10px; color: var(--gray); }
+    .tree-tests { padding-left: 8px; }
+    .tree-test { display: flex; align-items: center; gap: 6px; padding: 5px 8px 5px 16px; cursor: pointer; border-radius: 4px; transition: background .1s; min-height: 28px; }
+    .tree-test:hover { background: rgba(255,255,255,.06); }
+    .tree-test.selected { background: rgba(180,142,245,.18); border-left: 2px solid var(--ai); padding-left: 14px; }
+    .tree-test.fail-test:not(.selected) { border-left: 2px solid rgba(255,123,114,.5); padding-left: 14px; }
+    .tree-test .ti-status { font-size: 12px; flex-shrink: 0; font-weight: 700; }
+    .ti-pass{color:var(--green)} .ti-fail{color:var(--red)} .ti-skip{color:var(--gray)}
+    .tree-test .ti-name { font-size: 11px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; font-family: 'Consolas','Courier New',monospace; }
+    .tree-test.selected .ti-name { color: #d2b8ff; }
+    .tree-test .ti-dur { font-size: 10px; color: var(--gray); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+    .chevron { font-size: 9px; color: var(--text-dim); margin-right: 4px; display: inline-block; transition: transform .15s; }
+    .collapsed .chevron { transform: rotate(-90deg); }
+
+    /* ── Right: Detail pane ── */
+    .test-detail-pane { height: 68vh; overflow-y: auto; display: flex; flex-direction: column; background: var(--bg); }
+    .detail-placeholder { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--gray); font-size: 13px; gap: 8px; }
+    .detail-content { padding: 22px 26px; flex: 1; }
+
+    /* ── Detail sections (Playwright-style) ── */
+    .detail-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; gap: 12px; }
+    .detail-status-row { display: flex; align-items: center; gap: 8px; }
+    .detail-status-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 3px; letter-spacing: .04em; }
+    .status-pass { background: rgba(63,185,80,.15); color: var(--green); border: 1px solid rgba(63,185,80,.3); }
+    .status-fail { background: rgba(248,81,73,.15); color: var(--red); border: 1px solid rgba(248,81,73,.3); }
+    .status-skip { background: rgba(72,79,88,.3); color: var(--gray); border: 1px solid var(--border); }
+    .detail-dur { font-size: 11px; color: var(--text-dim); }
+    .detail-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 3px; }
+    .tag-MFT{background:rgba(163,113,247,.15);color:var(--ai);border:1px solid rgba(163,113,247,.3)}
+    .tag-INV{background:rgba(210,153,34,.15);color:var(--yellow);border:1px solid rgba(210,153,34,.3)}
+    .tag-DIR{background:rgba(57,211,230,.15);color:var(--integration);border:1px solid rgba(57,211,230,.3)}
+    .tag-Boundary{background:rgba(255,158,100,.15);color:var(--e2e);border:1px solid rgba(255,158,100,.3)}
+    .tag-Scenario{background:rgba(88,166,255,.15);color:var(--unit);border:1px solid rgba(88,166,255,.3)}
+
+    .detail-title { font-size: 13px; font-weight: 600; color: var(--text); font-family: 'Consolas','Courier New',monospace; word-break: break-word; line-height: 1.6; background: var(--surface); border: 1px solid var(--border2); border-radius: 5px; padding: 8px 12px; margin-top: 8px; }
+
+    .ds { margin-bottom: 20px; }
+    .ds-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--text-dim); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .ds-label::after { content: ''; flex: 1; height: 1px; background: var(--border2); }
+
+    .ds-context-box { background: var(--surface); border: 1px solid var(--border2); border-left: 3px solid var(--ai); border-radius: 0 6px 6px 0; padding: 12px 16px; }
+    .ds-context-what { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .ds-context-val  { font-size: 12px; color: var(--text-dim); }
+
+    .ds-input-box { background: #040810; border: 1px solid var(--border2); border-radius: 6px; padding: 14px 16px; font-family: 'Consolas','Courier New',monospace; font-size: 14px; color: #ffc87a; word-break: break-word; line-height: 1.6; letter-spacing: .01em; }
+
+    .ds-assertion { font-family: 'Consolas','Courier New',monospace; font-size: 12px; color: var(--text); background: var(--surface); border: 1px solid var(--border2); border-radius: 6px; padding: 10px 14px; }
+
+    .ds-error-box { background: rgba(255,123,114,.07); border: 1px solid rgba(255,123,114,.3); border-radius: 6px; padding: 14px 16px; font-family: 'Consolas','Courier New',monospace; font-size: 11px; color: #ffb3ad; white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto; line-height: 1.7; }
+
+    .ds-file { font-family: 'Consolas','Courier New',monospace; font-size: 12px; color: var(--text-dim); padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; }
+
+    .ds-coverage-gap { background: rgba(255,123,114,.07); border: 1px solid rgba(255,123,114,.3); border-radius: 6px; padding: 12px 16px; }
+    .ds-coverage-gap strong { color: var(--red); font-size: 12px; display: block; margin-bottom: 4px; }
+    .ds-coverage-gap p { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+
+    /* ── Output / diff ── */
+    .ds-output-pass { font-family: 'Consolas','Courier New',monospace; font-size: 13px; color: var(--green); background: rgba(74,194,107,.07); border: 1px solid rgba(74,194,107,.25); border-radius: 6px; padding: 10px 14px; }
+    .ds-diff { background: var(--surface); border: 1px solid var(--border2); border-radius: 6px; overflow: hidden; }
+    .ds-diff-row { display: grid; grid-template-columns: 72px 1fr; gap: 0; }
+    .ds-diff-row + .ds-diff-row { border-top: 1px solid var(--border); }
+    .ds-diff-key { padding: 8px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; background: var(--surface2); display: flex; align-items: center; }
+    .ds-diff-key.exp-key { color: var(--green); }
+    .ds-diff-key.act-key { color: var(--red); }
+    .ds-diff-val { padding: 8px 14px; font-family: 'Consolas','Courier New',monospace; font-size: 12px; word-break: break-all; }
+    .ds-diff-val.exp-val { color: var(--green); }
+    .ds-diff-val.act-val { color: var(--red); }
+
+    /* ── Structured engine output ── */
+    .ds-struct { background: #040810; border: 1px solid var(--border2); border-radius: 6px; padding: 12px 14px; font-family: 'Consolas','Courier New',monospace; font-size: 12px; }
+    .so-row { display: flex; gap: 10px; padding: 2px 0; }
+    .so-k { color: var(--text-dim); min-width: 120px; flex-shrink: 0; }
+    .so-v { color: #ffc87a; }
+    .so-v.bool-true  { color: var(--green); }
+    .so-v.bool-false { color: var(--red); }
+    .so-v.null-val   { color: var(--gray); }
+
+    /* ── No data ── */
+    .no-data { text-align: center; padding: 70px 24px; }
+    .no-data h2 { font-size: 17px; color: var(--text-dim); margin-bottom: 10px; }
+    .no-data p { color: var(--gray); margin-bottom: 14px; }
+    .no-data code { display: inline-block; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 9px 18px; font-family: monospace; font-size: 13px; color: var(--ai); }
+
+    /* ── Empty state ── */
+    .empty-msg { text-align: center; padding: 28px; color: var(--text-dim); font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Food Journal · Test Dashboard</h1>
+    <span class="badge">GENERATIVE QA</span>
+  </div>
+  <div class="header-right">
+    <span class="meta" id="meta-gen">—</span>
+    <button class="guide-btn" onclick="openGuide()">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 12.5a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11zm-.75-8.25a.75.75 0 0 1 1.5 0v.5a.75.75 0 0 1-1.5 0v-.5zm0 2.25a.75.75 0 0 1 1.5 0v3a.75.75 0 0 1-1.5 0v-3z"/></svg>
+      Testing Guide
+    </button>
+  </div>
+</div>
+
+<!-- ── Guide overlay + panel ── -->
+<div class="guide-overlay" id="guide-overlay" onclick="closeGuide()"></div>
+<div class="guide-panel" id="guide-panel">
+  <div class="guide-hdr">
+    <h2>Generative QA — Testing Guide</h2>
+    <button class="guide-close" onclick="closeGuide()">✕</button>
+  </div>
+  <div class="guide-body">
+
+    <div class="guide-section">
+      <h3>What Is This Dashboard?</h3>
+      <p>This dashboard measures how well an AI-powered feature honors its <strong>behavioral contracts</strong> — properties that must hold true across the entire range of real-world inputs.</p>
+      <p>Unlike traditional testing (which checks exact values: <em>"given X, expect Y"</em>), generative output validation checks <strong>properties</strong>: <em>"adding more evidence must always increase confidence"</em> or <em>"changing capitalization must never change the output."</em></p>
+      <p>A system can pass every unit test and still fail these contracts — because unit tests check known inputs, while contracts check the shape of behavior across unknown ones.</p>
+    </div>
+
+    <div class="guide-section">
+      <h3>The 5 Contract Types</h3>
+
+      <div class="guide-contract">
+        <div class="guide-contract-head">
+          <span class="detail-tag tag-MFT">MFT</span>
+          <strong>Minimum Functionality Tests</strong>
+        </div>
+        <p><em>"Does the core feature work at all?"</em></p>
+        <p>Binary oracle tests — pass or fail, no grey area. These cover the canonical inputs every production feature must handle correctly. If any MFT fails, the feature cannot ship.</p>
+        <p>Example: <code style="font-size:10px;color:#f0c080">"leftovers"</code> must be detected as referential. <code style="font-size:10px;color:#f0c080">"yesterday"</code> must resolve to offset 1.</p>
+        <div class="g-sev sev-critical">● CRITICAL — any violation blocks shipping</div>
+      </div>
+
+      <div class="guide-contract">
+        <div class="guide-contract-head">
+          <span class="detail-tag tag-INV">INV</span>
+          <strong>Invariance Tests</strong>
+        </div>
+        <p><em>"Do irrelevant changes break it?"</em></p>
+        <p>Real users don't type perfect input. They write <code style="font-size:10px;color:#f0c080">"LEFTOVERS"</code> or <code style="font-size:10px;color:#f0c080">"leftovers!!!"</code> or <code style="font-size:10px;color:#f0c080">"left  overs"</code>. These perturbations must not change the detection result. A system that only works on clean input will fail constantly under real user load.</p>
+        <p>Tests: case mutation, punctuation stripping, synonym equivalence, word order, whitespace normalization.</p>
+        <div class="g-sev sev-high">● HIGH — brittleness; real user variation will trigger this</div>
+      </div>
+
+      <div class="guide-contract">
+        <div class="guide-contract-head">
+          <span class="detail-tag tag-DIR">DIR</span>
+          <strong>Directional Tests</strong>
+        </div>
+        <p><em>"Does adding more evidence move the result in the right direction?"</em></p>
+        <p>These don't assert exact values — they assert <strong>direction of change</strong>. More signals fired → confidence must increase. A named day added to vague input → matchRecent must drop. A violation means the system got <em>less</em> useful as you gave it more information.</p>
+        <p>DIR tests directly measure whether AI context injection is working. A DIR violation on the AI layer means the expensive context-injection pipeline is failing or counterproductive.</p>
+        <div class="g-sev sev-high">● HIGH — directional violation means AI feature is not improving with context</div>
+      </div>
+
+      <div class="guide-contract">
+        <div class="guide-contract-head">
+          <span class="detail-tag tag-Boundary">BDY</span>
+          <strong>Boundary Value Tests</strong>
+        </div>
+        <p><em>"Do numeric edges behave correctly?"</em></p>
+        <p>Off-by-one errors live at boundaries. The ±10% macro tolerance must accept 10.0% and reject 10.1%. The rolling fingerprint window must prune at exactly entry #41, not #40 or #42. These tests sit at every defined numeric threshold — at N and at N+1.</p>
+        <div class="g-sev sev-medium">● MEDIUM — edge cases affected; most users won't hit it until they do</div>
+      </div>
+
+      <div class="guide-contract">
+        <div class="guide-contract-head">
+          <span class="detail-tag tag-Scenario">SCN</span>
+          <strong>Scenario Table</strong>
+        </div>
+        <p><em>"Does it handle what real users actually type?"</em></p>
+        <p>The scenario matrix is a living catalog of real-world phrases. Every row was added because a real user typed something like it, or a developer recognized a gap. Unlike MFT (which tests canonical inputs), SCN tests the long tail: slang, colloquialisms, abbreviations, regional phrasing.</p>
+        <p>A failing scenario means a specific phrase — one a real user will say — is broken. Treat each failing scenario as a bug report from a real user.</p>
+        <div class="g-sev sev-medium">● MEDIUM — known real-world inputs are failing</div>
+      </div>
+    </div>
+
+    <div class="guide-section">
+      <h3>Reading the Dashboard</h3>
+      <table class="guide-table">
+        <thead><tr><th>Color</th><th>Pass Rate</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--green)">● Green</td><td>≥ 90%</td><td>Contract honored. Safe to ship this layer.</td></tr>
+          <tr><td style="color:var(--yellow)">● Yellow</td><td>75–89%</td><td>Partial violations. Investigate before shipping.</td></tr>
+          <tr><td style="color:var(--red)">● Red</td><td>&lt; 75%</td><td>Contract broken. Fix before shipping.</td></tr>
+          <tr><td style="color:var(--gray)">● Gray</td><td>—</td><td>No data. Run a reporter to populate.</td></tr>
+        </tbody>
+      </table>
+      <div class="guide-tip"><strong>Coverage gaps (⚠ 0 tests) are worse than failures.</strong> A failure tells you something is broken. A gap tells you nothing — the contract could be honored or violated, and you don't know which. A green 0/0 is not a passing score; it's silence.</div>
+    </div>
+
+    <div class="guide-section">
+      <h3>What Do Violations Mean?</h3>
+      <p>A <strong>violation</strong> is a broken behavioral guarantee — not just a failed assertion but a signal that the system cannot be trusted to behave correctly across all inputs of that type.</p>
+      <table class="guide-table">
+        <thead><tr><th>Contract</th><th>Violation means…</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--ai)">MFT</td><td>Core feature is broken. The fundamental promise of the feature is not being kept.</td></tr>
+          <tr><td style="color:var(--yellow)">INV</td><td>Feature is brittle. It works in a lab but breaks when real users type imperfect input.</td></tr>
+          <tr><td style="color:var(--integration)">DIR</td><td>AI context is broken. Adding more information makes the system less accurate.</td></tr>
+          <tr><td style="color:var(--e2e)">BDY</td><td>Silent edge-case bug. The tolerance math or window logic has an off-by-one.</td></tr>
+          <tr><td style="color:var(--unit)">SCN</td><td>Known phrase is broken. A real-world input the system was explicitly designed to handle is failing.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="guide-section">
+      <h3>The Test Tree</h3>
+      <p>Tests are organized by <strong>file → group → test</strong>, mirroring the source structure. This makes it easy to understand what module a failure is in.</p>
+      <p><strong>File headers</strong> show pass/fail counts at a glance. <strong>Group headers</strong> reflect the describe block in the test file — each group tests one specific property of the system. <strong>Individual tests</strong> are the actual assertions.</p>
+      <p>Click any test to open its full diagnostic in the right panel. The diagnostic shows the <strong>input</strong> (what was fed to the engine), the <strong>expected behavior</strong> (what the contract requires), and — for failures — the <strong>actual output</strong> with the full error.</p>
+    </div>
+
+    <div class="guide-section">
+      <h3>Why Not Just Use Unit Tests?</h3>
+      <p>Unit tests check that <em>this specific input produces this specific output</em>. They're necessary but not sufficient for AI-powered features because:</p>
+      <p><strong>1. AI outputs are probabilistic.</strong> You can't assert exact values from a language model — you can only assert properties (direction, tolerance, format).</p>
+      <p><strong>2. User inputs are infinite.</strong> You can't enumerate every phrase a user might type. Contracts let you assert properties that must hold across all of them.</p>
+      <p><strong>3. Regressions hide in perturbations.</strong> A model update or rule change might make "LEFTOVERS" stop working even though "leftovers" still passes. INV tests catch this; unit tests don't.</p>
+      <p>Behavioral contract testing is the industry approach for validating generative and AI-adjacent features in production systems.</p>
+    </div>
+
+  </div>
+</div>
+
+<div id="no-data" class="no-data" style="display:none">
+  <h2>No test data</h2>
+  <p>Run the AI reporter to populate.</p>
+  <code>.\scripts\report_ai.ps1</code>
+</div>
+
+<div class="main" id="main" style="display:none">
+
+  <!-- Layer cards -->
+  <div class="layer-grid" id="layer-grid"></div>
+
+  <!-- History chart (collapsible) -->
+  <div class="section-card">
+    <div class="section-head" onclick="toggleSection('hist-body',this)">
+      Pass Rate History
+      <span class="toggle">▲</span>
+    </div>
+    <div class="section-body" id="hist-body">
+      <div class="chart-wrap"><canvas id="hist-chart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Generative contract metrics -->
+  <div class="section-card" id="gm-card" style="display:none">
+    <div class="section-head ai-accent" onclick="toggleSection('gm-body',this)">
+      AI · Generative Contract Coverage
+      <span class="toggle">▲</span>
+    </div>
+    <div class="section-body" id="gm-body"></div>
+  </div>
+
+  <!-- Split: test list + detail pane -->
+  <div class="section-card split-panel">
+
+    <!-- Left: test list -->
+    <div class="test-list-pane">
+      <div class="ct-tabs" id="ct-tabs"></div>
+      <div class="list-toolbar">
+        <select class="status-select" id="status-sel" onchange="setStatusFilter(this.value)">
+          <option value="all">All</option>
+          <option value="fail">Failures</option>
+          <option value="pass">Passing</option>
+        </select>
+        <input class="search-box" id="search-box" placeholder="Search tests…" oninput="applyFilters()">
+      </div>
+      <div class="test-tree" id="test-tree"></div>
+    </div>
+
+    <!-- Right: detail pane -->
+    <div class="test-detail-pane" id="detail-pane">
+      <div class="detail-placeholder" id="detail-placeholder">
+        <span>← select a test to view diagnostics</span>
+      </div>
+      <div class="detail-content" id="detail-content" style="display:none"></div>
+    </div>
+
+  </div>
+
+</div><!-- /main -->
+
+<div id="js-tip"></div>
+
+<script>
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const LAYER_META = {
+  ai:          { label: 'AI Layer',    color: '#a371f7' },
+  unit:        { label: 'Unit',        color: '#58a6ff' },
+  integration: { label: 'Integration', color: '#39d3e6' },
+  e2e:         { label: 'End-to-End',  color: '#ff9e64' },
+};
+
+const CONTRACT_META = {
+  all:      { abbr: 'All',  label: 'All Tests',              sev: null,       sevLabel: null,
+              desc: null },
+  mft:      { abbr: 'MFT',  label: 'Minimum Functionality',  sev: 'critical', sevLabel: 'CRITICAL — any violation blocks shipping',
+              desc: 'Binary oracle — core capabilities that must work. A failure here means the feature cannot ship.' },
+  inv:      { abbr: 'INV',  label: 'Invariance',             sev: 'high',     sevLabel: 'HIGH — real user variation triggers this; fix before production load',
+              desc: 'Perturbations that must NOT change output: case, punctuation, synonyms, word order. Failures expose brittleness to imperfect user input.' },
+  dir:      { abbr: 'DIR',  label: 'Directional',            sev: 'high',     sevLabel: 'HIGH — AI context injection may be broken or counterproductive',
+              desc: 'Output must shift in a predictable direction (not exact value). Adding specificity → confidence increases. A violation means the AI is getting less accurate with more context.' },
+  boundary: { abbr: 'BDY',  label: 'Boundary Value',         sev: 'medium',   sevLabel: 'MEDIUM — edge case bug; most users won\'t hit it until they do',
+              desc: 'Tests at exact edges of defined numeric ranges. Off-by-one is where bugs live. Tests N and N+1 for every defined threshold.' },
+  scenario: { abbr: 'SCN',  label: 'Scenario Table',         sev: 'medium',   sevLabel: 'MEDIUM — a real-world input the system was built to handle is broken',
+              desc: 'Real-world phrases a user would actually type. Every row is a known input pattern. A failure is a bug report from a real user.' },
+};
+
+const GROUP_CONTEXT = {
+  'isReferential':                            { what: 'Binary detection: does this input reference a past meal?',          validates: 'Referential classification — true/false for temporal language' },
+  'buildQuerySpec — dateOffset':              { what: 'Canonical temporal phrases must resolve to correct day offsets',   validates: 'MFT spec — "last night" → 1, "last friday" → 6, "monday" → 3' },
+  'buildQuerySpec — mealType':                { what: 'Meal type keywords must be extracted accurately from temporal input', validates: 'MFT spec — "dinner", "breakfast", "lunch" correctly identified' },
+  'confidence scoring':                       { what: 'Confidence scoring algorithm correctness',                          validates: 'BDY: exact baseline values (1.0, 1.5) · DIR: multi-rule total must exceed single-rule' },
+  '_resolveNamedDayOffset (via buildQuerySpec)': { what: 'Resolves named weekday to day count relative to "today"',       validates: 'Named day calculation — "friday" from thursday = 6 days ago' },
+  'priority boundaries':                      { what: 'When multiple rules fire, the correct rule wins',                  validates: 'Rule priority — named_day > leftovers, days_ago > this_morning' },
+  'new rules smoke tests':                    { what: 'Recently added slang / colloquial rules fire correctly',           validates: 'Rule coverage — "same old", "repeat", "the thing I had"' },
+  'buildContextSnippet format':               { what: 'AI context injection snippet has the correct structure',           validates: 'Prompt integrity — "Recent meals:" header, correct separators' },
+  'Macro tolerance checker':                  { what: '±10% tolerance oracle accepts inside threshold, rejects outside',  validates: 'Boundary values — 10.0% passes; 10.1% fails' },
+  'Context snippet format':                   { what: 'Stored macro integers survive the formatting round-trip unchanged', validates: 'Format fidelity — no rounding, no precision loss' },
+  '':                                         { what: 'Real-world inputs from the full scenario matrix',                  validates: 'Coverage — diverse phrasings a real user would type into the app' },
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+
+let DATA            = null;
+let activeLayer     = 'ai';
+let activeCtTab     = 'all';
+let statusFilter    = 'all';
+let activeTests     = [];
+let selectedTestId  = null;
+let histChart       = null;
+let collapsedGroups = new Set();
+let collapsedFiles  = new Set();
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
+
+function init() {
+  if (typeof window.DASHBOARD_DATA === 'undefined') {
+    document.getElementById('no-data').style.display = 'block';
+    return;
+  }
+  DATA = window.DASHBOARD_DATA;
+  document.getElementById('main').style.display = 'block';
+  document.getElementById('meta-gen').textContent = 'Generated ' + fmtDT(DATA.generated);
+
+  renderLayerCards();
+  renderHistChart();
+
+  const first = ['ai','unit','integration','e2e'].find(l => DATA.layers[l] && DATA.layers[l].latest) || 'ai';
+  selectLayer(first);
+}
+
+// ── Collapsible sections ──────────────────────────────────────────────────────
+
+function toggleSection(bodyId, head) {
+  const body = document.getElementById(bodyId);
+  const tog  = head.querySelector('.toggle');
+  body.classList.toggle('hidden');
+  if (tog) tog.textContent = body.classList.contains('hidden') ? '▼' : '▲';
+}
+
+// ── Layer cards ───────────────────────────────────────────────────────────────
+
+function renderLayerCards() {
+  const grid = document.getElementById('layer-grid');
+  grid.innerHTML = '';
+  ['ai','unit','integration','e2e'].forEach(layer => {
+    const ld     = DATA.layers[layer];
+    const latest = ld && ld.latest;
+    const meta   = LAYER_META[layer];
+    const card   = document.createElement('div');
+    card.className = 'layer-card' + (layer === activeLayer ? ' active' : '');
+    card.id = 'card-' + layer;
+    card.onclick = () => selectLayer(layer);
+    if (!latest || !latest.summary) {
+      card.innerHTML = `<div class="lc-head"><span class="dot dot-gray"></span>${meta.label}</div><div class="lc-rate gray">—</div><div class="lc-stats">No data</div><div class="lc-time">run a reporter</div>`;
+    } else {
+      const r = latest.summary.passRate || 0;
+      const c = rateCls(r);
+      const s = latest.summary;
+      card.innerHTML = `<div class="lc-head"><span class="dot dot-${c}"></span>${meta.label}</div><div class="lc-rate ${c}">${pct(r)}</div><div class="lc-stats">${s.passed}/${s.total} passed · ${s.failed} failed</div><div class="lc-time">${fmtDT(latest.meta.timestamp)}</div>`;
+    }
+    grid.appendChild(card);
+  });
+}
+
+// ── Layer selection ───────────────────────────────────────────────────────────
+
+function selectLayer(layer) {
+  activeLayer    = layer;
+  activeCtTab    = 'all';
+  selectedTestId = null;
+  document.querySelectorAll('.layer-card').forEach(c => c.classList.remove('active'));
+  const card = document.getElementById('card-' + layer);
+  if (card) card.classList.add('active');
+
+  const ld     = DATA.layers[layer];
+  const latest = ld && ld.latest;
+  activeTests  = (latest && Array.isArray(latest.tests)) ? latest.tests : [];
+
+  const gmCard = document.getElementById('gm-card');
+  if (layer === 'ai' && latest && latest.generativeMetrics) {
+    renderGenMetrics(latest.generativeMetrics);
+    gmCard.style.display = 'block';
+  } else {
+    gmCard.style.display = 'none';
+  }
+
+  renderCtTabs();
+  applyFilters();
+  clearDetail();
+}
+
+// ── Contract type tabs ────────────────────────────────────────────────────────
+
+function renderCtTabs() {
+  const wrap = document.getElementById('ct-tabs');
+  wrap.innerHTML = '';
+  const counts = {};
+  activeTests.forEach(t => {
+    const tag = (t.tags && t.tags[0]) || 'Scenario';
+    counts[tag.toLowerCase()] = (counts[tag.toLowerCase()] || 0) + 1;
+  });
+  counts['all'] = activeTests.length;
+
+  Object.keys(CONTRACT_META).forEach(key => {
+    const m   = CONTRACT_META[key];
+    const n   = key === 'all' ? counts.all : (counts[key] || 0);
+    const btn = document.createElement('button');
+    const isGap = key !== 'all' && n === 0;
+    btn.className = 'ct-tab' + (key === activeCtTab ? ' active' : '') + (isGap ? ' gap-tab' : '');
+    btn.id = 'ct-tab-' + key;
+    btn.onclick = () => setCtTab(key);
+    btn.innerHTML = `${m.abbr}<span class="ct-n">${n}${isGap ? ' ⚠' : ''}</span>`;
+    const tipText = m.desc ? `${m.label}${isGap ? ' ⚠ coverage gap — no tests exist' : ''}: ${m.desc}` : m.label;
+    btn.title = tipText;
+    wrap.appendChild(btn);
+  });
+}
+
+function setCtTab(key) {
+  activeCtTab    = key;
+  selectedTestId = null;
+  document.querySelectorAll('.ct-tab').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('ct-tab-' + key);
+  if (btn) btn.classList.add('active');
+
+  // Highlight matching row in gen metrics
+  document.querySelectorAll('.gm-row').forEach(r => r.classList.remove('ct-active'));
+  const gmRow = document.getElementById('gm-row-' + key);
+  if (gmRow) gmRow.classList.add('ct-active');
+
+  applyFilters();
+  clearDetail();
+}
+
+// ── Status filter ─────────────────────────────────────────────────────────────
+
+function setStatusFilter(val) {
+  statusFilter   = val;
+  selectedTestId = null;
+  applyFilters();
+  clearDetail();
+}
+
+// ── Apply all filters → render tree ──────────────────────────────────────────
+
+function applyFilters() {
+  const q = (document.getElementById('search-box').value || '').toLowerCase();
+  let list = activeTests;
+
+  if (activeCtTab !== 'all') {
+    list = list.filter(t => {
+      const tag = (t.tags && t.tags[0]) || 'Scenario';
+      return tag.toLowerCase() === activeCtTab;
+    });
+  }
+  if (statusFilter !== 'all') list = list.filter(t => t.status === statusFilter);
+  if (q) list = list.filter(t =>
+    (t.name || '').toLowerCase().includes(q) ||
+    (t.group || '').toLowerCase().includes(q)
+  );
+
+  renderTestTree(list);
+}
+
+// ── Render test tree ──────────────────────────────────────────────────────────
+
+function renderTestTree(tests) {
+  const container = document.getElementById('test-tree');
+  container.innerHTML = '';
+
+  if (!tests || tests.length === 0) {
+    container.innerHTML = '<div class="empty-msg">No tests match filter</div>';
+    return;
+  }
+
+  // Group by file → group
+  const fileMap = new Map();
+  tests.forEach(t => {
+    const fn = shortFile(t.file);
+    if (!fileMap.has(fn)) fileMap.set(fn, new Map());
+    const gm = fileMap.get(fn);
+    const g  = t.group || '';
+    if (!gm.has(g)) gm.set(g, []);
+    gm.get(g).push(t);
+  });
+
+  fileMap.forEach((groupMap, filename) => {
+    const fileTests  = [...groupMap.values()].flat();
+    const filePassed = fileTests.filter(t => t.status === 'pass').length;
+    const fileFailed = fileTests.filter(t => t.status === 'fail').length;
+    const fileKey    = 'f:' + filename;
+    const isFileColl = collapsedFiles.has(fileKey);
+
+    const fileEl = document.createElement('div');
+    fileEl.className = 'tree-file';
+
+    const headEl = document.createElement('div');
+    headEl.className = 'tree-file-head' + (isFileColl ? ' collapsed' : '');
+    headEl.innerHTML = `<span><span class="chevron">▼</span><span class="tree-file-name">${esc(filename)}</span></span><span class="tree-file-count">${fileFailed > 0 ? `<span style="color:var(--red)">${fileFailed}✗</span> ` : ''}${filePassed}/${fileTests.length}</span>`;
+    headEl.onclick = () => toggleFile(fileKey, itemsEl, headEl);
+    fileEl.appendChild(headEl);
+
+    const itemsEl = document.createElement('div');
+    itemsEl.className = 'tree-file-items';
+    if (isFileColl) itemsEl.style.display = 'none';
+
+    groupMap.forEach((groupTests, groupName) => {
+      if (groupName) {
+        // Named group — collapsible
+        const gPassed = groupTests.filter(t => t.status === 'pass').length;
+        const gFailed = groupTests.filter(t => t.status === 'fail').length;
+        const gKey    = 'g:' + filename + ':' + groupName;
+        const isGColl = collapsedGroups.has(gKey);
+
+        const gHead = document.createElement('div');
+        gHead.className = 'tree-group-head' + (isGColl ? ' collapsed' : '');
+        gHead.innerHTML = `<span><span class="chevron">▼</span><span class="tree-group-name">${esc(groupName)}</span></span><span class="tree-group-count">${gFailed > 0 ? `<span style="color:var(--red)">${gFailed}✗</span> ` : ''}${gPassed}/${groupTests.length}</span>`;
+
+        const gItems = document.createElement('div');
+        gItems.className = 'tree-tests';
+        if (isGColl) gItems.style.display = 'none';
+        gHead.onclick = () => toggleGroup(gKey, gItems, gHead);
+
+        groupTests.forEach(t => gItems.appendChild(buildTestRow(t)));
+        itemsEl.appendChild(gHead);
+        itemsEl.appendChild(gItems);
+      } else {
+        // No group — flat list
+        const flat = document.createElement('div');
+        flat.className = 'tree-tests';
+        groupTests.forEach(t => flat.appendChild(buildTestRow(t)));
+        itemsEl.appendChild(flat);
+      }
+    });
+
+    fileEl.appendChild(itemsEl);
+    container.appendChild(fileEl);
+  });
+}
+
+function buildTestRow(t) {
+  const row = document.createElement('div');
+  row.id = 'tree-test-' + t.id;
+  row.className = 'tree-test' + (t.status === 'fail' ? ' fail-test' : '') + (t.id === selectedTestId ? ' selected' : '');
+  row.onclick = () => selectTest(t);
+
+  const info = parseTestInfo(t);
+  const icon = t.status === 'pass' ? '<span class="ti-status ti-pass">✓</span>'
+             : t.status === 'fail' ? '<span class="ti-status ti-fail">✗</span>'
+             :                       '<span class="ti-status ti-skip">○</span>';
+  const dur  = t.durationMs ? `<span class="ti-dur">${t.durationMs}ms</span>` : '';
+
+  row.innerHTML = `${icon}<span class="ti-name" title="${esc(t.name)}">${esc(info.displayName)}</span>${dur}`;
+  return row;
+}
+
+function toggleFile(key, itemsEl, headEl) {
+  if (collapsedFiles.has(key)) { collapsedFiles.delete(key); itemsEl.style.display = ''; headEl.classList.remove('collapsed'); }
+  else { collapsedFiles.add(key); itemsEl.style.display = 'none'; headEl.classList.add('collapsed'); }
+}
+
+function toggleGroup(key, itemsEl, headEl) {
+  if (collapsedGroups.has(key)) { collapsedGroups.delete(key); itemsEl.style.display = ''; headEl.classList.remove('collapsed'); }
+  else { collapsedGroups.add(key); itemsEl.style.display = 'none'; headEl.classList.add('collapsed'); }
+}
+
+// ── Select test → update detail pane ─────────────────────────────────────────
+
+function selectTest(t) {
+  // Deselect previous
+  if (selectedTestId) {
+    const prev = document.getElementById('tree-test-' + selectedTestId);
+    if (prev) prev.classList.remove('selected');
+  }
+  selectedTestId = t.id;
+  const cur = document.getElementById('tree-test-' + t.id);
+  if (cur) cur.classList.add('selected');
+
+  document.getElementById('detail-placeholder').style.display = 'none';
+  const content = document.getElementById('detail-content');
+  content.style.display = 'block';
+  content.innerHTML = buildDetailHTML(t);
+}
+
+function clearDetail() {
+  selectedTestId = null;
+  document.getElementById('detail-placeholder').style.display = 'flex';
+  const content = document.getElementById('detail-content');
+  content.style.display = 'none';
+  content.innerHTML = '';
+}
+
+// ── Build detail panel HTML ───────────────────────────────────────────────────
+
+function buildDetailHTML(t) {
+  const info    = parseTestInfo(t);
+  const tag     = (t.tags && t.tags[0]) || 'Scenario';
+  const tagCls  = ['MFT','INV','DIR','Boundary','Scenario'].includes(tag) ? 'tag-' + tag : '';
+  const stCls   = t.status === 'pass' ? 'status-pass' : t.status === 'fail' ? 'status-fail' : 'status-skip';
+  const stLabel = t.status === 'pass' ? 'PASS' : t.status === 'fail' ? 'FAIL' : 'SKIP';
+  const ctMeta  = CONTRACT_META[tag.toLowerCase()] || CONTRACT_META.scenario;
+  const grpCtx  = GROUP_CONTEXT[t.group || ''] || {
+    what: t.group || 'See test file for full context',
+    validates: ctMeta.label + ' — ' + (ctMeta.desc || ''),
+  };
+  const file    = relPath(t.file);
+
+  let html = `
+    <div class="detail-header">
+      <div>
+        <div class="detail-status-row">
+          <span class="detail-status-badge ${stCls}">${stLabel}</span>
+          <span class="detail-dur">${t.durationMs || 0}ms</span>
+        </div>
+        <div class="detail-title" style="margin-top:8px">${esc(t.name)}</div>
+      </div>
+      <span class="detail-tag ${tagCls}">${esc(tag)}</span>
+    </div>`;
+
+  // Contract context + severity
+  const sevColors = { critical: 'var(--red)', high: 'var(--yellow)', medium: 'var(--unit)' };
+  const sevColor  = ctMeta.sev ? (sevColors[ctMeta.sev] || 'var(--text-dim)') : 'var(--text-dim)';
+  html += `
+    <div class="ds">
+      <div class="ds-label">${esc(ctMeta.label)} <span class="tip" style="opacity:.65;font-size:9px" data-tip="${esc(ctMeta.desc)}">ⓘ</span></div>
+      <div class="ds-context-box">
+        <div class="ds-context-what">${esc(grpCtx.what)}</div>
+        <div class="ds-context-val">${esc(grpCtx.validates)}</div>
+        ${ctMeta.sev && t.status === 'fail'
+          ? `<div style="margin-top:8px;font-size:10px;font-weight:700;color:${sevColor}">⚠ ${esc(ctMeta.sevLabel)}</div>`
+          : ctMeta.sev
+          ? `<div style="margin-top:8px;font-size:10px;color:var(--green)">✓ Contract honored</div>`
+          : ''}
+      </div>
+    </div>`;
+
+  // Input section — only show when input is genuinely user-facing text,
+  // not an internal test-name fragment (kind=assertion has no real user input)
+  if (info.inputText && (info.kind === 'scenario' || info.kind === 'oracle')) {
+    html += `
+      <div class="ds">
+        <div class="ds-label">Input</div>
+        <div class="ds-input-box">"${esc(info.inputText)}"</div>
+      </div>`;
+  }
+
+  // Expected / assertion
+  if (info.assertion) {
+    html += `
+      <div class="ds">
+        <div class="ds-label">Expected</div>
+        <div class="ds-assertion">${esc(info.assertion)}</div>
+      </div>`;
+  }
+
+
+  // Output section — Stage 1: diff on fail, echo on pass
+  //                  Stage 2: structured engine state when printOnFailure fired
+  if (t.status === 'fail' && t.failure) {
+    const diff = parseErrorDiff(t.failure.message);
+    if (diff && (diff.expected || diff.actual)) {
+      html += `
+        <div class="ds">
+          <div class="ds-label">Output</div>
+          <div class="ds-diff">
+            <div class="ds-diff-row">
+              <span class="ds-diff-key exp-key">expected</span>
+              <span class="ds-diff-val exp-val">${esc(diff.expected || '—')}</span>
+            </div>
+            <div class="ds-diff-row">
+              <span class="ds-diff-key act-key">actual</span>
+              <span class="ds-diff-val act-val">${esc(diff.actual || '—')}</span>
+            </div>
+          </div>
+        </div>`;
+    }
+    const stack = t.failure.stack || '';
+    if (stack) {
+      html += `
+        <div class="ds">
+          <div class="ds-label">Trace</div>
+          <div class="ds-error-box">${esc(stack)}</div>
+        </div>`;
+    }
+  } else if (info.assertion) {
+    html += `
+      <div class="ds">
+        <div class="ds-label">Output</div>
+        <div class="ds-output-pass">✓&nbsp;&nbsp;${esc(info.assertion)}</div>
+      </div>`;
+  }
+
+  // Engine State — shows for any test that emitted structured output (pass or fail)
+  if (t.testOutput) {
+    html += `
+      <div class="ds">
+        <div class="ds-label">Engine State <span class="tip" style="opacity:.65;font-size:9px" data-tip="Actual values the pattern engine returned for this input. The test passed because every assertion matched these values. On a failure this shows what the engine produced instead of what was expected.">ⓘ</span></div>
+        ${renderStructOutput(t.testOutput)}
+      </div>`;
+  }
+
+  // File
+  if (file) {
+    html += `
+      <div class="ds">
+        <div class="ds-label">File</div>
+        <div class="ds-file">${esc(file)}</div>
+      </div>`;
+  }
+
+  return html;
+}
+
+// ── Generative metrics panel ──────────────────────────────────────────────────
+
+function renderGenMetrics(gm) {
+  const body = document.getElementById('gm-body');
+  body.innerHTML = '';
+  ['mft','inv','dir','boundary','scenario'].forEach(key => {
+    const meta = CONTRACT_META[key];
+    const m    = gm[key];
+    const row  = document.createElement('div');
+    row.className  = 'gm-row' + (key === activeCtTab ? ' ct-active' : '');
+    row.id         = 'gm-row-' + key;
+    row.onclick    = () => setCtTab(key);
+    row.title      = meta.desc ? `${meta.label}: ${meta.desc}${meta.sevLabel ? '\nSeverity: ' + meta.sevLabel : ''}` : meta.label;
+
+    if (!m || m.total === 0) {
+      row.innerHTML = `
+        <div class="gm-label"><strong>${meta.abbr}</strong><span>${meta.label}</span></div>
+        <div class="gm-bar-wrap"><div class="gm-bar gray" style="width:0%"></div></div>
+        <div class="gm-ratio" style="color:var(--gray)">—</div>
+        <div class="gm-viol na">⚠ no tests</div>`;
+    } else {
+      const r = m.passed / m.total;
+      const c = rateCls(r);
+      const v = m.violations;
+      row.innerHTML = `
+        <div class="gm-label"><strong>${meta.abbr}</strong><span>${meta.label}</span></div>
+        <div class="gm-bar-wrap"><div class="gm-bar ${c}" style="width:${(r*100).toFixed(1)}%"></div></div>
+        <div class="gm-ratio">${m.passed}/${m.total}</div>
+        <div class="gm-viol ${v===0?'clean':'dirty'}">${v===0?'✓ clean':v+' violation'+(v>1?'s':'')}</div>`;
+    }
+    body.appendChild(row);
+  });
+}
+
+// ── History chart ─────────────────────────────────────────────────────────────
+
+function renderHistChart() {
+  const ctx      = document.getElementById('hist-chart').getContext('2d');
+  const datasets = [];
+
+  ['ai','unit','integration','e2e'].forEach(layer => {
+    const history = DATA.layers[layer] && DATA.layers[layer].history;
+    if (!history || history.length === 0) return;
+    const arr = Array.isArray(history) ? history : [history];
+    datasets.push({
+      label:           LAYER_META[layer].label,
+      data:            arr.map(h => ({ x: fmtShort(h.timestamp), y: +((( h.passRate||0)*100).toFixed(1)) })),
+      borderColor:     LAYER_META[layer].color,
+      backgroundColor: LAYER_META[layer].color + '18',
+      tension: .3, pointRadius: 3, pointHoverRadius: 5, borderWidth: 2, fill: false,
+    });
+  });
+
+  if (histChart) histChart.destroy();
+
+  if (!datasets.length) {
+    const c = document.getElementById('hist-chart');
+    ctx.fillStyle = '#484f58'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('No history yet', c.offsetWidth/2, 70);
+    return;
+  }
+
+  histChart = new Chart(ctx, {
+    type: 'line', data: { datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { type:'category', ticks:{ color:'#7d8590', font:{size:10}, maxTicksLimit:10 }, grid:{ color:'#21262d' } },
+        y: { min:0, max:100, ticks:{ color:'#7d8590', font:{size:10}, callback:v=>v+'%' }, grid:{ color:'#21262d' } },
+      },
+      plugins: {
+        legend: { labels:{ color:'#e6edf3', font:{size:11}, boxWidth:10, padding:14 } },
+        tooltip: {
+          backgroundColor:'#161b22', borderColor:'#30363d', borderWidth:1,
+          titleColor:'#e6edf3', bodyColor:'#7d8590',
+          callbacks: { label: i => ' '+i.dataset.label+': '+i.raw.y+'%' },
+        },
+      },
+    },
+  });
+}
+
+// ── Error diff parser ────────────────────────────────────────────────────────
+
+function parseErrorDiff(msg) {
+  if (!msg) return null;
+  const exp = msg.match(/Expected:\s*(.+)/);
+  const act = msg.match(/Actual:\s*(.+)/);
+  if (!exp && !act) return null;
+  const clean = s => s ? s.replace(/^<|>$/g, '').trim() : null;
+  return { expected: clean(exp && exp[1]), actual: clean(act && act[1]) };
+}
+
+function renderStructOutput(o) {
+  if (!o) return '';
+  const val = (v) => {
+    if (v === null || v === undefined) return `<span class="so-v null-val">null</span>`;
+    if (v === true)  return `<span class="so-v bool-true">true</span>`;
+    if (v === false) return `<span class="so-v bool-false">false</span>`;
+    if (Array.isArray(v)) return `<span class="so-v">[${esc(v.join(', ')) || 'none'}]</span>`;
+    return `<span class="so-v">${esc(String(v))}</span>`;
+  };
+  const rows = [
+    o.hasTemporalRef !== undefined ? `<div class="so-row"><span class="so-k">hasTemporalRef</span>${val(o.hasTemporalRef)}</div>` : '',
+    o.firedKeys       !== undefined ? `<div class="so-row"><span class="so-k">firedKeys</span>${val(o.firedKeys)}</div>` : '',
+    o.dateOffset      !== undefined ? `<div class="so-row"><span class="so-k">dateOffset</span>${val(o.dateOffset)}</div>` : '',
+    o.mealType        !== undefined ? `<div class="so-row"><span class="so-k">mealType</span>${val(o.mealType)}</div>` : '',
+    o.matchRecent     !== undefined ? `<div class="so-row"><span class="so-k">matchRecent</span>${val(o.matchRecent)}</div>` : '',
+    o.totalConfidence !== undefined ? `<div class="so-row"><span class="so-k">totalConfidence</span>${val(typeof o.totalConfidence === 'number' ? o.totalConfidence.toFixed(3) : o.totalConfidence)}</div>` : '',
+  ].filter(Boolean).join('');
+  return `<div class="ds-struct">${rows}</div>`;
+}
+
+// ── Test name parsing ─────────────────────────────────────────────────────────
+
+function parseTestInfo(t) {
+  const name  = t.name  || '';
+  const group = t.group || '';
+
+  // Strip group prefix (flutter test runner prepends group name)
+  const stripped = (group && name.startsWith(group))
+    ? name.slice(group.length).trim()
+    : name.trim();
+
+  // No group = scenarios_test — name is '"input text"'
+  if (!group) {
+    const m = name.match(/^"(.*)"$/s);
+    const input = m ? m[1] : name;
+    return { kind:'scenario', inputText: input, assertion: null, displayName: input };
+  }
+
+  // Pattern: "input" → expected
+  const qa = stripped.match(/^"([^"]+)"\s*→\s*(.+)$/);
+  if (qa) return { kind:'oracle', inputText: qa[1], assertion: qa[2].trim(), displayName: `"${qa[1]}" → ${qa[2].trim()}` };
+
+  // Pattern: text → expected (no quotes)
+  const pa = stripped.match(/^(.+?)\s*→\s*(.+)$/);
+  if (pa) return { kind:'oracle', inputText: pa[1].trim(), assertion: pa[2].trim(), displayName: stripped };
+
+  // Pattern: text = value
+  const eq = stripped.match(/^(.+?)\s*[=≤≥]\s*(.+)$/);
+  if (eq) return { kind:'assertion', inputText: eq[1].trim(), assertion: stripped, displayName: stripped };
+
+  return { kind:'assertion', inputText: null, assertion: stripped, displayName: stripped };
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function relPath(p) {
+  if (!p) return '';
+  const i = p.indexOf('\\app\\');
+  if (i >= 0) return 'app' + p.slice(i+4).replace(/\\/g,'/');
+  const j = p.indexOf('/app/');
+  if (j >= 0) return p.slice(j+1);
+  return p;
+}
+
+function shortFile(p) {
+  const rel = relPath(p);
+  return rel.split('/').pop() || rel;
+}
+
+function rateCls(r) { return r >= .9 ? 'green' : r >= .75 ? 'yellow' : 'red'; }
+function pct(r) { return (r*100).toFixed(1)+'%'; }
+
+function fmtDT(iso) {
+  if (!iso) return '—';
+  try { return new Date(iso).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+  catch { return iso; }
+}
+
+function fmtShort(iso) {
+  if (!iso) return '?';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString([],{month:'short',day:'numeric'})+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  } catch { return iso.slice(0,10); }
+}
+
+function esc(s) {
+  if (s==null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── JS tooltips ──────────────────────────────────────────────────────────────
+
+(function () {
+  const tip = document.getElementById('js-tip');
+  let raf = null;
+
+  document.addEventListener('mouseover', e => {
+    const el = e.target.closest('[data-tip]');
+    if (!el) return;
+    tip.textContent = el.getAttribute('data-tip');
+    tip.style.display = 'block';
+    position(e);
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (tip.style.display === 'none') return;
+    if (!e.target.closest('[data-tip]')) return;
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => position(e));
+  });
+
+  document.addEventListener('mouseout', e => {
+    if (!e.target.closest('[data-tip]')) return;
+    tip.style.display = 'none';
+  });
+
+  function position(e) {
+    const margin = 14;
+    const w = tip.offsetWidth;
+    const h = tip.offsetHeight;
+    let x = e.clientX + margin;
+    let y = e.clientY - h / 2;
+    if (x + w > window.innerWidth - 8) x = e.clientX - w - margin;
+    if (y < 8) y = 8;
+    if (y + h > window.innerHeight - 8) y = window.innerHeight - h - 8;
+    tip.style.left = x + 'px';
+    tip.style.top  = y + 'px';
+  }
+})();
+
+// ── Guide panel ───────────────────────────────────────────────────────────────
+
+function openGuide() {
+  document.getElementById('guide-overlay').style.display = 'block';
+  document.getElementById('guide-panel').classList.add('open');
+}
+function closeGuide() {
+  document.getElementById('guide-overlay').style.display = 'none';
+  document.getElementById('guide-panel').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeGuide(); });
+
+init();
+</script>
+</body>
+</html>

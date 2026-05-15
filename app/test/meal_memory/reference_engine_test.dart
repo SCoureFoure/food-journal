@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:food_journal/services/meal_memory/meal_reference_rules.dart';
@@ -142,41 +144,54 @@ void main() {
       return buildQuerySpec(p, now: kToday);
     }
 
-    // named_day overrides leftovers (core invariant)
+    // ignore: avoid_print
+    void out(String input, MealQuerySpec r) => print(
+          jsonEncode(<String, Object?>{
+            'type': 'test_output',
+            'input': input,
+            'dateOffset': r.dateOffset,
+            'mealType': r.mealType,
+            'matchRecent': r.matchRecent,
+          }),
+        );
+
     test('leftovers + named_day → named_day wins', () {
-      expect(spec('leftovers from last friday').dateOffset, equals(6));
+      final r = spec('leftovers from last friday');
+      out('leftovers from last friday', r);
+      expect(r.dateOffset, equals(6));
     });
 
-    // days_ago overrides this_morning
     test('days_ago + this_morning → days_ago wins (offset 3)', () {
-      expect(spec('earlier this week').dateOffset, equals(3));
+      final r = spec('earlier this week');
+      out('earlier this week', r);
+      expect(r.dateOffset, equals(3));
     });
 
-    // two_days_ago overrides yesterday
     test('two_days_ago + yesterday → two_days_ago wins (offset 2)', () {
-      // "the dinner from the day before yesterday" fires both two_days_ago and yesterday
-      expect(spec('the dinner from the day before yesterday').dateOffset, equals(2));
+      final r = spec('the dinner from the day before yesterday');
+      out('the dinner from the day before yesterday', r);
+      expect(r.dateOffset, equals(2));
     });
 
-    // named_day + meal type → both returned
     test('named_day + meal_type → dateOffset and mealType both set', () {
-      final s = spec('the tuesday lunch');
-      expect(s.dateOffset, equals(2));
-      expect(s.mealType, equals('lunch'));
+      final r = spec('the tuesday lunch');
+      out('the tuesday lunch', r);
+      expect(r.dateOffset, equals(2));
+      expect(r.mealType, equals('lunch'));
     });
 
-    // named_day only (no weekday found) → matchRecent
     test('named_day rule fires but no weekday string → matchRecent', () {
-      final s = spec('the other day we had soup');
-      expect(s.dateOffset, isNull);
-      expect(s.matchRecent, isTrue);
+      final r = spec('the other day we had soup');
+      out('the other day we had soup', r);
+      expect(r.dateOffset, isNull);
+      expect(r.matchRecent, isTrue);
     });
 
-    // same_as_before with no temporal → matchRecent, no dateOffset
     test('same_as_before with no temporal → matchRecent true, dateOffset null', () {
-      final s = spec('the usual breakfast');
-      expect(s.dateOffset, isNull);
-      expect(s.matchRecent, isTrue);
+      final r = spec('the usual breakfast');
+      out('the usual breakfast', r);
+      expect(r.dateOffset, isNull);
+      expect(r.matchRecent, isTrue);
     });
   });
 

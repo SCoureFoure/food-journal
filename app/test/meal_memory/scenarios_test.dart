@@ -5,6 +5,8 @@
 //
 // Fixed "today" = Thursday May 14, 2026 for deterministic named-day offsets.
 
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:food_journal/services/meal_memory/meal_reference_rules.dart';
 import 'package:food_journal/services/meal_memory/reference_engine.dart';
@@ -309,6 +311,18 @@ void main() {
         mealTypeKeys: mealTypeKeys,
       );
       final spec = buildQuerySpec(profile, now: kToday);
+
+      // ignore: avoid_print
+      print(jsonEncode(<String, Object?>{
+        'type': 'test_output',
+        'input': s.input.isEmpty ? '<empty>' : s.input,
+        'hasTemporalRef': profile.hasTemporalRef,
+        'firedKeys': List<String>.from(profile.firedKeys),
+        'totalConfidence': profile.totalConfidence,
+        'dateOffset': spec.dateOffset,
+        'mealType': spec.mealType,
+        'matchRecent': spec.matchRecent,
+      }));
 
       expect(
         profile.hasTemporalRef,
