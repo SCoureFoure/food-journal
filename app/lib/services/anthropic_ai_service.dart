@@ -13,6 +13,8 @@ class AnthropicAiService implements AiService {
   static const _mealSystemPrompt = '''
 You are a meal-logging assistant. Parse the user's meal description (text and/or photo) and return ONLY valid JSON with no markdown, no explanation.
 
+If the input begins with a "Recent meals:" section, use it only as context to resolve temporal references (e.g. "leftovers from last night", "same as yesterday", "the usual"). Extract food items from the current meal description that follows — not from the history block. Do not repeat or list historical entries as new food items.
+
 Return this exact structure:
 {
   "title": "string",

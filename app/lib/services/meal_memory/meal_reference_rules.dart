@@ -14,6 +14,7 @@ final _temporalRules = <ReferenceRule>[
     label: 'Two days ago reference',
     patterns: [
       RegExp(r'\bday before (?:last|yesterday)\b', caseSensitive: false),
+      RegExp(r'\bnight before last\b', caseSensitive: false),
     ],
   ),
   ReferenceRule(
@@ -58,6 +59,7 @@ final _temporalRules = <ReferenceRule>[
       RegExp(r'\bwhat i (?:always|usually|normally) (?:have|eat|get)\b', caseSensitive: false),
       RegExp(r'\bthe (?:thing|one) i (?:had|ate|got)\b', caseSensitive: false),
       RegExp(r'\blike (?:what |what I |I )?had\b', caseSensitive: false),
+      RegExp(r'\bwhat i (?:had|ate)\b', caseSensitive: false),
     ],
   ),
   ReferenceRule(
@@ -65,8 +67,9 @@ final _temporalRules = <ReferenceRule>[
     label: 'N days ago',
     patterns: [
       RegExp(r'\b(?:a )?(?:few|couple(?:\s+of)?) (?:days|nights) ago\b', caseSensitive: false),
+      RegExp(r'\b(?:a )?(?:few|couple(?:\s+of)?) days back\b', caseSensitive: false),
       RegExp(r'\b(?:two|three|four|five|2|3|4|5) (?:days|nights) ago\b', caseSensitive: false),
-      RegExp(r'\bearlier this week\b', caseSensitive: false),
+      RegExp(r'\bearlier (?:this|in the) week\b', caseSensitive: false),
       RegExp(r'\ba while (?:back|ago)\b', caseSensitive: false),
       RegExp(r'\blast week\b', caseSensitive: false),
     ],

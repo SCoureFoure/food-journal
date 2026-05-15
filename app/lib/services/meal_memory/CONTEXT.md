@@ -33,13 +33,14 @@ Zero extra API round-trips. All DB work happens client-side before the network c
 
 ## Known edge cases
 
-- `isReferential()` is gated by `_aiEnabled` in log_meal_screen. Debate: should it run even when AI is off to surface quick-copy UI? Currently: no quick-copy UI exists. Open item.
+- `isReferential()` AI-off path: the quick-copy ("Did you mean?") UI IS built. `_onDescChanged` in `log_meal_screen.dart` runs when `_aiEnabled=false`, calls `findReferentialMeals()` which calls `isReferential()` internally. The CONTEXT.md "open item" is closed as of commit 60754d4.
 - `recordFingerprint()` is called `unawaited` after `saveMeal()`. Fingerprints may lag behind by one meal if app closes immediately after save.
 - `\bearlier\b` in `this_morning` rules also fires on "earlier this week" — handled by priority.
 - `named_day` walks back up to 14 days max. Input referencing 3+ weeks ago will fall back to `matchRecent`.
 - "day before yesterday" fires both `two_days_ago` and `yesterday` — `two_days_ago` wins (offset=2) because it is checked first in buildQuerySpec.
 - `last week` in `days_ago` maps to offset=3 (approximation). Named day override still applies if a weekday is also present.
-- Worker `parse_meal` prompt does not instruct Gemini on how to use the "Recent meals:" context block — see `worker/src/CONTEXT.md` for risk details and the recommended fix.
+- Worker `parse_meal` prompt: "Recent meals:" context instruction added in v1.2.0 (audit 2026-05-14 session 1).
+- `AnthropicAiService` and `GeminiAiService` system prompts: same instruction added (audit 2026-05-14 session 2). All three AI paths are now consistent.
 
 ## What to watch when testing
 

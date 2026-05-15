@@ -236,6 +236,54 @@ const _scenarios = [
     expectDateOffset: 1,
   ),
 
+  // ── Two days ago — night before last ──
+  _Scenario(
+    'the night before last I had tacos',
+    expectReferential: true,
+    expectDateOffset: 2,
+  ),
+
+  // ── Days ago — "back" variant ──
+  _Scenario(
+    'had that a couple days back',
+    expectReferential: true,
+    expectDateOffset: 3,
+  ),
+
+  // ── Days ago — "earlier in the week" ──
+  _Scenario(
+    'had pasta earlier in the week',
+    expectReferential: true,
+    expectDateOffset: 3,
+  ),
+
+  // ── Same as before — "what I ate" variant ──
+  _Scenario(
+    'what I ate on monday',
+    expectReferential: true,
+    expectDateOffset: 3,
+    expectMealType: null,
+  ),
+  _Scenario(
+    'what I ate for lunch yesterday',
+    expectReferential: true,
+    expectDateOffset: 1,
+    expectMealType: 'lunch',
+  ),
+
+  // ── Same as before — "what I had" without "like" prefix ──
+  _Scenario(
+    'what I had for dinner',
+    expectReferential: true,
+    expectMealType: 'dinner',
+    expectMatchRecent: true,
+  ),
+
+  // ── False-positive guard: "just" alone is not referential ──
+  _Scenario('I just made a salad', expectReferential: false),
+  // "had" alone is not referential (no temporal or same-as anchor)
+  _Scenario('I had a burger and fries', expectReferential: false),
+
   // ── Should NOT be referential ──
   _Scenario('I had a chicken sandwich', expectReferential: false),
   _Scenario('eggs with toast', expectReferential: false),

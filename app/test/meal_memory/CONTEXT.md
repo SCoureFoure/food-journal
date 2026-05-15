@@ -10,10 +10,10 @@ no DB, no API calls — pure logic tests runnable in milliseconds.
 
 ## Files
 
-| File | What it tests |
-|------|---------------|
-| `reference_engine_test.dart` | Low-level: rule firing, confidence scoring, named-day resolution |
-| `scenarios_test.dart` | High-level: input string → expected dateOffset + mealType + matchRecent |
+| File                          | What it tests                                                            |
+|-------------------------------|--------------------------------------------------------------------------|
+| `reference_engine_test.dart`  | Low-level: rule firing, confidence scoring, named-day resolution         |
+| `scenarios_test.dart`         | High-level: input string -> expected dateOffset + mealType + matchRecent |
 
 ## How to add a scenario
 
@@ -33,6 +33,7 @@ Run: `flutter test test/meal_memory/ --reporter expanded`
 
 The fixed "today" is `DateTime(2026, 5, 14)` = Thursday.
 Named-day offsets are relative to that date:
+
 - Monday May 11 → 3 days ago
 - Tuesday May 12 → 2 days ago
 - Wednesday May 13 → 1 day ago
@@ -44,10 +45,18 @@ Named-day offsets are relative to that date:
 ## Known gaps (open items for ai-scout)
 
 - No test for rolling window pruning in `recordFingerprint()` — requires real DB; needs integration test setup
-- No test for AI-off path (context not injected when _aiEnabled=false) — requires widget test / mock AiService
 - No test for Worker prompt behavior when "Recent meals:" block is injected — requires network mock
+- AI-off path widget test: `_aiEnabled=false` with referential input should show `_buildDidYouMeanBanner`. Requires widget test / mock AiService. Low priority since logic is covered by unit path through `findReferentialMeals`.
 
-## Closed gaps (2026-05-14)
+## Closed gaps (2026-05-14 session 2)
+
+- Quick-copy fallback UI: BUILT. `log_meal_screen._onDescChanged` fires when AI is off, calls `findReferentialMeals`, shows "Did you mean?" banner. The open item from session 1 is resolved.
+- `AnthropicAiService` and `GeminiAiService` missing "Recent meals:" instruction: FIXED. All three AI implementations now tell the model not to list historical meals as new food items.
+- New patterns: `night before last` (two_days_ago), `couple days back` (days_ago), `earlier in the week` (days_ago), `what I (had|ate)` (same_as_before).
+- New scenarios: 8 rows added (night before last, couple days back, earlier in the week, what I ate, what I had, false-positive guards for "just" and plain "had").
+- Total tests: 98 (was 90).
+
+## Closed gaps (2026-05-14 session 1)
 
 - `buildContextSnippet()` output format: smoke test added to `reference_engine_test.dart`
 - Slang coverage: "same old", "repeat", "the thing I had", "like what I had" — rules added, scenarios added
