@@ -42,6 +42,7 @@ Guidelines:
     String? text,
     Uint8List? imageBytes,
     String? mealType,
+    String? mealContext,
   }) async {
     final apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
     if (apiKey.isEmpty) {
@@ -54,6 +55,7 @@ Guidelines:
     final parts = <Part>[];
     if (imageBytes != null) parts.add(DataPart('image/jpeg', imageBytes));
     final textParts = <String>[
+      if (mealContext != null) mealContext,
       if (mealType != null) 'Meal type: $mealType',
       if (text != null && text.isNotEmpty) text,
     ];

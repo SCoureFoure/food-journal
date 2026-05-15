@@ -71,9 +71,20 @@ class Medications extends Table {
   DateTimeColumn get createdAt => dateTime()();
 }
 
+class MealFingerprints extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get mealId => integer().references(Meals, #id, onDelete: KeyAction.cascade)();
+  TextColumn get date => text()(); // ISO 8601 "2026-05-14"
+  TextColumn get mealType => text().nullable()();
+  TextColumn get foodsSummary => text()();
+  IntColumn get totalCals => integer().nullable()();
+  RealColumn get totalProtein => real().nullable()();
+  IntColumn get createdAt => integer()(); // Unix ms
+}
+
 // ─── Database ─────────────────────────────────────────────────────────────────
 
-@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories, Medications])
+@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories, Medications, MealFingerprints])
 class AppDatabase extends _$AppDatabase {
   static final AppDatabase _instance = AppDatabase._internal();
 
@@ -82,7 +93,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -123,6 +134,26 @@ class AppDatabase extends _$AppDatabase {
             created_at INTEGER NOT NULL
           )
         ''');
+      }
+      if (from < 4) {
+        await customStatement('''
+          CREATE TABLE IF NOT EXISTS meal_fingerprints (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            meal_id INTEGER NOT NULL REFERENCES meals(id) ON DELETE CASCADE,
+            date TEXT NOT NULL,
+            meal_type TEXT,
+            foods_summary TEXT NOT NULL,
+            total_cals INTEGER,
+            total_protein REAL,
+            created_at INTEGER NOT NULL
+          )
+        ''');
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_fingerprints_date ON meal_fingerprints(date DESC)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_fingerprints_type ON meal_fingerprints(meal_type, date DESC)',
+        );
       }
     },
   );

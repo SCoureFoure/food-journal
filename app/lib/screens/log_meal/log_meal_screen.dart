@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import '../../models/food_item.dart';
 import '../../models/ingredient.dart';
 import '../../models/meal_entry.dart';
 import '../../services/ai_service.dart';
+import '../../services/meal_memory/meal_memory_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/settings_service.dart';
 import '../../services/storage_service.dart';
@@ -31,6 +33,7 @@ class _LogMealScreenState extends State<LogMealScreen> {
   final _descCtrl = TextEditingController();
   final _aiService = AiService.fromEnv();
   final _storage = StorageService();
+  final _memory = MealMemoryService();
   final _notifications = NotificationService();
   final _settings = SettingsService();
 
@@ -39,6 +42,10 @@ class _LogMealScreenState extends State<LogMealScreen> {
   bool _isSaving = false;
   bool _isLoading = false;
   String? _errorMessage;
+
+  List<MealSuggestion> _suggestions = [];
+  bool _suggestionDismissed = false;
+  Timer? _debounce;
 
   String _mealType = DateTimeUtils.inferMealType();
   DateTime _mealDate = DateTimeUtils.today();
@@ -56,6 +63,40 @@ class _LogMealScreenState extends State<LogMealScreen> {
     super.initState();
     _loadSettings();
     if (_isEditing) _loadExisting();
+    _descCtrl.addListener(_onDescChanged);
+  }
+
+  void _onDescChanged() {
+    if (_aiEnabled) return;
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () async {
+      final text = _descCtrl.text.trim();
+      if (text.isEmpty) {
+        if (mounted) setState(() { _suggestions = []; _suggestionDismissed = false; });
+        return;
+      }
+      final results = await _memory.findReferentialMeals(text);
+      if (mounted) setState(() { _suggestions = results; _suggestionDismissed = false; });
+    });
+  }
+
+  Future<void> _applyMealSuggestion(MealSuggestion suggestion) async {
+    final withIngredients = await _storage.getFoodItemsWithIngredients(suggestion.mealId);
+    if (!mounted) return;
+    final formData = await Future.wait(
+      withIngredients.map((r) async => FoodItemFormData.fromExisting(r.item, r.ingredients)),
+    );
+    if (!mounted) return;
+    for (final f in _foodItems) {
+      f.dispose();
+    }
+    setState(() {
+      _suggestions = [];
+      _suggestionDismissed = true;
+      _foodItems
+        ..clear()
+        ..addAll(formData);
+    });
   }
 
   Future<void> _loadSettings() async {
@@ -92,12 +133,66 @@ class _LogMealScreenState extends State<LogMealScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
+    _descCtrl.removeListener(_onDescChanged);
     _titleCtrl.dispose();
     _descCtrl.dispose();
     for (final f in _foodItems) {
       f.dispose();
     }
     super.dispose();
+  }
+
+  Widget _buildDidYouMeanBanner(ThemeData theme) {
+    final s = _suggestions.first;
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      color: theme.colorScheme.secondaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Did you mean?',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSecondaryContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    s.displayLine,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSecondaryContainer,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  FilledButton.tonal(
+                    onPressed: () => _applyMealSuggestion(s),
+                    style: FilledButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    ),
+                    child: const Text('Use this meal'),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, size: 16),
+              onPressed: () => setState(() => _suggestionDismissed = true),
+              visualDensity: VisualDensity.compact,
+              tooltip: 'Dismiss',
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _autofill() async {
@@ -112,10 +207,16 @@ class _LogMealScreenState extends State<LogMealScreen> {
       _errorMessage = null;
     });
 
+    String? mealContext;
+    if (_aiEnabled && text.isNotEmpty && _memory.isReferential(text)) {
+      mealContext = await _memory.buildContextSnippet(text);
+    }
+
     final result = await _aiService.parseMeal(
       text: text.isEmpty ? null : text,
       imageBytes: image,
       mealType: _mealType,
+      mealContext: mealContext,
     );
 
     if (!mounted) return;
@@ -291,6 +392,8 @@ class _LogMealScreenState extends State<LogMealScreen> {
                     hintText: 'Describe your meal…',
                   ),
                   const SizedBox(height: 20),
+                  if (!_aiEnabled && _suggestions.isNotEmpty && !_suggestionDismissed)
+                    _buildDidYouMeanBanner(theme),
                   Row(
                     children: [
                       Text('Food items', style: theme.textTheme.titleSmall),

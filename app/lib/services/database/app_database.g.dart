@@ -3012,6 +3012,520 @@ class MedicationsCompanion extends UpdateCompanion<Medication> {
   }
 }
 
+class $MealFingerprintsTable extends MealFingerprints
+    with TableInfo<$MealFingerprintsTable, MealFingerprint> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MealFingerprintsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _mealIdMeta = const VerificationMeta('mealId');
+  @override
+  late final GeneratedColumn<int> mealId = GeneratedColumn<int>(
+    'meal_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES meals (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<String> date = GeneratedColumn<String>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mealTypeMeta = const VerificationMeta(
+    'mealType',
+  );
+  @override
+  late final GeneratedColumn<String> mealType = GeneratedColumn<String>(
+    'meal_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _foodsSummaryMeta = const VerificationMeta(
+    'foodsSummary',
+  );
+  @override
+  late final GeneratedColumn<String> foodsSummary = GeneratedColumn<String>(
+    'foods_summary',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _totalCalsMeta = const VerificationMeta(
+    'totalCals',
+  );
+  @override
+  late final GeneratedColumn<int> totalCals = GeneratedColumn<int>(
+    'total_cals',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _totalProteinMeta = const VerificationMeta(
+    'totalProtein',
+  );
+  @override
+  late final GeneratedColumn<double> totalProtein = GeneratedColumn<double>(
+    'total_protein',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    mealId,
+    date,
+    mealType,
+    foodsSummary,
+    totalCals,
+    totalProtein,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'meal_fingerprints';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MealFingerprint> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('meal_id')) {
+      context.handle(
+        _mealIdMeta,
+        mealId.isAcceptableOrUnknown(data['meal_id']!, _mealIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mealIdMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('meal_type')) {
+      context.handle(
+        _mealTypeMeta,
+        mealType.isAcceptableOrUnknown(data['meal_type']!, _mealTypeMeta),
+      );
+    }
+    if (data.containsKey('foods_summary')) {
+      context.handle(
+        _foodsSummaryMeta,
+        foodsSummary.isAcceptableOrUnknown(
+          data['foods_summary']!,
+          _foodsSummaryMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_foodsSummaryMeta);
+    }
+    if (data.containsKey('total_cals')) {
+      context.handle(
+        _totalCalsMeta,
+        totalCals.isAcceptableOrUnknown(data['total_cals']!, _totalCalsMeta),
+      );
+    }
+    if (data.containsKey('total_protein')) {
+      context.handle(
+        _totalProteinMeta,
+        totalProtein.isAcceptableOrUnknown(
+          data['total_protein']!,
+          _totalProteinMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MealFingerprint map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MealFingerprint(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      mealId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}meal_id'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}date'],
+      )!,
+      mealType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}meal_type'],
+      ),
+      foodsSummary: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}foods_summary'],
+      )!,
+      totalCals: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_cals'],
+      ),
+      totalProtein: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}total_protein'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $MealFingerprintsTable createAlias(String alias) {
+    return $MealFingerprintsTable(attachedDatabase, alias);
+  }
+}
+
+class MealFingerprint extends DataClass implements Insertable<MealFingerprint> {
+  final int id;
+  final int mealId;
+  final String date;
+  final String? mealType;
+  final String foodsSummary;
+  final int? totalCals;
+  final double? totalProtein;
+  final int createdAt;
+  const MealFingerprint({
+    required this.id,
+    required this.mealId,
+    required this.date,
+    this.mealType,
+    required this.foodsSummary,
+    this.totalCals,
+    this.totalProtein,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['meal_id'] = Variable<int>(mealId);
+    map['date'] = Variable<String>(date);
+    if (!nullToAbsent || mealType != null) {
+      map['meal_type'] = Variable<String>(mealType);
+    }
+    map['foods_summary'] = Variable<String>(foodsSummary);
+    if (!nullToAbsent || totalCals != null) {
+      map['total_cals'] = Variable<int>(totalCals);
+    }
+    if (!nullToAbsent || totalProtein != null) {
+      map['total_protein'] = Variable<double>(totalProtein);
+    }
+    map['created_at'] = Variable<int>(createdAt);
+    return map;
+  }
+
+  MealFingerprintsCompanion toCompanion(bool nullToAbsent) {
+    return MealFingerprintsCompanion(
+      id: Value(id),
+      mealId: Value(mealId),
+      date: Value(date),
+      mealType: mealType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mealType),
+      foodsSummary: Value(foodsSummary),
+      totalCals: totalCals == null && nullToAbsent
+          ? const Value.absent()
+          : Value(totalCals),
+      totalProtein: totalProtein == null && nullToAbsent
+          ? const Value.absent()
+          : Value(totalProtein),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory MealFingerprint.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MealFingerprint(
+      id: serializer.fromJson<int>(json['id']),
+      mealId: serializer.fromJson<int>(json['mealId']),
+      date: serializer.fromJson<String>(json['date']),
+      mealType: serializer.fromJson<String?>(json['mealType']),
+      foodsSummary: serializer.fromJson<String>(json['foodsSummary']),
+      totalCals: serializer.fromJson<int?>(json['totalCals']),
+      totalProtein: serializer.fromJson<double?>(json['totalProtein']),
+      createdAt: serializer.fromJson<int>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'mealId': serializer.toJson<int>(mealId),
+      'date': serializer.toJson<String>(date),
+      'mealType': serializer.toJson<String?>(mealType),
+      'foodsSummary': serializer.toJson<String>(foodsSummary),
+      'totalCals': serializer.toJson<int?>(totalCals),
+      'totalProtein': serializer.toJson<double?>(totalProtein),
+      'createdAt': serializer.toJson<int>(createdAt),
+    };
+  }
+
+  MealFingerprint copyWith({
+    int? id,
+    int? mealId,
+    String? date,
+    Value<String?> mealType = const Value.absent(),
+    String? foodsSummary,
+    Value<int?> totalCals = const Value.absent(),
+    Value<double?> totalProtein = const Value.absent(),
+    int? createdAt,
+  }) => MealFingerprint(
+    id: id ?? this.id,
+    mealId: mealId ?? this.mealId,
+    date: date ?? this.date,
+    mealType: mealType.present ? mealType.value : this.mealType,
+    foodsSummary: foodsSummary ?? this.foodsSummary,
+    totalCals: totalCals.present ? totalCals.value : this.totalCals,
+    totalProtein: totalProtein.present ? totalProtein.value : this.totalProtein,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  MealFingerprint copyWithCompanion(MealFingerprintsCompanion data) {
+    return MealFingerprint(
+      id: data.id.present ? data.id.value : this.id,
+      mealId: data.mealId.present ? data.mealId.value : this.mealId,
+      date: data.date.present ? data.date.value : this.date,
+      mealType: data.mealType.present ? data.mealType.value : this.mealType,
+      foodsSummary: data.foodsSummary.present
+          ? data.foodsSummary.value
+          : this.foodsSummary,
+      totalCals: data.totalCals.present ? data.totalCals.value : this.totalCals,
+      totalProtein: data.totalProtein.present
+          ? data.totalProtein.value
+          : this.totalProtein,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MealFingerprint(')
+          ..write('id: $id, ')
+          ..write('mealId: $mealId, ')
+          ..write('date: $date, ')
+          ..write('mealType: $mealType, ')
+          ..write('foodsSummary: $foodsSummary, ')
+          ..write('totalCals: $totalCals, ')
+          ..write('totalProtein: $totalProtein, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    mealId,
+    date,
+    mealType,
+    foodsSummary,
+    totalCals,
+    totalProtein,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MealFingerprint &&
+          other.id == this.id &&
+          other.mealId == this.mealId &&
+          other.date == this.date &&
+          other.mealType == this.mealType &&
+          other.foodsSummary == this.foodsSummary &&
+          other.totalCals == this.totalCals &&
+          other.totalProtein == this.totalProtein &&
+          other.createdAt == this.createdAt);
+}
+
+class MealFingerprintsCompanion extends UpdateCompanion<MealFingerprint> {
+  final Value<int> id;
+  final Value<int> mealId;
+  final Value<String> date;
+  final Value<String?> mealType;
+  final Value<String> foodsSummary;
+  final Value<int?> totalCals;
+  final Value<double?> totalProtein;
+  final Value<int> createdAt;
+  const MealFingerprintsCompanion({
+    this.id = const Value.absent(),
+    this.mealId = const Value.absent(),
+    this.date = const Value.absent(),
+    this.mealType = const Value.absent(),
+    this.foodsSummary = const Value.absent(),
+    this.totalCals = const Value.absent(),
+    this.totalProtein = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  MealFingerprintsCompanion.insert({
+    this.id = const Value.absent(),
+    required int mealId,
+    required String date,
+    this.mealType = const Value.absent(),
+    required String foodsSummary,
+    this.totalCals = const Value.absent(),
+    this.totalProtein = const Value.absent(),
+    required int createdAt,
+  }) : mealId = Value(mealId),
+       date = Value(date),
+       foodsSummary = Value(foodsSummary),
+       createdAt = Value(createdAt);
+  static Insertable<MealFingerprint> custom({
+    Expression<int>? id,
+    Expression<int>? mealId,
+    Expression<String>? date,
+    Expression<String>? mealType,
+    Expression<String>? foodsSummary,
+    Expression<int>? totalCals,
+    Expression<double>? totalProtein,
+    Expression<int>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (mealId != null) 'meal_id': mealId,
+      if (date != null) 'date': date,
+      if (mealType != null) 'meal_type': mealType,
+      if (foodsSummary != null) 'foods_summary': foodsSummary,
+      if (totalCals != null) 'total_cals': totalCals,
+      if (totalProtein != null) 'total_protein': totalProtein,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  MealFingerprintsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? mealId,
+    Value<String>? date,
+    Value<String?>? mealType,
+    Value<String>? foodsSummary,
+    Value<int?>? totalCals,
+    Value<double?>? totalProtein,
+    Value<int>? createdAt,
+  }) {
+    return MealFingerprintsCompanion(
+      id: id ?? this.id,
+      mealId: mealId ?? this.mealId,
+      date: date ?? this.date,
+      mealType: mealType ?? this.mealType,
+      foodsSummary: foodsSummary ?? this.foodsSummary,
+      totalCals: totalCals ?? this.totalCals,
+      totalProtein: totalProtein ?? this.totalProtein,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (mealId.present) {
+      map['meal_id'] = Variable<int>(mealId.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<String>(date.value);
+    }
+    if (mealType.present) {
+      map['meal_type'] = Variable<String>(mealType.value);
+    }
+    if (foodsSummary.present) {
+      map['foods_summary'] = Variable<String>(foodsSummary.value);
+    }
+    if (totalCals.present) {
+      map['total_cals'] = Variable<int>(totalCals.value);
+    }
+    if (totalProtein.present) {
+      map['total_protein'] = Variable<double>(totalProtein.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MealFingerprintsCompanion(')
+          ..write('id: $id, ')
+          ..write('mealId: $mealId, ')
+          ..write('date: $date, ')
+          ..write('mealType: $mealType, ')
+          ..write('foodsSummary: $foodsSummary, ')
+          ..write('totalCals: $totalCals, ')
+          ..write('totalProtein: $totalProtein, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3021,6 +3535,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ReactionLogsTable reactionLogs = $ReactionLogsTable(this);
   late final $FoodMemoriesTable foodMemories = $FoodMemoriesTable(this);
   late final $MedicationsTable medications = $MedicationsTable(this);
+  late final $MealFingerprintsTable mealFingerprints = $MealFingerprintsTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3032,7 +3549,18 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     reactionLogs,
     foodMemories,
     medications,
+    mealFingerprints,
   ];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'meals',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('meal_fingerprints', kind: UpdateKind.delete)],
+    ),
+  ]);
 }
 
 typedef $$MealsTableCreateCompanionBuilder =
@@ -3075,6 +3603,26 @@ final class $$MealsTableReferences
     ).filter((f) => f.mealId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_foodItemsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$MealFingerprintsTable, List<MealFingerprint>>
+  _mealFingerprintsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.mealFingerprints,
+    aliasName: $_aliasNameGenerator(db.meals.id, db.mealFingerprints.mealId),
+  );
+
+  $$MealFingerprintsTableProcessedTableManager get mealFingerprintsRefs {
+    final manager = $$MealFingerprintsTableTableManager(
+      $_db,
+      $_db.mealFingerprints,
+    ).filter((f) => f.mealId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _mealFingerprintsRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -3145,6 +3693,31 @@ class $$MealsTableFilterComposer extends Composer<_$AppDatabase, $MealsTable> {
           }) => $$FoodItemsTableFilterComposer(
             $db: $db,
             $table: $db.foodItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> mealFingerprintsRefs(
+    Expression<bool> Function($$MealFingerprintsTableFilterComposer f) f,
+  ) {
+    final $$MealFingerprintsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.mealFingerprints,
+      getReferencedColumn: (t) => t.mealId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MealFingerprintsTableFilterComposer(
+            $db: $db,
+            $table: $db.mealFingerprints,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3264,6 +3837,31 @@ class $$MealsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> mealFingerprintsRefs<T extends Object>(
+    Expression<T> Function($$MealFingerprintsTableAnnotationComposer a) f,
+  ) {
+    final $$MealFingerprintsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.mealFingerprints,
+      getReferencedColumn: (t) => t.mealId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MealFingerprintsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.mealFingerprints,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$MealsTableTableManager
@@ -3279,7 +3877,10 @@ class $$MealsTableTableManager
           $$MealsTableUpdateCompanionBuilder,
           (Meal, $$MealsTableReferences),
           Meal,
-          PrefetchHooks Function({bool foodItemsRefs})
+          PrefetchHooks Function({
+            bool foodItemsRefs,
+            bool mealFingerprintsRefs,
+          })
         > {
   $$MealsTableTableManager(_$AppDatabase db, $MealsTable table)
     : super(
@@ -3338,28 +3939,59 @@ class $$MealsTableTableManager
                     (e.readTable(table), $$MealsTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({foodItemsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (foodItemsRefs) db.foodItems],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (foodItemsRefs)
-                    await $_getPrefetchedData<Meal, $MealsTable, FoodItem>(
-                      currentTable: table,
-                      referencedTable: $$MealsTableReferences
-                          ._foodItemsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$MealsTableReferences(db, table, p0).foodItemsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.mealId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({foodItemsRefs = false, mealFingerprintsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (foodItemsRefs) db.foodItems,
+                    if (mealFingerprintsRefs) db.mealFingerprints,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (foodItemsRefs)
+                        await $_getPrefetchedData<Meal, $MealsTable, FoodItem>(
+                          currentTable: table,
+                          referencedTable: $$MealsTableReferences
+                              ._foodItemsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$MealsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).foodItemsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.mealId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (mealFingerprintsRefs)
+                        await $_getPrefetchedData<
+                          Meal,
+                          $MealsTable,
+                          MealFingerprint
+                        >(
+                          currentTable: table,
+                          referencedTable: $$MealsTableReferences
+                              ._mealFingerprintsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$MealsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).mealFingerprintsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.mealId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -3376,7 +4008,7 @@ typedef $$MealsTableProcessedTableManager =
       $$MealsTableUpdateCompanionBuilder,
       (Meal, $$MealsTableReferences),
       Meal,
-      PrefetchHooks Function({bool foodItemsRefs})
+      PrefetchHooks Function({bool foodItemsRefs, bool mealFingerprintsRefs})
     >;
 typedef $$FoodItemsTableCreateCompanionBuilder =
     FoodItemsCompanion Function({
@@ -4966,6 +5598,388 @@ typedef $$MedicationsTableProcessedTableManager =
       Medication,
       PrefetchHooks Function()
     >;
+typedef $$MealFingerprintsTableCreateCompanionBuilder =
+    MealFingerprintsCompanion Function({
+      Value<int> id,
+      required int mealId,
+      required String date,
+      Value<String?> mealType,
+      required String foodsSummary,
+      Value<int?> totalCals,
+      Value<double?> totalProtein,
+      required int createdAt,
+    });
+typedef $$MealFingerprintsTableUpdateCompanionBuilder =
+    MealFingerprintsCompanion Function({
+      Value<int> id,
+      Value<int> mealId,
+      Value<String> date,
+      Value<String?> mealType,
+      Value<String> foodsSummary,
+      Value<int?> totalCals,
+      Value<double?> totalProtein,
+      Value<int> createdAt,
+    });
+
+final class $$MealFingerprintsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $MealFingerprintsTable, MealFingerprint> {
+  $$MealFingerprintsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $MealsTable _mealIdTable(_$AppDatabase db) => db.meals.createAlias(
+    $_aliasNameGenerator(db.mealFingerprints.mealId, db.meals.id),
+  );
+
+  $$MealsTableProcessedTableManager get mealId {
+    final $_column = $_itemColumn<int>('meal_id')!;
+
+    final manager = $$MealsTableTableManager(
+      $_db,
+      $_db.meals,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_mealIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MealFingerprintsTableFilterComposer
+    extends Composer<_$AppDatabase, $MealFingerprintsTable> {
+  $$MealFingerprintsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mealType => $composableBuilder(
+    column: $table.mealType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get foodsSummary => $composableBuilder(
+    column: $table.foodsSummary,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalCals => $composableBuilder(
+    column: $table.totalCals,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get totalProtein => $composableBuilder(
+    column: $table.totalProtein,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$MealsTableFilterComposer get mealId {
+    final $$MealsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mealId,
+      referencedTable: $db.meals,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MealsTableFilterComposer(
+            $db: $db,
+            $table: $db.meals,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MealFingerprintsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MealFingerprintsTable> {
+  $$MealFingerprintsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mealType => $composableBuilder(
+    column: $table.mealType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get foodsSummary => $composableBuilder(
+    column: $table.foodsSummary,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalCals => $composableBuilder(
+    column: $table.totalCals,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get totalProtein => $composableBuilder(
+    column: $table.totalProtein,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$MealsTableOrderingComposer get mealId {
+    final $$MealsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mealId,
+      referencedTable: $db.meals,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MealsTableOrderingComposer(
+            $db: $db,
+            $table: $db.meals,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MealFingerprintsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MealFingerprintsTable> {
+  $$MealFingerprintsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<String> get mealType =>
+      $composableBuilder(column: $table.mealType, builder: (column) => column);
+
+  GeneratedColumn<String> get foodsSummary => $composableBuilder(
+    column: $table.foodsSummary,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get totalCals =>
+      $composableBuilder(column: $table.totalCals, builder: (column) => column);
+
+  GeneratedColumn<double> get totalProtein => $composableBuilder(
+    column: $table.totalProtein,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$MealsTableAnnotationComposer get mealId {
+    final $$MealsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.mealId,
+      referencedTable: $db.meals,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MealsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.meals,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MealFingerprintsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MealFingerprintsTable,
+          MealFingerprint,
+          $$MealFingerprintsTableFilterComposer,
+          $$MealFingerprintsTableOrderingComposer,
+          $$MealFingerprintsTableAnnotationComposer,
+          $$MealFingerprintsTableCreateCompanionBuilder,
+          $$MealFingerprintsTableUpdateCompanionBuilder,
+          (MealFingerprint, $$MealFingerprintsTableReferences),
+          MealFingerprint,
+          PrefetchHooks Function({bool mealId})
+        > {
+  $$MealFingerprintsTableTableManager(
+    _$AppDatabase db,
+    $MealFingerprintsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MealFingerprintsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MealFingerprintsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MealFingerprintsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> mealId = const Value.absent(),
+                Value<String> date = const Value.absent(),
+                Value<String?> mealType = const Value.absent(),
+                Value<String> foodsSummary = const Value.absent(),
+                Value<int?> totalCals = const Value.absent(),
+                Value<double?> totalProtein = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+              }) => MealFingerprintsCompanion(
+                id: id,
+                mealId: mealId,
+                date: date,
+                mealType: mealType,
+                foodsSummary: foodsSummary,
+                totalCals: totalCals,
+                totalProtein: totalProtein,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int mealId,
+                required String date,
+                Value<String?> mealType = const Value.absent(),
+                required String foodsSummary,
+                Value<int?> totalCals = const Value.absent(),
+                Value<double?> totalProtein = const Value.absent(),
+                required int createdAt,
+              }) => MealFingerprintsCompanion.insert(
+                id: id,
+                mealId: mealId,
+                date: date,
+                mealType: mealType,
+                foodsSummary: foodsSummary,
+                totalCals: totalCals,
+                totalProtein: totalProtein,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$MealFingerprintsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({mealId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (mealId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.mealId,
+                                referencedTable:
+                                    $$MealFingerprintsTableReferences
+                                        ._mealIdTable(db),
+                                referencedColumn:
+                                    $$MealFingerprintsTableReferences
+                                        ._mealIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MealFingerprintsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MealFingerprintsTable,
+      MealFingerprint,
+      $$MealFingerprintsTableFilterComposer,
+      $$MealFingerprintsTableOrderingComposer,
+      $$MealFingerprintsTableAnnotationComposer,
+      $$MealFingerprintsTableCreateCompanionBuilder,
+      $$MealFingerprintsTableUpdateCompanionBuilder,
+      (MealFingerprint, $$MealFingerprintsTableReferences),
+      MealFingerprint,
+      PrefetchHooks Function({bool mealId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4982,4 +5996,6 @@ class $AppDatabaseManager {
       $$FoodMemoriesTableTableManager(_db, _db.foodMemories);
   $$MedicationsTableTableManager get medications =>
       $$MedicationsTableTableManager(_db, _db.medications);
+  $$MealFingerprintsTableTableManager get mealFingerprints =>
+      $$MealFingerprintsTableTableManager(_db, _db.mealFingerprints);
 }

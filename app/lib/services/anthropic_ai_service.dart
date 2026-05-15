@@ -65,17 +65,20 @@ Guidelines:
     String? text,
     Uint8List? imageBytes,
     String? mealType,
+    String? mealContext,
   }) async {
     if (_apiKey.isEmpty) {
       return MealParseResult(success: false, errorMessage: 'ANTHROPIC_API_KEY not set in .env');
     }
 
+    final effectiveText = [
+      if (mealContext != null) mealContext,
+      if (mealType != null) 'Meal type: $mealType',
+      if (text != null && text.isNotEmpty) text,
+    ].join('\n').trim();
+
     final content = _buildContent(
-      text: mealType != null && text != null && text.isNotEmpty
-          ? 'Meal type: $mealType\n$text'
-          : mealType != null
-              ? 'Meal type: $mealType'
-              : text,
+      text: effectiveText.isNotEmpty ? effectiveText : null,
       imageBytes: imageBytes,
     );
     if (content == null) {

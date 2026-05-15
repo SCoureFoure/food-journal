@@ -11,7 +11,12 @@ class WorkerAiService implements AiService {
   String get _workerUrl => dotenv.env['MEAL_PARSER_URL'] ?? '';
 
   @override
-  Future<MealParseResult> parseMeal({String? text, Uint8List? imageBytes, String? mealType}) async {
+  Future<MealParseResult> parseMeal({
+    String? text,
+    Uint8List? imageBytes,
+    String? mealType,
+    String? mealContext,
+  }) async {
     if (_workerUrl.isEmpty) {
       return MealParseResult(
         success: false,
@@ -21,7 +26,15 @@ class WorkerAiService implements AiService {
 
     final body = <String, dynamic>{'task': 'parse_meal'};
     if (mealType != null) body['mealType'] = mealType;
-    if (text != null && text.isNotEmpty) body['text'] = text;
+
+    // Prepend meal history context when available so the Worker's Gemini prompt
+    // can resolve temporal references ("leftovers from last night") without
+    // any changes to the Worker itself.
+    final effectiveText = (mealContext != null && text != null && text.isNotEmpty)
+        ? '$mealContext\n\nUser input: $text'
+        : text;
+    if (effectiveText != null && effectiveText.isNotEmpty) body['text'] = effectiveText;
+
     if (imageBytes != null) {
       body['image'] = {
         'data': base64Encode(imageBytes),

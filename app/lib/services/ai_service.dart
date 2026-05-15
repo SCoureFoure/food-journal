@@ -35,7 +35,12 @@ class MedicationParseResult {
 }
 
 abstract class AiService {
-  Future<MealParseResult> parseMeal({String? text, Uint8List? imageBytes, String? mealType});
+  Future<MealParseResult> parseMeal({
+    String? text,
+    Uint8List? imageBytes,
+    String? mealType,
+    String? mealContext,
+  });
   Future<MedicationParseResult> parseMedication({String? text, Uint8List? imageBytes});
 
   factory AiService.fromEnv() {

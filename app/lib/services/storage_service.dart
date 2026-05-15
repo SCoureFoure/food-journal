@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
@@ -9,9 +10,11 @@ import '../models/meal_entry.dart';
 import '../models/medication.dart';
 import '../models/reaction_log.dart';
 import 'database/app_database.dart' as db;
+import 'meal_memory/meal_memory_service.dart';
 
 class StorageService {
   final _db = db.AppDatabase();
+  final _memory = MealMemoryService();
 
   // ── Meals ────────────────────────────────────────────────────────────────────
 
@@ -20,8 +23,8 @@ class StorageService {
     List<FoodItem> items,
     List<List<Ingredient>> ingredientsByItem,
   ) async {
-    return _db.transaction(() async {
-      final mealId = await _db.into(_db.meals).insert(
+    final mealId = await _db.transaction(() async {
+      final id = await _db.into(_db.meals).insert(
         db.MealsCompanion.insert(
           date: meal.date,
           time: meal.time,
@@ -37,7 +40,7 @@ class StorageService {
         final item = items[i];
         final foodItemId = await _db.into(_db.foodItems).insert(
           db.FoodItemsCompanion.insert(
-            mealId: mealId,
+            mealId: id,
             name: item.name,
             portion: Value(item.portion),
             prep: Value(item.prep),
@@ -62,8 +65,11 @@ class StorageService {
         }
       }
 
-      return mealId;
+      return id;
     });
+
+    unawaited(_memory.recordFingerprint(meal.copyWith(id: mealId), items));
+    return mealId;
   }
 
   Future<MealEntry?> getMealById(int id) async {
