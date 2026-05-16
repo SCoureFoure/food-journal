@@ -1,0 +1,300 @@
+﻿{
+    "meta":  {
+                 "run_id":  "integration_2026-05-15_23-26-28",
+                 "layer":  "integration",
+                 "timestamp":  "2026-05-15T23:27:19.1475001-04:00",
+                 "durationMs":  48438,
+                 "runner":  "flutter-test",
+                 "model":  "gemini-flash-latest",
+                 "liveFire":  true,
+                 "apiTarget":  "https://food-journal-ai.scoraccioiv.workers.dev",
+                 "exitCode":  0,
+                 "label":  ""
+             },
+    "summary":  {
+                    "total":  20,
+                    "passed":  20,
+                    "failed":  0,
+                    "skipped":  0,
+                    "passRate":  1
+                },
+    "generativeMetrics":  {
+                              "scenario":  {
+                                               "violations":  0,
+                                               "total":  7,
+                                               "passed":  7
+                                           },
+                              "inv":  {
+                                          "violations":  0,
+                                          "total":  8,
+                                          "passed":  8
+                                      },
+                              "dir":  {
+                                          "violations":  0,
+                                          "total":  5,
+                                          "passed":  5
+                                      }
+                          },
+    "tests":  [
+                  {
+                      "failure":  null,
+                      "id":  "27",
+                      "durationMs":  19209,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "parseMedication — edge cases empty text returns success=false with errorMessage",
+                      "group":  "parseMedication — edge cases",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "18",
+                      "durationMs":  14250,
+                      "tags":  [
+                                   "DIR"
+                               ],
+                      "name":  "parseMedication — semantic assertions brand name Tylenol 1000mg: name populated, dose=1000, unit=\"mg\"",
+                      "group":  "parseMedication — semantic assertions",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "12",
+                      "durationMs":  6683,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "name":  "parseMedication — schema invariants supplement input: success=true, name populated",
+                      "group":  "parseMedication — schema invariants",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "31",
+                      "durationMs":  27750,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "parseMeal — temporal reference resolution with context: \"same as last night\" resolves to non-empty foods from history",
+                      "group":  "parseMeal — temporal reference resolution",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "33",
+                      "durationMs":  48348,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "parseMeal — temporal reference resolution context does not bleed: history items do not appear as new food items",
+                      "group":  "parseMeal — temporal reference resolution",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "32",
+                      "durationMs":  43640,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "parseMeal — temporal reference resolution without context: temporal input still returns a result (graceful degradation)",
+                      "group":  "parseMeal — temporal reference resolution",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "22",
+                      "durationMs":  18796,
+                      "tags":  [
+                                   "DIR"
+                               ],
+                      "name":  "parseMeal — semantic assertions protein shake: protein \u003e fat for whey + milk input",
+                      "group":  "parseMeal — semantic assertions",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "17",
+                      "durationMs":  15036,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "name":  "parseMeal — schema invariants complex description: schema holds for detailed prep notes",
+                      "group":  "parseMeal — schema invariants",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "15",
+                      "durationMs":  8427,
+                      "tags":  [
+                                   "DIR"
+                               ],
+                      "name":  "parseMedication — semantic assertions Metformin 500mg: name contains \"metformin\", dose=500, unit=\"mg\"",
+                      "group":  "parseMedication — semantic assertions",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "35",
+                      "durationMs":  48380,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "parseMeal — edge cases empty text returns success=false with errorMessage",
+                      "group":  "parseMeal — edge cases",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "28",
+                      "durationMs":  19215,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "parseMedication — edge cases null text returns success=false with errorMessage",
+                      "group":  "parseMedication — edge cases",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "24",
+                      "durationMs":  19204,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "name":  "parseMedication — no-inference rule vague input \"my blood pressure pill\": name non-null, dose=null, route=null",
+                      "group":  "parseMedication — no-inference rule",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "16",
+                      "durationMs":  12714,
+                      "tags":  [
+                                   "DIR"
+                               ],
+                      "name":  "parseMedication — semantic assertions Insulin 10 units subcutaneous: route is non-null (maps to \"other\" — not in prompt enum)",
+                      "group":  "parseMedication — semantic assertions",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "7",
+                      "durationMs":  6176,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "name":  "parseMeal — schema invariants simple breakfast: title populated, ≥1 item, all names non-empty, macros non-negative",
+                      "group":  "parseMeal — schema invariants",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "20",
+                      "durationMs":  15366,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "name":  "parseMedication — no-inference rule name only (no dose): dose=null, route=null",
+                      "group":  "parseMedication — no-inference rule",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "25",
+                      "durationMs":  22583,
+                      "tags":  [
+                                   "DIR"
+                               ],
+                      "name":  "parseMeal — semantic assertions calorie-dense meal: total calories \u003e 500 for bacon cheeseburger with fries",
+                      "group":  "parseMeal — semantic assertions",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "11",
+                      "durationMs":  3702,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "name":  "parseMedication — schema invariants well-formed input: success=true, name populated, dose \u003e 0",
+                      "group":  "parseMedication — schema invariants",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "23",
+                      "durationMs":  16801,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "name":  "parseMedication — no-inference rule name + dose, no route: route=null (must not assume oral)",
+                      "group":  "parseMedication — no-inference rule",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "36",
+                      "durationMs":  48406,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "parseMeal — edge cases null text returns success=false with errorMessage",
+                      "group":  "parseMeal — edge cases",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "13",
+                      "durationMs":  10232,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "name":  "parseMeal — schema invariants multi-item lunch: schema holds for comma-separated list",
+                      "group":  "parseMeal — schema invariants",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  }
+              ]
+}

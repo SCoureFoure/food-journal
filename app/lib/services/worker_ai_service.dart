@@ -7,8 +7,29 @@ import 'ai_service.dart';
 
 class WorkerAiService implements AiService {
   final _client = http.Client();
+  final String? _workerUrl;
+  final String? _authToken;
 
-  String get _workerUrl => dotenv.env['MEAL_PARSER_URL'] ?? '';
+  WorkerAiService({String? workerUrl, String? authToken})
+      : _workerUrl = workerUrl,
+        _authToken = authToken;
+
+  String get _resolvedUrl => _workerUrl ?? dotenv.env['MEAL_PARSER_URL'] ?? '';
+
+  Map<String, String> get _headers => {
+        'Content-Type': 'application/json',
+        if (_authToken != null) 'Authorization': 'Bearer $_authToken',
+      };
+
+  Future<http.Response> _post(Map<String, dynamic> body) async {
+    final uri = Uri.parse(_resolvedUrl);
+    final encoded = jsonEncode(body);
+    final response = await _client.post(uri, headers: _headers, body: encoded);
+    if (response.statusCode == 503) {
+      return _client.post(uri, headers: _headers, body: encoded);
+    }
+    return response;
+  }
 
   @override
   Future<MealParseResult> parseMeal({
@@ -17,7 +38,7 @@ class WorkerAiService implements AiService {
     String? mealType,
     String? mealContext,
   }) async {
-    if (_workerUrl.isEmpty) {
+    if (_resolvedUrl.isEmpty) {
       return MealParseResult(
         success: false,
         errorMessage: 'MEAL_PARSER_URL not set in .env',
@@ -50,11 +71,7 @@ class WorkerAiService implements AiService {
     }
 
     try {
-      final response = await _client.post(
-        Uri.parse(_workerUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      );
+      final response = await _post(body);
 
       if (response.statusCode != 200) {
         return MealParseResult(
@@ -77,7 +94,7 @@ class WorkerAiService implements AiService {
 
   @override
   Future<MedicationParseResult> parseMedication({String? text, Uint8List? imageBytes}) async {
-    if (_workerUrl.isEmpty) {
+    if (_resolvedUrl.isEmpty) {
       return MedicationParseResult(success: false, errorMessage: 'MEAL_PARSER_URL not set in .env');
     }
 
@@ -92,11 +109,7 @@ class WorkerAiService implements AiService {
     }
 
     try {
-      final response = await _client.post(
-        Uri.parse(_workerUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      );
+      final response = await _post(body);
 
       if (response.statusCode != 200) {
         return MedicationParseResult(

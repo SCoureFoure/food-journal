@@ -3,26 +3,24 @@
 //
 // Skipped automatically when MEAL_PARSER_URL is not set.
 
-import 'dart:io';
-
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:food_journal/services/ai_service.dart';
 import 'package:food_journal/services/worker_ai_service.dart';
 
 import 'helpers/ai_assertions.dart';
+import 'helpers/test_env.dart';
 
 // ─── Skip guard ──────────────────────────────────────────────────────────────
 
-final _workerUrl = Platform.environment['MEAL_PARSER_URL'] ?? '';
+final _workerUrl = readRootEnv('MEAL_PARSER_URL') ?? '';
 final _skip = _workerUrl.isEmpty ? 'Set MEAL_PARSER_URL env var to run AI integration tests' : null;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-AiService _makeService() {
-  dotenv.testLoad(fileInput: 'MEAL_PARSER_URL=$_workerUrl');
-  return WorkerAiService();
-}
+AiService _makeService() => WorkerAiService(
+      workerUrl: _workerUrl,
+      authToken: readRootEnv('TEST_AUTH_TOKEN'),
+    );
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 

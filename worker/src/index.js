@@ -21,6 +21,10 @@ export default {
 
     const { task, text, image, mealType } = await request.json();
 
+    const authHeader = request.headers.get('Authorization');
+    const isPaidRequest = env.TEST_AUTH_TOKEN && authHeader === `Bearer ${env.TEST_AUTH_TOKEN}`;
+    const apiKey = isPaidRequest ? env.GEMINI_API_KEY_PAID : env.GEMINI_API_KEY;
+
     const promptEntry = prompts[task];
     if (!promptEntry) {
       return new Response(JSON.stringify({ error: `Unknown task: ${task}` }), {
@@ -45,7 +49,7 @@ export default {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-goog-api-key': env.GEMINI_API_KEY,
+        'x-goog-api-key': apiKey,
       },
       body: JSON.stringify({
         system_instruction: { parts: [{ text: promptEntry.systemPrompt }] },

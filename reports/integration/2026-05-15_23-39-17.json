@@ -1,0 +1,533 @@
+﻿{
+    "meta":  {
+                 "run_id":  "integration_2026-05-15_23-39-17",
+                 "layer":  "integration",
+                 "timestamp":  "2026-05-15T23:40:05.6988576-04:00",
+                 "durationMs":  45695,
+                 "runner":  "flutter-test",
+                 "model":  "gemini-flash-latest",
+                 "liveFire":  true,
+                 "apiTarget":  "https://food-journal-ai.scoraccioiv.workers.dev",
+                 "exitCode":  0,
+                 "label":  ""
+             },
+    "summary":  {
+                    "total":  20,
+                    "passed":  20,
+                    "failed":  0,
+                    "skipped":  0,
+                    "passRate":  1
+                },
+    "generativeMetrics":  {
+                              "scenario":  {
+                                               "violations":  0,
+                                               "total":  7,
+                                               "passed":  7
+                                           },
+                              "inv":  {
+                                          "violations":  0,
+                                          "total":  8,
+                                          "passed":  8
+                                      },
+                              "dir":  {
+                                          "violations":  0,
+                                          "total":  5,
+                                          "passed":  5
+                                      }
+                          },
+    "tests":  [
+                  {
+                      "failure":  null,
+                      "id":  "16",
+                      "durationMs":  17090,
+                      "tags":  [
+                                   "DIR"
+                               ],
+                      "name":  "parseMedication — semantic assertions Insulin 10 units subcutaneous: route is non-null (maps to \"other\" — not in prompt enum)",
+                      "group":  "parseMedication — semantic assertions",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "name":  "Insulin",
+                                         "dose":  10.0,
+                                         "unit":  "other",
+                                         "route":  "other",
+                                         "notes":  "10 units subcutaneous"
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "31",
+                      "durationMs":  29319,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "parseMeal — temporal reference resolution with context: \"same as last night\" resolves to non-empty foods from history",
+                      "group":  "parseMeal — temporal reference resolution",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "title":  "Grilled Salmon with Asparagus and Quinoa",
+                                         "itemCount":  3,
+                                         "items":  [
+                                                       {
+                                                           "name":  "Grilled salmon fillet",
+                                                           "calories":  300,
+                                                           "protein":  34,
+                                                           "carbs":  0,
+                                                           "fat":  18
+                                                       },
+                                                       {
+                                                           "name":  "Steamed asparagus",
+                                                           "calories":  27,
+                                                           "protein":  3,
+                                                           "carbs":  5,
+                                                           "fat":  0
+                                                       },
+                                                       {
+                                                           "name":  "Quinoa",
+                                                           "calories":  111,
+                                                           "protein":  4,
+                                                           "carbs":  20,
+                                                           "fat":  2
+                                                       }
+                                                   ]
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "12",
+                      "durationMs":  7126,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "name":  "parseMedication — schema invariants supplement input: success=true, name populated",
+                      "group":  "parseMedication — schema invariants",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "name":  "Vitamin D3",
+                                         "dose":  2000.0,
+                                         "unit":  "other",
+                                         "route":  null,
+                                         "notes":  null
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "33",
+                      "durationMs":  45610,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "parseMeal — temporal reference resolution context does not bleed: history items do not appear as new food items",
+                      "group":  "parseMeal — temporal reference resolution",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "title":  "Poached Eggs on Sourdough Toast",
+                                         "itemCount":  2,
+                                         "items":  [
+                                                       {
+                                                           "name":  "Poached eggs",
+                                                           "calories":  140,
+                                                           "protein":  12,
+                                                           "carbs":  0,
+                                                           "fat":  10
+                                                       },
+                                                       {
+                                                           "name":  "Sourdough toast",
+                                                           "calories":  200,
+                                                           "protein":  8,
+                                                           "carbs":  40,
+                                                           "fat":  1
+                                                       }
+                                                   ]
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "27",
+                      "durationMs":  23830,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "parseMedication — edge cases empty text returns success=false with errorMessage",
+                      "group":  "parseMedication — edge cases",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "success":  false,
+                                         "errorMessage":  "Provide text or image to parse."
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "32",
+                      "durationMs":  41818,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "parseMeal — temporal reference resolution without context: temporal input still returns a result (graceful degradation)",
+                      "group":  "parseMeal — temporal reference resolution",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "22",
+                      "durationMs":  20324,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "name":  "parseMedication — no-inference rule name only (no dose): dose=null, route=null",
+                      "group":  "parseMedication — no-inference rule",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "name":  "Metformin",
+                                         "dose":  null,
+                                         "unit":  null,
+                                         "route":  null,
+                                         "notes":  null
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "17",
+                      "durationMs":  17012,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "name":  "parseMeal — schema invariants complex description: schema holds for detailed prep notes",
+                      "group":  "parseMeal — schema invariants",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "title":  "Baked Salmon with Roasted Asparagus and Side Salad",
+                                         "itemCount":  3,
+                                         "items":  [
+                                                       {
+                                                           "name":  "Baked Salmon Fillet",
+                                                           "calories":  350,
+                                                           "protein":  34,
+                                                           "carbs":  0,
+                                                           "fat":  22
+                                                       },
+                                                       {
+                                                           "name":  "Roasted Asparagus",
+                                                           "calories":  60,
+                                                           "protein":  3,
+                                                           "carbs":  4,
+                                                           "fat":  5
+                                                       },
+                                                       {
+                                                           "name":  "Side Salad",
+                                                           "calories":  80,
+                                                           "protein":  1,
+                                                           "carbs":  5,
+                                                           "fat":  6
+                                                       }
+                                                   ]
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "15",
+                      "durationMs":  12433,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "name":  "parseMeal — schema invariants multi-item lunch: schema holds for comma-separated list",
+                      "group":  "parseMeal — schema invariants",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "title":  "Grilled Chicken with Steamed Broccoli and Brown Rice",
+                                         "itemCount":  3,
+                                         "items":  [
+                                                       {
+                                                           "name":  "Chicken Breast",
+                                                           "calories":  284,
+                                                           "protein":  53,
+                                                           "carbs":  0,
+                                                           "fat":  6
+                                                       },
+                                                       {
+                                                           "name":  "Broccoli",
+                                                           "calories":  55,
+                                                           "protein":  4,
+                                                           "carbs":  11,
+                                                           "fat":  0
+                                                       },
+                                                       {
+                                                           "name":  "Brown Rice",
+                                                           "calories":  216,
+                                                           "protein":  5,
+                                                           "carbs":  45,
+                                                           "fat":  1
+                                                       }
+                                                   ]
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "35",
+                      "durationMs":  45638,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "parseMeal — edge cases empty text returns success=false with errorMessage",
+                      "group":  "parseMeal — edge cases",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "success":  false,
+                                         "errorMessage":  "Worker error 400: {\"error\":\"Provide text or image\"}"
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "28",
+                      "durationMs":  23835,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "parseMedication — edge cases null text returns success=false with errorMessage",
+                      "group":  "parseMedication — edge cases",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "success":  false,
+                                         "errorMessage":  "Provide text or image to parse."
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "24",
+                      "durationMs":  25525,
+                      "tags":  [
+                                   "DIR"
+                               ],
+                      "name":  "parseMeal — semantic assertions calorie-dense meal: total calories \u003e 500 for bacon cheeseburger with fries",
+                      "group":  "parseMeal — semantic assertions",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "title":  "Bacon Cheeseburger and Large Fries",
+                                         "itemCount":  2,
+                                         "items":  [
+                                                       {
+                                                           "name":  "Bacon Cheeseburger",
+                                                           "calories":  750,
+                                                           "protein":  38,
+                                                           "carbs":  45,
+                                                           "fat":  48
+                                                       },
+                                                       {
+                                                           "name":  "French Fries",
+                                                           "calories":  500,
+                                                           "protein":  6,
+                                                           "carbs":  65,
+                                                           "fat":  24
+                                                       }
+                                                   ]
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "14",
+                      "durationMs":  8731,
+                      "tags":  [
+                                   "DIR"
+                               ],
+                      "name":  "parseMedication — semantic assertions Metformin 500mg: name contains \"metformin\", dose=500, unit=\"mg\"",
+                      "group":  "parseMedication — semantic assertions",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "name":  "Metformin",
+                                         "dose":  500.0,
+                                         "unit":  "mg",
+                                         "route":  null,
+                                         "notes":  null
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "7",
+                      "durationMs":  8113,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "name":  "parseMeal — schema invariants simple breakfast: title populated, ≥1 item, all names non-empty, macros non-negative",
+                      "group":  "parseMeal — schema invariants",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "title":  "Scrambled Eggs and Buttered Toast",
+                                         "itemCount":  2,
+                                         "items":  [
+                                                       {
+                                                           "name":  "Scrambled Eggs",
+                                                           "calories":  180,
+                                                           "protein":  12,
+                                                           "carbs":  1,
+                                                           "fat":  14
+                                                       },
+                                                       {
+                                                           "name":  "Buttered Toast",
+                                                           "calories":  260,
+                                                           "protein":  8,
+                                                           "carbs":  30,
+                                                           "fat":  12
+                                                       }
+                                                   ]
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "20",
+                      "durationMs":  18658,
+                      "tags":  [
+                                   "DIR"
+                               ],
+                      "name":  "parseMedication — semantic assertions brand name Tylenol 1000mg: name populated, dose=1000, unit=\"mg\"",
+                      "group":  "parseMedication — semantic assertions",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "name":  "Tylenol",
+                                         "dose":  1000.0,
+                                         "unit":  "mg",
+                                         "route":  null,
+                                         "notes":  null
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "25",
+                      "durationMs":  23827,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "name":  "parseMedication — no-inference rule vague input \"my blood pressure pill\": name non-null, dose=null, route=null",
+                      "group":  "parseMedication — no-inference rule",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "name":  "blood pressure pill",
+                                         "dose":  null,
+                                         "unit":  null,
+                                         "route":  null,
+                                         "notes":  null
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "11",
+                      "durationMs":  4753,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "name":  "parseMedication — schema invariants well-formed input: success=true, name populated, dose \u003e 0",
+                      "group":  "parseMedication — schema invariants",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "name":  "Metformin",
+                                         "dose":  500.0,
+                                         "unit":  "mg",
+                                         "route":  null,
+                                         "notes":  null
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "23",
+                      "durationMs":  22127,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "name":  "parseMedication — no-inference rule name + dose, no route: route=null (must not assume oral)",
+                      "group":  "parseMedication — no-inference rule",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "name":  "Lisinopril",
+                                         "dose":  10.0,
+                                         "unit":  "mg",
+                                         "route":  null,
+                                         "notes":  null
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_medication_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "36",
+                      "durationMs":  45660,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "name":  "parseMeal — edge cases null text returns success=false with errorMessage",
+                      "group":  "parseMeal — edge cases",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "success":  false,
+                                         "errorMessage":  "Worker error 400: {\"error\":\"Provide text or image\"}"
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "19",
+                      "durationMs":  21709,
+                      "tags":  [
+                                   "DIR"
+                               ],
+                      "name":  "parseMeal — semantic assertions protein shake: protein \u003e fat for whey + milk input",
+                      "group":  "parseMeal — semantic assertions",
+                      "status":  "pass",
+                      "testOutput":  {
+                                         "type":  "test_output",
+                                         "title":  "Whey Protein Shake with Almond Milk",
+                                         "itemCount":  2,
+                                         "items":  [
+                                                       {
+                                                           "name":  "Whey protein powder",
+                                                           "calories":  240,
+                                                           "protein":  50,
+                                                           "carbs":  4,
+                                                           "fat":  3
+                                                       },
+                                                       {
+                                                           "name":  "Almond milk",
+                                                           "calories":  30,
+                                                           "protein":  1,
+                                                           "carbs":  1,
+                                                           "fat":  2
+                                                       }
+                                                   ]
+                                     },
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\integration\\ai\\parse_meal_integration_test.dart"
+                  }
+              ]
+}

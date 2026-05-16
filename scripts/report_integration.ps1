@@ -4,12 +4,12 @@ param(
 
 $REPO      = Split-Path $PSScriptRoot -Parent
 $APP       = Join-Path $REPO "app"
-$RPTS_AI   = Join-Path $REPO "reports\ai"
+$RPTS_INT  = Join-Path $REPO "reports\integration"
 $HISTORY   = Join-Path $REPO "reports\history.jsonl"
 $TIMESTAMP = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
-$OUT_FILE  = Join-Path $RPTS_AI "$TIMESTAMP.json"
+$OUT_FILE  = Join-Path $RPTS_INT "$TIMESTAMP.json"
 
-New-Item -ItemType Directory -Force -Path $RPTS_AI | Out-Null
+New-Item -ItemType Directory -Force -Path $RPTS_INT | Out-Null
 New-Item -ItemType Directory -Force -Path (Split-Path $HISTORY) | Out-Null
 
 $workerIndex = Join-Path $REPO "worker\src\index.js"
@@ -18,12 +18,8 @@ $AI_MODEL = if (Test-Path $workerIndex) {
     if ($line -match 'models/([\w.\-]+)') { $Matches[1] } else { "unknown" }
 } else { "unknown" }
 
-# ── Run flutter test ───────────────────────────────────────────────────────────
+# ── Require MEAL_PARSER_URL ────────────────────────────────────────────────────
 
-Write-Host "[..] Running AI layer tests..." -ForegroundColor Cyan
-$START_TIME = Get-Date
-
-# Load MEAL_PARSER_URL from app/.env if not already in environment
 if (-not $env:MEAL_PARSER_URL) {
     $envFile = Join-Path $APP ".env"
     if (Test-Path $envFile) {
@@ -32,10 +28,20 @@ if (-not $env:MEAL_PARSER_URL) {
     }
 }
 
-$testPaths = @("test/meal_memory/")
+if (-not $env:MEAL_PARSER_URL) {
+    Write-Host "[SKIP] MEAL_PARSER_URL not set - integration tests require a live worker" -ForegroundColor Yellow
+    exit 0
+}
+
+$API_TARGET = $env:MEAL_PARSER_URL
+
+# ── Run flutter test ───────────────────────────────────────────────────────────
+
+Write-Host "[..] Running integration layer tests (live fire → $API_TARGET)..." -ForegroundColor Cyan
+$START_TIME = Get-Date
 
 Push-Location $APP
-$rawLines = @(& flutter test @testPaths --reporter json 2>$null)
+$rawLines = @(& flutter test test/integration/ai/ --reporter json 2>$null)
 $EXIT_CODE = $LASTEXITCODE
 Pop-Location
 
@@ -63,7 +69,6 @@ foreach ($line in $rawLines) {
             if (-not $t) { continue }
             $groupName = ""
             if ($t.groupIDs -and $t.groupIDs.Count -gt 0) {
-                # Use innermost (last) group ID — most specific
                 $gid = "$($t.groupIDs[-1])"
                 if ($groups.ContainsKey($gid)) { $groupName = $groups[$gid] }
             }
@@ -83,19 +88,16 @@ foreach ($line in $rawLines) {
         "testDone" {
             $tid = "$($ev.testID)"
             if ($tests.ContainsKey($tid)) {
-                $tests[$tid].status    = if ([bool]$ev.skipped) { "skip" } `
+                $tests[$tid].status     = if ([bool]$ev.skipped) { "skip" } `
                     elseif ($ev.result -eq "success") { "pass" } else { "fail" }
                 $tests[$tid].durationMs = [int]$ev.time
-                $tests[$tid].hidden    = [bool]$ev.hidden
+                $tests[$tid].hidden     = [bool]$ev.hidden
             }
         }
         "error" {
             $tid = "$($ev.testID)"
             if ($tests.ContainsKey($tid)) {
-                $tests[$tid].error = @{
-                    message = [string]$ev.error
-                    stack   = [string]$ev.stackTrace
-                }
+                $tests[$tid].error = @{ message = [string]$ev.error; stack = [string]$ev.stackTrace }
             }
         }
         "print" {
@@ -103,9 +105,7 @@ foreach ($line in $rawLines) {
             if ($ev.message -and $tests.ContainsKey($tid)) {
                 try {
                     $inner = $ev.message | ConvertFrom-Json -ErrorAction Stop
-                    if ($inner.type -eq 'test_output') {
-                        $tests[$tid].testOutput = $inner
-                    }
+                    if ($inner.type -eq 'test_output') { $tests[$tid].testOutput = $inner }
                 } catch {}
             }
         }
@@ -113,31 +113,21 @@ foreach ($line in $rawLines) {
     }
 }
 
-# ── Classify by contract type ──────────────────────────────────────────────────
+# ── Classify ───────────────────────────────────────────────────────────────────
 
 function Get-ContractType {
     param([string]$groupName, [string]$testName)
     switch -Regex ($groupName) {
-        'isReferential|smoke|new rules|MFT|buildContextSnippet|Context snippet|buildQuerySpec' { return 'MFT' }
-        'invarianc|INV|schema invariants' { return 'INV' }
-        'no-inference' { return 'INV' }
-        'confidence' {
-            # Exact numeric assertions (= N.N) are boundary specs.
-            # Directional comparisons (> something) are true DIR tests.
-            if ($testName -match '>\s*\w') { return 'DIR' }
-            return 'Boundary'
-        }
-        'direction|DIR|semantic assertions' { return 'DIR' }
-        'boundary|resolveNamed|priority bound|Macro tolerance' { return 'Boundary' }
-        'temporal reference|edge cases' { return 'Scenario' }
-        default { return 'Scenario' }
+        'schema invariants'              { return 'INV' }
+        'no-inference'                   { return 'INV' }
+        'semantic assertions'            { return 'DIR' }
+        'temporal reference|edge cases'  { return 'Scenario' }
+        default                          { return 'Scenario' }
     }
 }
 
 $realTests = @($tests.Values | Where-Object {
-    -not $_.hidden -and
-    $_.name -notmatch '^loading ' -and
-    $_.status -ne 'running'
+    -not $_.hidden -and $_.name -notmatch '^loading ' -and $_.status -ne 'running'
 })
 
 $items = @($realTests | ForEach-Object {
@@ -163,8 +153,6 @@ $failed  = @($items | Where-Object { $_.status -eq 'fail' }).Count
 $skipped = @($items | Where-Object { $_.status -eq 'skip' }).Count
 $rate    = if ($total -gt 0) { [math]::Round($passed / $total, 4) } else { 0.0 }
 
-# ── Generative metrics per contract type ──────────────────────────────────────
-
 function Get-CategoryMetrics {
     param($items, [string]$tag)
     $cat = @($items | Where-Object { $_.tags -contains $tag })
@@ -176,10 +164,8 @@ function Get-CategoryMetrics {
 }
 
 $genMetrics = @{
-    mft      = Get-CategoryMetrics $items 'MFT'
     inv      = Get-CategoryMetrics $items 'INV'
     dir      = Get-CategoryMetrics $items 'DIR'
-    boundary = Get-CategoryMetrics $items 'Boundary'
     scenario = Get-CategoryMetrics $items 'Scenario'
 }
 
@@ -187,14 +173,16 @@ $genMetrics = @{
 
 $report = [ordered]@{
     meta = [ordered]@{
-        run_id     = "ai_$TIMESTAMP"
-        layer      = "ai"
-        timestamp  = (Get-Date -Format "o")
+        run_id    = "integration_$TIMESTAMP"
+        layer     = "integration"
+        timestamp = (Get-Date -Format "o")
         durationMs = if ($totalMs -gt 0) { $totalMs } else { $WALL_MS }
-        runner     = "flutter-test"
-        model      = $AI_MODEL
-        exitCode   = $EXIT_CODE
-        label      = $Label
+        runner    = "flutter-test"
+        model     = $AI_MODEL
+        liveFire  = $true
+        apiTarget = $API_TARGET
+        exitCode  = $EXIT_CODE
+        label     = $Label
     }
     summary = [ordered]@{
         total    = $total
@@ -210,21 +198,24 @@ $report = [ordered]@{
 $report | ConvertTo-Json -Depth 20 | Out-File -FilePath $OUT_FILE -Encoding utf8
 Write-Host "[OK] Report  → $OUT_FILE" -ForegroundColor Green
 
-# ── Append history entry ───────────────────────────────────────────────────────
+# ── Append history ─────────────────────────────────────────────────────────────
 
 $histEntry = [ordered]@{
     run_id     = $report.meta.run_id
-    layer      = "ai"
+    layer      = "integration"
     timestamp  = $report.meta.timestamp
     durationMs = $report.meta.durationMs
     passRate   = $rate
+    liveFire   = $true
+    apiTarget  = $API_TARGET
+    model      = $AI_MODEL
     summary    = $report.summary
     generativeMetrics = $genMetrics
 }
 ($histEntry | ConvertTo-Json -Compress -Depth 10) | Add-Content -Path $HISTORY -Encoding utf8
 Write-Host "[OK] History → $HISTORY" -ForegroundColor Green
 
-# ── Regenerate dashboard data.js ───────────────────────────────────────────────
+# ── Regenerate dashboard ───────────────────────────────────────────────────────
 
 & (Join-Path $PSScriptRoot "_generate_dashboard_data.ps1")
 
@@ -232,9 +223,9 @@ Write-Host "[OK] History → $HISTORY" -ForegroundColor Green
 
 Write-Host ""
 $col = if ($rate -ge 0.9) { "Green" } elseif ($rate -ge 0.75) { "Yellow" } else { "Red" }
-Write-Host "AI Layer: $passed/$total passed ($([math]::Round($rate * 100, 1))%)" -ForegroundColor $col
+Write-Host "Integration Layer (live fire): $passed/$total passed ($([math]::Round($rate * 100, 1))%)" -ForegroundColor $col
 
-foreach ($key in @('mft', 'inv', 'dir', 'boundary', 'scenario')) {
+foreach ($key in @('inv', 'dir', 'scenario')) {
     $m = $genMetrics[$key]
     if ($m.total -gt 0) {
         $vc = if ($m.violations -eq 0) { "Green" } else { "Red" }

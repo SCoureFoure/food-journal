@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:food_journal/services/ai_service.dart';
 
@@ -23,6 +24,17 @@ class AiAssertions {
       _assertNonNegativeOrNull(item.carbs?.toDouble(), 'carbs', item.name);
       _assertNonNegativeOrNull(item.fat?.toDouble(), 'fat', item.name);
     }
+    _emit({
+      'title': r.title,
+      'itemCount': r.items!.length,
+      'items': r.items!.map((i) => {
+        'name': i.name,
+        'calories': i.calories,
+        'protein': i.protein,
+        'carbs': i.carbs,
+        'fat': i.fat,
+      }).toList(),
+    });
   }
 
   /// Asserts result has at least [min] food items.
@@ -61,11 +73,8 @@ class AiAssertions {
   /// Asserts failure: success=false with an errorMessage.
   static void mealFailure(MealParseResult r) {
     expect(r.success, isFalse, reason: 'expected success=false for invalid input');
-    expect(
-      r.errorMessage,
-      isNotEmpty,
-      reason: 'expected non-empty errorMessage on failure',
-    );
+    expect(r.errorMessage, isNotEmpty, reason: 'expected non-empty errorMessage on failure');
+    _emit({'success': false, 'errorMessage': r.errorMessage});
   }
 
   // ─── MedicationParseResult ──────────────────────────────────────────────────
@@ -78,6 +87,7 @@ class AiAssertions {
     if (r.dose != null) {
       expect(r.dose!, greaterThan(0), reason: 'dose must be > 0 when present');
     }
+    _emit({'name': r.name, 'dose': r.dose, 'unit': r.unit, 'route': r.route, 'notes': r.notes});
   }
 
   /// Asserts name contains [fragment] (case-insensitive).
@@ -130,14 +140,15 @@ class AiAssertions {
   /// Asserts failure: success=false with an errorMessage.
   static void medicationFailure(MedicationParseResult r) {
     expect(r.success, isFalse, reason: 'expected success=false for invalid input');
-    expect(
-      r.errorMessage,
-      isNotEmpty,
-      reason: 'expected non-empty errorMessage on failure',
-    );
+    expect(r.errorMessage, isNotEmpty, reason: 'expected non-empty errorMessage on failure');
+    _emit({'success': false, 'errorMessage': r.errorMessage});
   }
 
   // ─── Private ────────────────────────────────────────────────────────────────
+
+  static void _emit(Map<String, dynamic> data) =>
+      // ignore: avoid_print
+      print(jsonEncode({'type': 'test_output', ...data}));
 
   static void _assertNonNegativeOrNull(double? value, String field, String itemName) {
     if (value != null) {
