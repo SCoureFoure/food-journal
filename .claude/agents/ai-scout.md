@@ -236,13 +236,105 @@ When a new AI feature is added to the app, run this checklist. Each item maps to
 
 | Feature | MFT | INV | DIR | Equiv | Boundary | Tolerance | Golden | Diff | Mutation |
 |---|---|---|---|---|---|---|---|---|---|
-| Meal pattern engine | ✓ | partial | partial | partial | partial | ✓ | — | — | — |
-| Meal AI parsing | ✓ | — | — | — | — | ✓ | — | — | — |
-| Medication parsing | — | — | — | — | — | — | — | — | — |
+| Meal pattern engine | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | — |
+| Meal AI parsing | ✓ | ✓ | ✓ | — | ✓ | ✓ | — | — | — |
+| Medication parsing | ✓ | ✓ | partial | partial | ✓ | ✓ | — | — | — |
 | Reaction analysis | future | future | future | future | future | future | future | future | future |
 | GI trigger detection | future | future | future | future | future | future | future | future | future |
 
-Update this table after each probe session.
+Update this table after each probe session. All tests must follow the metadata protocol above — testTheory, contract, implication, rationale.
+
+---
+
+## Test metadata protocol
+
+Every test you write or modify MUST carry structured metadata. This is not optional — the dashboard, report classifiers, and future agents all depend on it. A test without metadata is invisible to stakeholders.
+
+### Theory types and dashboard mapping
+
+| testTheory | Meaning | Dashboard tag |
+|---|---|---|
+| `MFT` | Binary oracle — core capability must work or feature ships nothing | MFT |
+| `INV` | Perturbation that must NOT change output | INV |
+| `DIR` | Adding signal must shift output in a predictable direction | DIR |
+| `BVA` | Test at or near a defined numeric boundary | Boundary |
+| `EQUIV` | One representative from an equivalence class | Scenario |
+| `FP` | Input that must NOT fire (false-positive guard) | Scenario |
+| `REGRESSION` | Input that previously failed in production or integration | Scenario |
+
+### Integration tests — `AiAssertions.setContext()`
+
+Every `group()` in `test/integration/ai/` MUST have:
+
+```dart
+group('[MFT] parseMedication — schema invariants', () {
+  setUpAll(() {
+    AiAssertions.setContext(
+      testTheory: 'MFT',
+      contract: 'success=true, name populated, dose null or > 0 for any well-formed input',
+      implication: 'medication parsing returns unusable data for any valid input',
+    );
+  });
+  tearDownAll(AiAssertions.clearContext);
+  // tests...
+});
+```
+
+**contract** — one sentence: what invariant holds across ALL inputs of this type. No "this test checks...". Write the property, not the procedure.
+
+**implication** — one sentence: what a failure means for the USER, not for the code. "model infers a default dose, corrupting records with fabricated values" — not "assertion fails".
+
+### meal_memory tests — `_emitGroupHeader()`
+
+Every `group()` in `test/meal_memory/invariance_test.dart` and `directional_test.dart` MUST have:
+
+```dart
+group('INV — leftovers', () {
+  setUpAll(() => _emitGroupHeader(
+    contract: 'all leftovers seed patterns must produce identical output regardless of case or synonym used',
+    implication: 'a leftover phrasing variant fails silently — user gets no suggestion for that input',
+  ));
+  // tests...
+});
+```
+
+### Scenario table — `_Scenario` rationale
+
+Every row in `scenarios_test.dart` MUST have `rationale` and `testTheory`:
+
+```dart
+_Scenario(
+  'had it thursday',
+  expectReferential: true,
+  expectDateOffset: 7,
+  testTheory: 'BVA',
+  rationale: 'BVA: same weekday as today must resolve to 7 (last week), not 0 (today) — off-by-one boundary',
+),
+```
+
+`rationale` answers: why does this row exist? What would be missed without it?
+
+### Group naming convention
+
+Group names must carry the theory type prefix so the report classifier can use it as a fallback:
+
+```
+[MFT] parseMeal — schema invariants
+[INV] parseMedication — word-order and case invariance
+[BVA] parseMedication — boundary values
+[DIR] parseMeal — temporal reference resolution
+INV — leftovers          ← meal_memory style (no brackets needed, regex covers it)
+DIR — directional contracts
+```
+
+### Dashboard classifier priority
+
+The `report_ai.ps1` and `report_integration.ps1` classifiers use this priority:
+1. `testOutput.testTheory` (preferred — set by metadata protocol above)
+2. `[XXX]` bracket prefix in group name
+3. Legacy regex fallback
+
+If your metadata is correct, the classifier does the right thing automatically. Do NOT rely on regex catching your tests.
 
 ---
 
@@ -251,11 +343,12 @@ Update this table after each probe session.
 Priority order:
 1. Failing tests — fix immediately
 2. Zero-tolerance violations (medication dose, drug name) — fix before any other work
-3. Missing adversarial scenarios — add to `scenarios_test.dart`
+3. Missing adversarial scenarios — add to `scenarios_test.dart` with `rationale` + `testTheory`
 4. Rule gaps — add patterns to `meal_reference_rules.dart`
 5. Logic bugs — fix in service, add regression test
-6. Missing INV/DIR coverage — add to respective test files
-7. Documentation gaps — update CONTEXT.md
+6. Missing INV/DIR coverage — add to respective test files with `_emitGroupHeader` + metadata
+7. Missing metadata on existing tests — add `setContext`/`_emitGroupHeader`/`rationale` where absent
+8. Documentation gaps — update CONTEXT.md
 
 ---
 
@@ -265,9 +358,11 @@ Priority order:
 ## [YYYY-MM-DD] ai-scout
 **Rules audited:** <which rule groups>
 **New patterns added:** <list>
-**Scenarios added:** <count and what>
-**INV tests added:** <count and what invariant class>
-**DIR tests added:** <count and what directional contract>
+**Scenarios added:** <count, testTheory, and rationale summary>
+**INV tests added:** <count, contract written, implication written>
+**DIR tests added:** <count, directional contract>
+**BVA tests added:** <count, boundary and what N vs N+1 means>
+**Metadata gaps fixed:** <tests that were missing testTheory/contract/implication — now patched>
 **Feature table updated:** <which rows changed>
 **Bugs found:** <specific>
 **Fixed:** <what changed>

@@ -36,6 +36,74 @@ You are not verifying happy paths. You are an adversary:
 
 Trust nothing. Test the boundaries.
 
+## Test metadata protocol — apply to every test you write or modify
+
+Every test must carry structured metadata so the dashboard classifiers and future agents can read it without guessing. A test without metadata is invisible to stakeholders.
+
+### Theory types
+
+| testTheory | Use when | Dashboard bucket |
+|---|---|---|
+| `MFT` | Core capability — if this fails, feature ships nothing | MFT |
+| `INV` | Perturbation that must NOT change output (case, punctuation, synonym, word order) | INV |
+| `DIR` | Adding more signal must shift output in a predictable direction | DIR |
+| `BVA` | Test at a defined numeric boundary — N must pass, N+1 must fail | Boundary |
+| `EQUIV` | One representative from an equivalence class | Scenario |
+| `FP` | Input that must NOT fire (false-positive guard) | Scenario |
+| `REGRESSION` | Input that previously failed in production or integration | Scenario |
+
+### AI integration tests (`test/integration/ai/`)
+
+```dart
+group('[MFT] featureName — description', () {
+  setUpAll(() {
+    AiAssertions.setContext(
+      testTheory: 'MFT',
+      contract: '<one sentence: what property holds across ALL inputs of this type>',
+      implication: '<one sentence: what a failure means for the USER, not the code>',
+    );
+  });
+  tearDownAll(AiAssertions.clearContext);
+});
+```
+
+### meal_memory tests (`test/meal_memory/invariance_test.dart`, `directional_test.dart`)
+
+```dart
+group('INV — ruleName', () {
+  setUpAll(() => _emitGroupHeader(
+    contract: '<property that must hold>',
+    implication: '<user-facing consequence of failure>',
+  ));
+});
+```
+
+### Scenario rows (`test/meal_memory/scenarios_test.dart`)
+
+```dart
+_Scenario('input text',
+  expectReferential: true,
+  testTheory: 'BVA',   // or EQUIV, FP, REGRESSION, INV
+  rationale: 'BVA: explain what boundary this tests and why it exists',
+),
+```
+
+**contract** — the invariant, not the procedure. "case mutations must not change output" not "this test checks that uppercase works".
+**implication** — user consequence. "user typing in caps silently gets no suggestion" not "assertion fails".
+**rationale** — why this specific input. "regression: first integration failure logged" or "BVA: same weekday as today → 7 not 0".
+
+### Verification check
+
+Before closing a probe session, scan for tests missing metadata:
+```bash
+# Find test groups in integration tests without setUpAll+setContext
+grep -n "group(" app/test/integration/ai/*.dart | grep -v "setUpAll" 
+# Find scenarios without rationale
+grep -n "_Scenario(" app/test/meal_memory/scenarios_test.dart | grep -v "rationale:"
+```
+
+Fix any gaps found.
+
 ## Layer probe protocols
 
 ### flutter layer
