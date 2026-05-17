@@ -41,7 +41,9 @@ int? _parseProtein(String snippet) {
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 void main() {
-  group('Macro tolerance checker', () {
+  // BVA: tolerance boundary is exactly 10.0% — 10.0 must pass, 10.1 must fail.
+  // If this logic is wrong the AI drift detector silently accepts bad macro estimates.
+  group('[BVA] Macro tolerance checker — boundary at exactly 10%', () {
     test('values within 10% pass', () {
       _assertWithinTolerance(450, 445);
       _assertWithinTolerance(450, 405); // exactly 10%
@@ -75,7 +77,9 @@ void main() {
     });
   });
 
-  group('Context snippet format', () {
+  // MFT: the context snippet format is the contract between MealMemoryService and
+  // the AI prompt. If the format drifts, the AI receives garbled macro values.
+  group('[MFT] Context snippet format — stored values reach the AI unchanged', () {
     // These tests verify that the snippet format produced by _formatMacros
     // (inside MealMemoryService) is parseable with exact values — i.e. the
     // numbers we stored are the numbers the AI receives.

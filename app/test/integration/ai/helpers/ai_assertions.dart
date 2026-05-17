@@ -7,6 +7,36 @@ import 'package:food_journal/services/ai_service.dart';
 /// All methods call expect() directly — AI output is non-deterministic so we
 /// test structural/relational invariants, never exact values.
 class AiAssertions {
+  // ─── Test theory context ────────────────────────────────────────────────────
+  // Set once per group via setContext() in setUpAll(). Automatically included
+  // in every _emit() call so reports can filter by theory type without changing
+  // individual test assertions.
+
+  static String? _testTheory;
+  static String? _contract;
+  static String? _implication;
+
+  /// Call in setUpAll() to tag all assertions in a group with their theory type.
+  /// testTheory: MFT | INV | DIR | BVA | EQUIV
+  /// contract: one-line invariant being tested
+  /// implication: what a failure means for the user
+  static void setContext({
+    required String testTheory,
+    required String contract,
+    String? implication,
+  }) {
+    _testTheory = testTheory;
+    _contract = contract;
+    _implication = implication;
+  }
+
+  /// Call in tearDownAll() to prevent context bleed between groups.
+  static void clearContext() {
+    _testTheory = null;
+    _contract = null;
+    _implication = null;
+  }
+
   // ─── MealParseResult ────────────────────────────────────────────────────────
 
   /// Core schema: success=true, title populated, ≥1 food item, all names non-empty,
@@ -148,7 +178,13 @@ class AiAssertions {
 
   static void _emit(Map<String, dynamic> data) =>
       // ignore: avoid_print
-      print(jsonEncode({'type': 'test_output', ...data}));
+      print(jsonEncode({
+        'type': 'test_output',
+        if (_testTheory != null) 'testTheory': _testTheory,
+        if (_contract != null) 'contract': _contract,
+        if (_implication != null) 'implication': _implication,
+        ...data,
+      }));
 
   static void _assertNonNegativeOrNull(double? value, String field, String itemName) {
     if (value != null) {

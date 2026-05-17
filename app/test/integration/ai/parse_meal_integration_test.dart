@@ -32,9 +32,18 @@ void main() {
   });
 
   // ── Schema invariants ──────────────────────────────────────────────────────
+  // MFT: binary oracle — if these fail the feature ships nothing.
   // Verify output structure holds for any valid input regardless of AI estimates.
 
-  group('parseMeal — schema invariants', () {
+  group('[MFT] parseMeal — schema invariants', () {
+    setUpAll(() {
+      AiAssertions.setContext(
+        testTheory: 'MFT',
+        contract: 'success=true, title populated, ≥1 item, all names non-empty, macros ≥0',
+        implication: 'meal parsing returns unusable data to the UI for any well-formed input',
+      );
+    });
+    tearDownAll(AiAssertions.clearContext);
     test(
       'simple breakfast: title populated, ≥1 item, all names non-empty, macros non-negative',
       () async {
@@ -75,9 +84,18 @@ void main() {
   });
 
   // ── Semantic assertions ────────────────────────────────────────────────────
+  // MFT: nutritional direction must be correct for inputs with unambiguous macro profiles.
   // Verify that value-level relationships hold for inputs with clear nutritional profiles.
 
-  group('parseMeal — semantic assertions', () {
+  group('[MFT] parseMeal — semantic assertions', () {
+    setUpAll(() {
+      AiAssertions.setContext(
+        testTheory: 'MFT',
+        contract: 'nutritional relationships (protein > fat, total calories > threshold) hold for canonical inputs',
+        implication: 'AI macro estimates are directionally wrong for common foods',
+      );
+    });
+    tearDownAll(AiAssertions.clearContext);
     test(
       'protein shake: protein > fat for whey + milk input',
       () async {
@@ -106,14 +124,22 @@ void main() {
   });
 
   // ── Temporal reference resolution ─────────────────────────────────────────
-  // Verify that mealContext injection enables temporal reference resolution.
+  // DIR: adding context must shift AI output toward stored meal values (not away).
   // This tests the client-side context prepend in WorkerAiService (worker_ai_service.dart:33).
   //
   // Format the Worker's parse_meal prompt expects:
   //   "Recent meals:\n...\n\nUser input: <text>"
   // WorkerAiService builds this by prepending mealContext verbatim.
 
-  group('parseMeal — temporal reference resolution', () {
+  group('[DIR] parseMeal — temporal reference resolution', () {
+    setUpAll(() {
+      AiAssertions.setContext(
+        testTheory: 'DIR',
+        contract: 'mealContext injection must cause temporal references to resolve toward stored history, not away',
+        implication: 'context injection does nothing — "same as last night" returns unrelated food instead of stored meal',
+      );
+    });
+    tearDownAll(AiAssertions.clearContext);
     test(
       'with context: "same as last night" resolves to non-empty foods from history',
       () async {
@@ -172,9 +198,69 @@ void main() {
     );
   });
 
-  // ── Edge cases ─────────────────────────────────────────────────────────────
+  // ── INV: synonym phrasing ──────────────────────────────────────────────────
+  // INV: different phrasings of the same food must both return schema-valid results.
+  // Phrasing variation (word order, prep-before vs prep-after) must not break parsing.
 
-  group('parseMeal — edge cases', () {
+  group('[INV] parseMeal — synonym phrasing invariance', () {
+    setUpAll(() {
+      AiAssertions.setContext(
+        testTheory: 'INV',
+        contract: 'reordering or rephrasing the same food description must not break the schema or drop items',
+        implication: 'users who describe food differently than the prompt expects silently lose meal data',
+      );
+    });
+    tearDownAll(AiAssertions.clearContext);
+
+    test(
+      '"scrambled eggs on toast" vs "eggs, scrambled, on toast": both schema valid, ≥1 item',
+      () async {
+        final r1 = await ai.parseMeal(
+          text: 'scrambled eggs on toast',
+          mealType: 'breakfast',
+        );
+        final r2 = await ai.parseMeal(
+          text: 'eggs, scrambled, on toast',
+          mealType: 'breakfast',
+        );
+        AiAssertions.mealSchema(r1);
+        AiAssertions.mealSchema(r2);
+        AiAssertions.mealMinItems(r1, 1);
+        AiAssertions.mealMinItems(r2, 1);
+      },
+      skip: _skip,
+    );
+
+    test(
+      '"grilled chicken breast with salad" vs "chicken breast, grilled, with salad": both schema valid',
+      () async {
+        final r1 = await ai.parseMeal(
+          text: 'grilled chicken breast with salad',
+          mealType: 'lunch',
+        );
+        final r2 = await ai.parseMeal(
+          text: 'chicken breast, grilled, with salad',
+          mealType: 'lunch',
+        );
+        AiAssertions.mealSchema(r1);
+        AiAssertions.mealSchema(r2);
+      },
+      skip: _skip,
+    );
+  });
+
+  // ── Edge cases ─────────────────────────────────────────────────────────────
+  // BVA: boundary inputs (empty, null) must return structured failure, not crash.
+
+  group('[BVA] parseMeal — edge cases', () {
+    setUpAll(() {
+      AiAssertions.setContext(
+        testTheory: 'BVA',
+        contract: 'empty or null input returns success=false with errorMessage, not an exception',
+        implication: 'empty input causes an unhandled exception in the app',
+      );
+    });
+    tearDownAll(AiAssertions.clearContext);
     test(
       'empty text returns success=false with errorMessage',
       () async {

@@ -114,22 +114,49 @@ foreach ($line in $rawLines) {
 }
 
 # ── Classify by contract type ──────────────────────────────────────────────────
+# Priority 1: testOutput.testTheory (set by ai-scout enrichment)
+# Priority 2: [XXX] bracket prefix in group name
+# Priority 3: legacy regex fallback (for un-enriched tests)
 
 function Get-ContractType {
-    param([string]$groupName, [string]$testName)
+    param([hashtable]$t)
+    $groupName = $t.groupName
+    $testName  = $t.name
+
+    # Priority 1: enriched testOutput.testTheory
+    if ($t.testOutput -and $t.testOutput.testTheory) {
+        switch ($t.testOutput.testTheory) {
+            'MFT'        { return 'MFT'      }
+            'INV'        { return 'INV'      }
+            'DIR'        { return 'DIR'      }
+            'BVA'        { return 'Boundary' }
+            'EQUIV'      { return 'Scenario' }
+            'FP'         { return 'Scenario' }
+            'REGRESSION' { return 'Scenario' }
+        }
+    }
+
+    # Priority 2: [XXX] bracket prefix in group name
+    if ($groupName -match '^\[(\w+)\]') {
+        switch ($Matches[1].ToUpper()) {
+            'MFT' { return 'MFT'      }
+            'INV' { return 'INV'      }
+            'DIR' { return 'DIR'      }
+            'BVA' { return 'Boundary' }
+        }
+    }
+
+    # Priority 3: legacy regex fallback
     switch -Regex ($groupName) {
-        'isReferential|smoke|new rules|MFT|buildContextSnippet|Context snippet|buildQuerySpec' { return 'MFT' }
+        'isReferential|smoke|new rules|buildContextSnippet|Context snippet|buildQuerySpec' { return 'MFT' }
         'invarianc|INV|schema invariants' { return 'INV' }
-        'no-inference' { return 'INV' }
+        'no-inference'                   { return 'INV' }
         'confidence' {
-            # Exact numeric assertions (= N.N) are boundary specs.
-            # Directional comparisons (> something) are true DIR tests.
             if ($testName -match '>\s*\w') { return 'DIR' }
             return 'Boundary'
         }
         'direction|DIR|semantic assertions' { return 'DIR' }
         'boundary|resolveNamed|priority bound|Macro tolerance' { return 'Boundary' }
-        'temporal reference|edge cases' { return 'Scenario' }
         default { return 'Scenario' }
     }
 }
@@ -141,17 +168,21 @@ $realTests = @($tests.Values | Where-Object {
 })
 
 $items = @($realTests | ForEach-Object {
-    $ct = Get-ContractType $_.groupName $_.name
+    $ct  = Get-ContractType $_
+    $out = $_.testOutput
     @{
-        id         = $_.id
-        name       = $_.name
-        group      = $_.groupName
-        file       = $_.filePath
-        status     = $_.status
-        durationMs = $_.durationMs
-        tags       = @($ct)
-        failure    = $_.error
-        testOutput = $_.testOutput
+        id          = $_.id
+        name        = $_.name
+        group       = $_.groupName
+        file        = $_.filePath
+        status      = $_.status
+        durationMs  = $_.durationMs
+        tags        = @($ct)
+        failure     = $_.error
+        testOutput  = $out
+        contract    = if ($out) { $out.contract }    else { $null }
+        implication = if ($out) { $out.implication } else { $null }
+        rationale   = if ($out) { $out.rationale }   else { $null }
     }
 })
 

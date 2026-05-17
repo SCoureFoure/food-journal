@@ -32,8 +32,17 @@ void main() {
   });
 
   // ── Schema invariants ──────────────────────────────────────────────────────
+  // MFT: binary oracle — if these fail the feature ships nothing.
 
-  group('parseMedication — schema invariants', () {
+  group('[MFT] parseMedication — schema invariants', () {
+    setUpAll(() {
+      AiAssertions.setContext(
+        testTheory: 'MFT',
+        contract: 'success=true, name populated, dose null or > 0 for any well-formed input',
+        implication: 'medication parsing returns unusable data for any valid input',
+      );
+    });
+    tearDownAll(AiAssertions.clearContext);
     test(
       'well-formed input: success=true, name populated, dose > 0',
       () async {
@@ -54,9 +63,18 @@ void main() {
   });
 
   // ── Semantic assertions ────────────────────────────────────────────────────
-  // Verify that explicitly stated values are parsed correctly.
+  // MFT: explicitly stated name/dose/unit must be extracted exactly.
+  // Zero tolerance oracle: medication dose is safety-critical — no approximation.
 
-  group('parseMedication — semantic assertions', () {
+  group('[MFT] parseMedication — semantic assertions', () {
+    setUpAll(() {
+      AiAssertions.setContext(
+        testTheory: 'MFT',
+        contract: 'explicitly stated name, dose, and unit must be extracted exactly — zero tolerance for dose values',
+        implication: 'medication dose errors are safety-critical: wrong dose stored in DB',
+      );
+    });
+    tearDownAll(AiAssertions.clearContext);
     test(
       'Metformin 500mg: name contains "metformin", dose=500, unit="mg"',
       () async {
@@ -96,13 +114,20 @@ void main() {
   });
 
   // ── No-inference rule ──────────────────────────────────────────────────────
-  // The parse_medication prompt explicitly states:
-  //   "Do NOT estimate, assume, or infer any field. If not explicitly provided, return null."
-  //   "route: ONLY if explicitly stated; null if not mentioned — do NOT assume 'oral'"
-  //
-  // These tests enforce that constraint is not violated by the model.
+  // INV (behavioral): the no-inference contract is an invariant across all inputs.
+  // Prompt states: "Do NOT estimate, assume, or infer any field. If not explicitly
+  // provided, return null." and "route: ONLY if explicitly stated — do NOT assume oral."
+  // These tests verify the model does not drift from that contract.
 
-  group('parseMedication — no-inference rule', () {
+  group('[INV] parseMedication — no-inference rule', () {
+    setUpAll(() {
+      AiAssertions.setContext(
+        testTheory: 'INV',
+        contract: 'fields not explicitly stated in input must be null — model must never infer dose or route',
+        implication: 'model infers a default route or dose, corrupting records with fabricated values',
+      );
+    });
+    tearDownAll(AiAssertions.clearContext);
     test(
       'name only (no dose): dose=null, route=null',
       () async {
@@ -142,9 +167,145 @@ void main() {
     );
   });
 
-  // ── Edge cases ─────────────────────────────────────────────────────────────
+  // ── Word-order invariance ──────────────────────────────────────────────────
+  // INV: input phrasing variation (word order, case) must not change dose/unit.
+  // Medication dose is safety-critical — "500mg ibuprofen" and "ibuprofen 500mg"
+  // must produce identical structured output.
 
-  group('parseMedication — edge cases', () {
+  group('[INV] parseMedication — word-order and case invariance', () {
+    setUpAll(() {
+      AiAssertions.setContext(
+        testTheory: 'INV',
+        contract: 'word order and case must not change name, dose, or unit — "500mg drug" == "drug 500mg"',
+        implication: 'users who phrase medication differently get wrong dose stored — safety-critical failure',
+      );
+    });
+    tearDownAll(AiAssertions.clearContext);
+
+    test(
+      '"ibuprofen 500mg" vs "500mg ibuprofen": same dose and unit',
+      () async {
+        final forward = await ai.parseMedication(text: 'ibuprofen 500mg');
+        final reversed = await ai.parseMedication(text: '500mg ibuprofen');
+        AiAssertions.medicationSchema(forward);
+        AiAssertions.medicationSchema(reversed);
+        AiAssertions.medicationDose(forward, 500);
+        AiAssertions.medicationDose(reversed, 500);
+        AiAssertions.medicationUnit(forward, 'mg');
+        AiAssertions.medicationUnit(reversed, 'mg');
+      },
+      skip: _skip,
+    );
+
+    test(
+      '"Metformin 500mg" vs "500mg Metformin": same dose regardless of name-first vs dose-first',
+      () async {
+        final forward = await ai.parseMedication(text: 'Metformin 500mg');
+        final reversed = await ai.parseMedication(text: '500mg Metformin');
+        AiAssertions.medicationSchema(forward);
+        AiAssertions.medicationSchema(reversed);
+        AiAssertions.medicationDose(forward, 500);
+        AiAssertions.medicationDose(reversed, 500);
+      },
+      skip: _skip,
+    );
+
+    test(
+      '"IBUPROFEN 500MG" vs "ibuprofen 500mg": case must not affect dose or unit',
+      () async {
+        final upper = await ai.parseMedication(text: 'IBUPROFEN 500MG');
+        final lower = await ai.parseMedication(text: 'ibuprofen 500mg');
+        AiAssertions.medicationSchema(upper);
+        AiAssertions.medicationSchema(lower);
+        AiAssertions.medicationDose(upper, 500);
+        AiAssertions.medicationDose(lower, 500);
+        AiAssertions.medicationUnit(upper, 'mg');
+        AiAssertions.medicationUnit(lower, 'mg');
+      },
+      skip: _skip,
+    );
+  });
+
+  // ── Boundary value analysis ────────────────────────────────────────────────
+  // BVA: extreme or ambiguous inputs must not crash the parser.
+  // Dose=0, extreme doses, and food/drug ambiguity are the known boundary cases.
+
+  group('[BVA] parseMedication — boundary values', () {
+    setUpAll(() {
+      AiAssertions.setContext(
+        testTheory: 'BVA',
+        contract: 'extreme or edge-case inputs must return a structured result (success or failure) — never crash',
+        implication: 'malformed input causes an unhandled exception instead of a graceful error message',
+      );
+    });
+    tearDownAll(AiAssertions.clearContext);
+
+    test(
+      '"Metformin 0mg": dose=0 is medically invalid — success=false or dose not positive',
+      () async {
+        final r = await ai.parseMedication(text: 'Metformin 0mg');
+        expect(r, isNotNull);
+        if (r.success) {
+          // If model accepts it, dose must not be recorded as a positive value
+          expect(
+            r.dose == null || r.dose! <= 0,
+            isTrue,
+            reason: 'dose=0 is not a valid medication dose; model must not return a positive dose for "0mg" input',
+          );
+        } else {
+          expect(r.errorMessage, isNotNull);
+        }
+      },
+      skip: _skip,
+    );
+
+    test(
+      '"Aspirin 50000mg": extreme dose — parses without crash, dose extracted if successful',
+      () async {
+        final r = await ai.parseMedication(text: 'Aspirin 50000mg');
+        expect(r, isNotNull,
+            reason: 'extreme dose must return a structured result, not throw');
+        if (r.success) {
+          AiAssertions.medicationDose(r, 50000);
+          AiAssertions.medicationUnit(r, 'mg');
+        } else {
+          expect(r.errorMessage, isNotNull);
+        }
+      },
+      skip: _skip,
+    );
+
+    test(
+      '"Ginger root 500mg capsule": food/drug ambiguity — graceful result either way',
+      () async {
+        // Ginger root is both a food and a supplement. The model may succeed or
+        // return failure. Either is acceptable — what is not acceptable is a crash.
+        final r = await ai.parseMedication(text: 'Ginger root 500mg capsule');
+        expect(r, isNotNull,
+            reason: 'ambiguous food/drug input must return structured result, not throw');
+        if (r.success) {
+          expect(r.name, isNotEmpty,
+              reason: 'on success, name must be populated');
+        } else {
+          expect(r.errorMessage, isNotNull);
+        }
+      },
+      skip: _skip,
+    );
+  });
+
+  // ── Edge cases ─────────────────────────────────────────────────────────────
+  // BVA: null and empty are the hard boundary — must return failure, not crash.
+
+  group('[BVA] parseMedication — null and empty input', () {
+    setUpAll(() {
+      AiAssertions.setContext(
+        testTheory: 'BVA',
+        contract: 'null or empty input returns success=false with errorMessage — never crashes',
+        implication: 'empty submit from the UI causes an unhandled exception',
+      );
+    });
+    tearDownAll(AiAssertions.clearContext);
     test(
       'empty text returns success=false with errorMessage',
       () async {

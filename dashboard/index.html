@@ -392,7 +392,7 @@
   <!-- Generative contract metrics -->
   <div class="section-card" id="gm-card" style="display:none">
     <div class="section-head ai-accent" onclick="toggleSection('gm-body',this)">
-      AI · Generative Contract Coverage
+      <span id="gm-card-title">AI Layer · Generative Contract Coverage</span>
       <span class="toggle">▲</span>
     </div>
     <div class="section-body" id="gm-body"></div>
@@ -547,8 +547,9 @@ function selectLayer(layer) {
   activeTests  = (latest && Array.isArray(latest.tests)) ? latest.tests : [];
 
   const gmCard = document.getElementById('gm-card');
-  if (layer === 'ai' && latest && latest.generativeMetrics) {
+  if (latest && latest.generativeMetrics) {
     renderGenMetrics(latest.generativeMetrics);
+    document.getElementById('gm-card-title').textContent = LAYER_META[layer].label + ' · Generative Contract Coverage';
     gmCard.style.display = 'block';
   } else {
     gmCard.style.display = 'none';
@@ -768,12 +769,15 @@ function buildDetailHTML(t) {
   const tagCls  = ['MFT','INV','DIR','Boundary','Scenario'].includes(tag) ? 'tag-' + tag : '';
   const stCls   = t.status === 'pass' ? 'status-pass' : t.status === 'fail' ? 'status-fail' : 'status-skip';
   const stLabel = t.status === 'pass' ? 'PASS' : t.status === 'fail' ? 'FAIL' : 'SKIP';
-  const ctMeta  = CONTRACT_META[tag.toLowerCase()] || CONTRACT_META.scenario;
-  const grpCtx  = GROUP_CONTEXT[t.group || ''] || {
-    what: t.group || 'See test file for full context',
-    validates: ctMeta.label + ' — ' + (ctMeta.desc || ''),
+  const ctMeta     = CONTRACT_META[tag.toLowerCase()] || CONTRACT_META.scenario;
+  // Strip [INV] / [MFT] etc. prefix so prefixed group names still hit GROUP_CONTEXT
+  const normGroup  = (t.group || '').replace(/^\[\w+\]\s*/, '');
+  const grpCtxRaw  = GROUP_CONTEXT[t.group || ''] || GROUP_CONTEXT[normGroup] || {};
+  const grpCtx     = {
+    what:      t.contract || grpCtxRaw.what || t.group || 'See test file for full context',
+    validates: grpCtxRaw.validates || (ctMeta.label + ' — ' + (ctMeta.desc || '')),
   };
-  const file    = relPath(t.file);
+  const file       = relPath(t.file);
 
   let html = `
     <div class="detail-header">
@@ -796,7 +800,9 @@ function buildDetailHTML(t) {
       <div class="ds-context-box">
         <div class="ds-context-what">${esc(grpCtx.what)}</div>
         <div class="ds-context-val">${esc(grpCtx.validates)}</div>
-        ${ctMeta.sev && t.status === 'fail'
+        ${t.status === 'fail' && t.implication
+          ? `<div style="margin-top:8px;font-size:11px;font-weight:600;color:var(--red)">⚠ User impact: ${esc(t.implication)}</div>`
+          : t.status === 'fail' && ctMeta.sev
           ? `<div style="margin-top:8px;font-size:10px;font-weight:700;color:${sevColor}">⚠ ${esc(ctMeta.sevLabel)}</div>`
           : ctMeta.sev
           ? `<div style="margin-top:8px;font-size:10px;color:var(--green)">✓ Contract honored</div>`
@@ -857,6 +863,17 @@ function buildDetailHTML(t) {
       <div class="ds">
         <div class="ds-label">Output</div>
         <div class="ds-output-pass">✓&nbsp;&nbsp;${esc(info.assertion)}</div>
+      </div>`;
+  }
+
+  // Why this test — shows rationale when ai-scout enriched the test
+  if (t.testOutput && t.testOutput.rationale) {
+    html += `
+      <div class="ds">
+        <div class="ds-label">Why This Test Exists</div>
+        <div class="ds-context-box">
+          <div class="ds-context-val" style="font-style:italic">${esc(t.testOutput.rationale)}</div>
+        </div>
       </div>`;
   }
 

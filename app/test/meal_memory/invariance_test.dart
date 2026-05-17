@@ -17,6 +17,26 @@ import 'package:food_journal/services/meal_memory/reference_engine.dart';
 
 final kToday = DateTime(2026, 5, 14); // Thursday
 
+// Module-level context set by _emitGroupHeader in each group's setUpAll.
+// Included in every _spec() print so reports can filter by theory type.
+String _activeContract = '';
+String _activeImplication = '';
+
+void _emitGroupHeader({
+  required String contract,
+  required String implication,
+}) {
+  _activeContract = contract;
+  _activeImplication = implication;
+  // ignore: avoid_print
+  print(jsonEncode(<String, Object?>{
+    'type': 'test_group_header',
+    'testTheory': 'INV',
+    'contract': contract,
+    'implication': implication,
+  }));
+}
+
 MealQuerySpec _spec(String input) {
   final p = detectReferences(input, mealRules,
       temporalKeys: temporalKeys, mealTypeKeys: mealTypeKeys);
@@ -24,6 +44,9 @@ MealQuerySpec _spec(String input) {
   // ignore: avoid_print
   print(jsonEncode(<String, Object?>{
     'type': 'test_output',
+    'testTheory': 'INV',
+    if (_activeContract.isNotEmpty) 'contract': _activeContract,
+    if (_activeImplication.isNotEmpty) 'implication': _activeImplication,
     'input': input,
     'hasTemporalRef': p.hasTemporalRef,
     'firedKeys': List<String>.from(p.firedKeys),
@@ -89,6 +112,10 @@ void main() {
   // ── isReferential — case, punctuation, whitespace invariance ─────────────
 
   group('INV — isReferential', () {
+    setUpAll(() => _emitGroupHeader(
+      contract: 'case, punctuation, and whitespace mutations must not change isReferential or dateOffset',
+      implication: 'users typing in caps or with typos silently get no meal memory suggestion',
+    ));
     test('UPPER / Title / mIxEd all fire identically to lowercase', () {
       const canonical = 'leftovers from last night';
       _assertInvariant(
@@ -165,6 +192,10 @@ void main() {
   // ── INV — leftovers rule group ───────────────────────────────────────────
 
   group('INV — leftovers', () {
+    setUpAll(() => _emitGroupHeader(
+      contract: 'all leftovers seed patterns must produce identical output regardless of case or synonym used',
+      implication: 'a leftover phrasing variant fails silently — user gets no suggestion for that input',
+    ));
     test('all leftovers seed patterns fire with offset=1', () {
       // All patterns within the leftovers rule should detect as referential
       // and resolve to offset=1 (the default leftover dateOffset).
@@ -210,6 +241,10 @@ void main() {
   // ── INV — yesterday / last_night rule group ──────────────────────────────
 
   group('INV — yesterday/last_night', () {
+    setUpAll(() => _emitGroupHeader(
+      contract: 'all yesterday synonyms must resolve to dateOffset=1 regardless of case or punctuation',
+      implication: 'a yesterday phrasing variant resolves to wrong date — meal lookup returns wrong day',
+    ));
     test('yesterday: case and punctuation invariant', () {
       _assertInvariant(
         'yesterday',
@@ -266,6 +301,10 @@ void main() {
   // ── INV — named_day rule group ───────────────────────────────────────────
 
   group('INV — named_day', () {
+    setUpAll(() => _emitGroupHeader(
+      contract: 'named day resolution must not change with case or trailing punctuation',
+      implication: 'capitalised weekday ("Monday") resolves to wrong date — meal lookup misses by days',
+    ));
     test('monday: case invariant → offset 3', () {
       // kToday = Thursday May 14; Monday May 11 = 3 days ago
       _assertInvariant(
@@ -310,6 +349,10 @@ void main() {
   // ── INV — same_as_before rule group ─────────────────────────────────────
 
   group('INV — same_as_before', () {
+    setUpAll(() => _emitGroupHeader(
+      contract: 'same_as_before triggers must set matchRecent=true regardless of case, punctuation, or whitespace',
+      implication: 'capitalised or punctuated "Again" / "The Usual" silently skips the recent-meal lookup',
+    ));
     test('again: case and punctuation invariant → matchRecent', () {
       _assertInvariant(
         'had that again',
@@ -398,6 +441,10 @@ void main() {
   // ── INV — days_ago rule group ────────────────────────────────────────────
 
   group('INV — days_ago', () {
+    setUpAll(() => _emitGroupHeader(
+      contract: 'days_ago synonyms must resolve to offset=3 regardless of case or punctuation',
+      implication: 'a days_ago variant resolves to wrong offset — lookup targets wrong week',
+    ));
     test('a few days ago: case and punctuation invariant → offset 3', () {
       _assertInvariant(
         'a few days ago',
@@ -455,6 +502,10 @@ void main() {
   // ── INV — this_morning rule group ────────────────────────────────────────
 
   group('INV — this_morning', () {
+    setUpAll(() => _emitGroupHeader(
+      contract: 'this_morning synonyms must resolve to offset=0 (same day) regardless of case or punctuation',
+      implication: '"This Morning" resolves to wrong day — lookup targets yesterday instead of today',
+    ));
     test('this morning: case and punctuation invariant → offset 0', () {
       _assertInvariant(
         'this morning I had oatmeal',
@@ -498,6 +549,10 @@ void main() {
   // ── INV — synonym seeds produce identical buildQuerySpec output ──────────
 
   group('INV — synonym seeds (same rule key → same spec)', () {
+    setUpAll(() => _emitGroupHeader(
+      contract: 'all seeds within a rule group must produce identical buildQuerySpec output',
+      implication: 'a seed variant produces a different spec — users with that phrasing get different (wrong) lookup behavior',
+    ));
     test('leftovers synonyms all yield offset=1, isLeftover=true', () {
       // All of these fire the leftovers rule key — specs must be equivalent.
       final seeds = [

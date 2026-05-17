@@ -16,6 +16,26 @@ import 'package:food_journal/services/meal_memory/reference_engine.dart';
 
 final kToday = DateTime(2026, 5, 14); // Thursday
 
+// Module-level context set by each group's setUpAll. Included in _spec() output
+// so reports can show which directional contract each data point validates.
+String _activeContract = '';
+String _activeImplication = '';
+
+void _emitGroupHeader({
+  required String contract,
+  required String implication,
+}) {
+  _activeContract = contract;
+  _activeImplication = implication;
+  // ignore: avoid_print
+  print(jsonEncode(<String, Object?>{
+    'type': 'test_group_header',
+    'testTheory': 'DIR',
+    'contract': contract,
+    'implication': implication,
+  }));
+}
+
 MealQuerySpec _spec(String input) {
   final p = detectReferences(input, mealRules,
       temporalKeys: temporalKeys, mealTypeKeys: mealTypeKeys);
@@ -23,6 +43,9 @@ MealQuerySpec _spec(String input) {
   // ignore: avoid_print
   print(jsonEncode(<String, Object?>{
     'type': 'test_output',
+    'testTheory': 'DIR',
+    if (_activeContract.isNotEmpty) 'contract': _activeContract,
+    if (_activeImplication.isNotEmpty) 'implication': _activeImplication,
     'input': input,
     'hasTemporalRef': p.hasTemporalRef,
     'firedKeys': List<String>.from(p.firedKeys),
@@ -38,6 +61,11 @@ MealQuerySpec _spec(String input) {
 
 void main() {
   group('DIR — directional contracts', () {
+    setUpAll(() => _emitGroupHeader(
+      contract: 'adding a more specific signal must shift output in the expected direction — never opposite',
+      implication: 'adding a named day still returns matchRecent=true, or adding meal type removes temporal offset — lookup targets wrong records',
+    ));
+
     // ── Contract 1: Vague → specific day drops matchRecent, adds dateOffset ──
 
     test('vague input: "had that again" → matchRecent=true, dateOffset=null', () {

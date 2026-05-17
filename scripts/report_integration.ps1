@@ -114,15 +114,43 @@ foreach ($line in $rawLines) {
 }
 
 # ── Classify ───────────────────────────────────────────────────────────────────
+# Priority 1: testOutput.testTheory (set by ai-scout enrichment)
+# Priority 2: [XXX] bracket prefix in group name
+# Priority 3: legacy regex fallback
 
 function Get-ContractType {
-    param([string]$groupName, [string]$testName)
+    param([hashtable]$t)
+    $groupName = $t.groupName
+
+    # Priority 1: enriched testOutput.testTheory
+    if ($t.testOutput -and $t.testOutput.testTheory) {
+        switch ($t.testOutput.testTheory) {
+            'MFT'        { return 'MFT'      }
+            'INV'        { return 'INV'      }
+            'DIR'        { return 'DIR'      }
+            'BVA'        { return 'Boundary' }
+            'EQUIV'      { return 'Scenario' }
+            'FP'         { return 'Scenario' }
+            'REGRESSION' { return 'Scenario' }
+        }
+    }
+
+    # Priority 2: [XXX] bracket prefix in group name
+    if ($groupName -match '^\[(\w+)\]') {
+        switch ($Matches[1].ToUpper()) {
+            'MFT' { return 'MFT'      }
+            'INV' { return 'INV'      }
+            'DIR' { return 'DIR'      }
+            'BVA' { return 'Boundary' }
+        }
+    }
+
+    # Priority 3: legacy regex fallback
     switch -Regex ($groupName) {
-        'schema invariants'              { return 'INV' }
-        'no-inference'                   { return 'INV' }
-        'semantic assertions'            { return 'DIR' }
-        'temporal reference|edge cases'  { return 'Scenario' }
-        default                          { return 'Scenario' }
+        'schema invariants|semantic assertions' { return 'MFT'      }
+        'no-inference|invarianc|INV'            { return 'INV'      }
+        'temporal reference|edge cases'         { return 'Scenario' }
+        default                                 { return 'Scenario' }
     }
 }
 
@@ -131,17 +159,21 @@ $realTests = @($tests.Values | Where-Object {
 })
 
 $items = @($realTests | ForEach-Object {
-    $ct = Get-ContractType $_.groupName $_.name
+    $ct  = Get-ContractType $_
+    $out = $_.testOutput
     @{
-        id         = $_.id
-        name       = $_.name
-        group      = $_.groupName
-        file       = $_.filePath
-        status     = $_.status
-        durationMs = $_.durationMs
-        tags       = @($ct)
-        failure    = $_.error
-        testOutput = $_.testOutput
+        id          = $_.id
+        name        = $_.name
+        group       = $_.groupName
+        file        = $_.filePath
+        status      = $_.status
+        durationMs  = $_.durationMs
+        tags        = @($ct)
+        failure     = $_.error
+        testOutput  = $out
+        contract    = if ($out) { $out.contract }    else { $null }
+        implication = if ($out) { $out.implication } else { $null }
+        rationale   = if ($out) { $out.rationale }   else { $null }
     }
 })
 
@@ -164,8 +196,10 @@ function Get-CategoryMetrics {
 }
 
 $genMetrics = @{
+    mft      = Get-CategoryMetrics $items 'MFT'
     inv      = Get-CategoryMetrics $items 'INV'
     dir      = Get-CategoryMetrics $items 'DIR'
+    boundary = Get-CategoryMetrics $items 'Boundary'
     scenario = Get-CategoryMetrics $items 'Scenario'
 }
 
@@ -225,7 +259,7 @@ Write-Host ""
 $col = if ($rate -ge 0.9) { "Green" } elseif ($rate -ge 0.75) { "Yellow" } else { "Red" }
 Write-Host "Integration Layer (live fire): $passed/$total passed ($([math]::Round($rate * 100, 1))%)" -ForegroundColor $col
 
-foreach ($key in @('inv', 'dir', 'scenario')) {
+foreach ($key in @('mft', 'inv', 'dir', 'boundary', 'scenario')) {
     $m = $genMetrics[$key]
     if ($m.total -gt 0) {
         $vc = if ($m.violations -eq 0) { "Green" } else { "Red" }
