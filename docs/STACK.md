@@ -92,14 +92,15 @@ lib/
 
 | Package | Purpose | Notes |
 | ------- | ------- | ----- |
-| `drift` | SQLite ORM, type-safe queries | Adding fresh — no existing pattern |
-| `drift_flutter` | drift Flutter integration | Replaces sqlite3_flutter_libs |
-| `flutter_local_notifications` | Post-meal check-in | Adding fresh — no existing pattern |
-| `flutter_timezone` | Timezone for scheduled notifs | Required by flutter_local_notifications |
+| `drift` | SQLite ORM, type-safe queries | Schema v4; migrations in `app_database.dart` |
+| `drift_flutter` | drift Flutter integration | |
+| `flutter_local_notifications` | Post-entry check-in reminders | Pinned `^18.0.1`; v21+ requires Dart ≥3.10 |
+| `flutter_timezone` | Timezone for scheduled notifs | v5 returns `TimezoneInfo`; use `.identifier` |
 | `image_picker` | Camera + gallery access | |
-| `http` | Claude API HTTP calls | Match existing repo (not dio) |
-| `flutter_dotenv` | API key from `.env` | |
-| `share_plus` | OS share sheet for CSV/grocery export | |
+| `http` | Cloudflare Worker + Claude API calls | Not dio |
+| `flutter_dotenv` | API keys + config from `.env` | |
+| `share_plus` | OS share sheet for export | |
+| `shared_preferences` | AI toggle persistence | |
 | `intl` | Date/time formatting | |
 | `path_provider` | App documents directory | |
 
@@ -107,103 +108,57 @@ lib/
 
 ## AI Integration
 
-**Anthropic Claude API** — `claude-sonnet-4-6`
+Two implementations behind a common `AiService` abstract class.
 
-REST API via `http` package. No official Flutter SDK.
+### Primary — Cloudflare Worker (`WorkerAiService`)
+
+The app posts JSON to a Cloudflare Worker which calls Gemini server-side. The Gemini key never leaves the Worker — only the endpoint URL is in the app.
+
+`app/.env` (bundled into APK — no secrets here):
+
+```env
+MEAL_PARSER_URL=https://your-worker.workers.dev
+CHECKIN_DELAY_MINUTES=90
+```
 
 ```dart
-class AiService {
-  final _client = http.Client();
-  final _apiKey = dotenv.env['ANTHROPIC_API_KEY']!;
+class WorkerAiService implements AiService {
+  String get _resolvedUrl => dotenv.env['MEAL_PARSER_URL'] ?? '';
 
-  Future<MealParseResult> parseMeal({String? text, Uint8List? imageBytes}) async {
-    try {
-      final content = <Map<String, dynamic>>[];
-      if (imageBytes != null) {
-        content.add({
-          'type': 'image',
-          'source': {
-            'type': 'base64',
-            'media_type': 'image/jpeg',
-            'data': base64Encode(imageBytes),
-          }
-        });
-      }
-      if (text != null) content.add({'type': 'text', 'text': text});
-
-      final response = await _client.post(
-        Uri.parse('https://api.anthropic.com/v1/messages'),
-        headers: {
-          'x-api-key': _apiKey,
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json',
-        },
-        body: jsonEncode({
-          'model': 'claude-sonnet-4-6',
-          'max_tokens': 1024,
-          'system': _systemPrompt,
-          'messages': [{'role': 'user', 'content': content}],
-        }),
-      );
-
-      if (response.statusCode != 200) {
-        return MealParseResult(success: false, errorMessage: 'API error ${response.statusCode}');
-      }
-
-      final data = jsonDecode(response.body);
-      final json = jsonDecode(data['content'][0]['text'] as String);
-      return MealParseResult(success: true, items: _parseItems(json));
-    } catch (e) {
-      return MealParseResult(success: false, errorMessage: e.toString());
-    }
+  Future<MealParseResult> parseMeal({String? text, Uint8List? imageBytes, ...}) async {
+    final body = {'task': 'parse_meal', if (text != null) 'text': text, ...};
+    final response = await _client.post(Uri.parse(_resolvedUrl), body: jsonEncode(body));
+    // auto-retry once on 503
+    ...
   }
 }
 ```
 
-API key in `.env` (gitignored):
+### Fallback — Claude direct (`AiService.fromEnv()`)
 
-```
+Used only when `MEAL_PARSER_URL` is unset. `ANTHROPIC_API_KEY` is read from
+`Platform.environment` or the **repo-root `.env`** — never from `app/.env`.
+Putting `ANTHROPIC_API_KEY` in `app/.env` would bundle it into the compiled app binary.
+
+`.env` (repo root, gitignored, developer machine only):
+
+```env
 ANTHROPIC_API_KEY=sk-ant-...
-CHECKIN_DELAY_MINUTES=90
 ```
 
 ---
 
 ## Local Storage — drift
 
-Adding fresh. No existing pattern in reference repo to follow.
-
-Database file lives in app documents directory via `path_provider`.
+Database file lives in app documents directory via `path_provider`. Schema is at v4 with an explicit `MigrationStrategy` in `app_database.dart`.
 
 ---
 
 ## Notifications — flutter_local_notifications
 
-Adding fresh. Adding `flutter_timezone` alongside for `zonedSchedule` support.
+Uses `zonedSchedule` (requires `flutter_timezone`). Android 13+ requires runtime notification permission — prompted on first entry save.
 
-Android 13+ requires runtime notification permission request.
-
----
-
-## Environment Setup
-
-```bash
-flutter create food_journal --platforms android,ios
-cd food_journal
-
-# Core
-flutter pub add drift drift_flutter
-flutter pub add flutter_local_notifications flutter_timezone
-flutter pub add image_picker
-flutter pub add http
-flutter pub add flutter_dotenv
-flutter pub add share_plus
-flutter pub add intl
-flutter pub add path_provider
-
-# Dev
-flutter pub add --dev drift_dev build_runner
-```
+Pinned at `^18.0.1`; v21+ requires Dart ≥3.10 which this project does not meet.
 
 ---
 

@@ -95,107 +95,155 @@ lib/
 │   ├── food_item.dart
 │   ├── ingredient.dart
 │   ├── reaction_log.dart
-│   └── food_memory.dart
+│   ├── food_memory.dart
+│   └── medication.dart
 ├── services/
-│   ├── ai_service.dart          # Claude API calls (image + text → JSON)
-│   ├── storage_service.dart     # drift DB abstraction
+│   ├── ai_service.dart              # AiService interface + Claude direct impl
+│   ├── worker_ai_service.dart       # Cloudflare Worker / Gemini impl (primary)
+│   ├── storage_service.dart         # drift DB abstraction
 │   ├── notification_service.dart
-│   └── export_service.dart      # CSV + grocery list
+│   ├── export_service.dart
+│   ├── import_service.dart          # JSON import with dupe detection
+│   ├── settings_service.dart        # AI toggle (shared_preferences)
+│   ├── seed_service.dart            # debug seed data
+│   ├── database/
+│   │   ├── app_database.dart        # drift schema (v4) + migration strategy
+│   │   └── app_database.g.dart      # generated
+│   └── meal_memory/
+│       ├── meal_memory_service.dart # isReferential / buildContextSnippet / recordFingerprint
+│       ├── meal_reference_rules.dart # temporal + meal-type regex rules
+│       └── reference_engine.dart    # rule runner + confidence scoring + cache
 ├── screens/
-│   ├── home/                    # journal list, day/week nav
-│   ├── log_meal/                # text + photo input
-│   ├── meal_detail/             # view/edit single meal
-│   ├── checkin/                 # reaction check-in flow
-│   └── export/                  # export options
+│   ├── home/                        # week-grouped journal feed
+│   ├── log_meal/                    # text + photo input
+│   ├── log_medication/              # medication entry
+│   ├── meal_detail/                 # view/edit single meal
+│   ├── checkin/                     # reaction check-in (linked to meal or standalone)
+│   ├── export/                      # export options
+│   └── import/                      # import wizard
+├── utils/
+│   └── date_time_utils.dart
 └── widgets/
+    ├── home/                        # meal_tile, medication_tile, feeling_tile, week_summary_section
     ├── macro_totals_bar.dart
     ├── reaction_badge.dart
-    └── food_memory_card.dart
+    ├── food_memory_card.dart
+    └── ...
 ```
 
 ---
 
 ## Database Schema
 
-```
-┌─────────────────┐       ┌──────────────────┐
-│   meals         │       │   food_items      │
-├─────────────────┤       ├──────────────────┤
-│ id (PK)         │──┐    │ id (PK)           │
-│ date            │  └───▶│ meal_id (FK)      │
-│ time            │       │ name              │
-│ meal_type       │       │ portion           │
-│ raw_input       │       │ prep              │
-│ overall_symptoms│       │ calories          │
-│ created_at      │       │ protein           │
-└─────────────────┘       │ carbs             │
-                          │ fat               │
-                          │ reaction          │
-                          │ notes             │
-                          └──────┬───────────┘
-                                 │
-                    ┌────────────┘
-                    ▼
-          ┌──────────────────┐
-          │   ingredients    │
-          ├──────────────────┤
-          │ id (PK)          │
-          │ food_item_id (FK)│
-          │ name             │
-          │ quantity         │
-          │ unit             │
-          └──────────────────┘
+Schema version: **4**. Managed by drift with an explicit `MigrationStrategy`.
 
-┌─────────────────┐       ┌──────────────────┐
-│ reaction_logs   │       │  food_memory     │
-├─────────────────┤       ├──────────────────┤
-│ id (PK)         │       │ id (PK)          │
-│ meal_id (FK)    │       │ food_name        │
-│ checkin_time    │       │ reaction_pattern │
-│ symptoms (JSON) │       │ occurrences      │
-│ severity        │       │ last_seen        │
-│ notes           │       │ flagged          │
-└─────────────────┘       └──────────────────┘
-
-┌─────────────────┐       ┌──────────────────┐
-│  medications    │       │  body_outputs    │
-├─────────────────┤       ├──────────────────┤
-│ id (PK)         │       │ id (PK)          │
-│ date            │       │ date             │
-│ time            │       │ time             │
-│ name            │       │ output_type      │
-│ dose            │       │ urgency          │
-│ unit            │       │ consistency      │
-│ route           │       │ notes            │
-│ notes           │       │ created_at       │
-│ created_at      │       └──────────────────┘
-└─────────────────┘
 ```
+┌─────────────────────┐       ┌──────────────────────┐
+│   meals             │       │   food_items          │
+├─────────────────────┤       ├──────────────────────┤
+│ id (PK)             │──┐    │ id (PK)               │
+│ date                │  └───▶│ meal_id (FK → meals)  │
+│ time                │       │ name                  │
+│ meal_type           │       │ portion               │
+│ raw_input           │       │ prep                  │
+│ overall_symptoms    │       │ calories              │
+│ image_data (BLOB)   │       │ protein               │
+│ created_at          │       │ carbs                 │
+└─────────────────────┘       │ fat                   │
+                              │ reaction (int index)  │
+                              │ notes                 │
+                              └──────────┬────────────┘
+                                         │
+                             ┌───────────┘
+                             ▼
+                   ┌──────────────────────┐
+                   │   ingredients        │
+                   ├──────────────────────┤
+                   │ id (PK)              │
+                   │ food_item_id (FK)    │
+                   │ name                 │
+                   │ quantity             │
+                   │ unit                 │
+                   └──────────────────────┘
+
+┌──────────────────────┐       ┌──────────────────────┐
+│ reaction_logs        │       │  food_memories       │
+├──────────────────────┤       ├──────────────────────┤
+│ id (PK)              │       │ id (PK)              │
+│ meal_id (nullable FK)│       │ food_name (UNIQUE)   │
+│ checkin_time         │       │ reaction_pattern     │
+│ symptoms (JSON)      │       │ occurrences          │
+│ severity (int index) │       │ last_seen            │
+│ notes                │       │ flagged              │
+└──────────────────────┘       └──────────────────────┘
+  meal_id = null → standalone
+  "Feeling…" log (no linked meal)
+
+┌──────────────────────────────────────────────────────┐
+│  medications                                         │
+├──────────────────────────────────────────────────────┤
+│ id (PK)  date  time  name                           │
+│ dose  unit  route                                    │
+│ checkin_delay_minutes  raw_input  notes              │
+│ image_data (BLOB)  created_at                        │
+└──────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────┐
+│  meal_fingerprints   (rolling 40-row window)         │
+├──────────────────────────────────────────────────────┤
+│ id (PK)                                              │
+│ meal_id (FK → meals, ON DELETE CASCADE)              │
+│ date (ISO 8601 text)                                 │
+│ meal_type (nullable text)                            │
+│ foods_summary (text)                                 │
+│ total_cals  total_protein                            │
+│ created_at (Unix ms)                                 │
+│                                                      │
+│ INDEX: (date DESC)                                   │
+│ INDEX: (meal_type, date DESC)                        │
+└──────────────────────────────────────────────────────┘
+  Used by MealMemoryService to build context snippets
+  for temporal-referential prompts without full-history joins.
+```
+
+> **body_outputs** is NOT implemented. It is listed as a stretch feature in FEATURES.md.
 
 ---
 
 ## AI Service Flow
 
+Two implementations behind a common `AiService` interface:
+
+**WorkerAiService** (primary — `MEAL_PARSER_URL` in `.env`):
+
 ```
-logMeal(text?, imageBytes?) async
+parseMeal(text?, imageBytes?, mealType?, mealContext?) async
   │
-  ├─ Build prompt with system context + user input
+  ├─ MealMemoryService.isReferential(text)?
+  │    yes → buildContextSnippet() → prepend to text as mealContext
+  │
+  ├─ POST { task: "parse_meal", text?, image?, mealType? }
+  │    to Cloudflare Worker (Gemini backend)
+  │    auto-retry once on 503
+  │
+  ├─ Parse JSON response { foods: [...], title: "..." }
+  │
+  └─ return MealParseResult
+```
+
+**AiService** (fallback — `ANTHROPIC_API_KEY` in `.env`):
+
+```
+parseMeal(text?, imageBytes?) async
   │
   ├─ POST to Claude API (claude-sonnet-4-6)
   │    content: [image block?, text block]
-  │    system: meal parsing instructions + JSON schema
+  │    system: meal parsing instructions + strict JSON schema
   │
-  ├─ Parse JSON response
-  │
-  └─ return List<FoodItemDraft>
+  └─ return MealParseResult
 ```
 
-### System prompt strategy
-
-- Instruct Claude to return strict JSON only (no markdown wrapper)
-- Include portion estimation guidelines
-- Include common ingredient extraction rules
-- Gracefully handle partial info (estimate where unclear, flag as estimated)
+Both return `MealParseResult(success, items, title)`. Screens call whichever is configured; if AI is toggled off in Settings, neither is called.
 
 ---
 
