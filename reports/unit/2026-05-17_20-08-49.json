@@ -1,0 +1,1503 @@
+﻿{
+    "meta":  {
+                 "run_id":  "unit_2026-05-17_20-08-49",
+                 "layer":  "unit",
+                 "timestamp":  "2026-05-17T20:08:57.9250946-04:00",
+                 "durationMs":  6061,
+                 "runner":  "flutter-test",
+                 "exitCode":  0,
+                 "label":  ""
+             },
+    "summary":  {
+                    "total":  91,
+                    "passed":  91,
+                    "failed":  0,
+                    "skipped":  0,
+                    "passRate":  1
+                },
+    "generativeMetrics":  {
+                              "scenario":  {
+                                               "violations":  0,
+                                               "total":  6,
+                                               "passed":  6
+                                           },
+                              "inv":  {
+                                          "violations":  0,
+                                          "total":  8,
+                                          "passed":  8
+                                      },
+                              "mft":  {
+                                          "violations":  0,
+                                          "total":  46,
+                                          "passed":  46
+                                      },
+                              "boundary":  {
+                                               "violations":  0,
+                                               "total":  31,
+                                               "passed":  31
+                                           },
+                              "dir":  {
+                                          "violations":  0,
+                                          "total":  0,
+                                          "passed":  0
+                                      }
+                          },
+    "tests":  [
+                  {
+                      "failure":  null,
+                      "id":  "165",
+                      "durationMs":  6038,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] SymptomsBanner ΓÇö boundary renders with empty symptoms string without error",
+                      "implication":  null,
+                      "group":  "[BVA] SymptomsBanner ΓÇö boundary",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "142",
+                      "durationMs":  5279,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] MacroTotalsBar ΓÇö boundary renders with all-zero values without error",
+                      "implication":  null,
+                      "group":  "[BVA] MacroTotalsBar ΓÇö boundary",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "154",
+                      "durationMs":  5731,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] MedicationTile ΓÇö null fields null route omitted from subtitle",
+                      "implication":  null,
+                      "group":  "[BVA] MedicationTile ΓÇö null fields",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "77",
+                      "durationMs":  3052,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] ImportSelection.totalCount ΓÇö boundary zero when all sets are empty",
+                      "implication":  null,
+                      "group":  "[BVA] ImportSelection.totalCount ΓÇö boundary",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "162",
+                      "durationMs":  5996,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] SymptomsBanner renders flag icon",
+                      "implication":  null,
+                      "group":  "[MFT] SymptomsBanner",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "117",
+                      "durationMs":  4565,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] ErrorBanner ΓÇö boundary renders empty string without error",
+                      "implication":  null,
+                      "group":  "[BVA] ErrorBanner ΓÇö boundary",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "20",
+                      "durationMs":  2029,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ImportService.parseJson parses food memories",
+                      "implication":  null,
+                      "group":  "[MFT] ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "49",
+                      "durationMs":  2455,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs name with special characters is preserved",
+                      "implication":  null,
+                      "group":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\food_item_draft_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "121",
+                      "durationMs":  4686,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ErrorRetry renders message and Retry button",
+                      "implication":  null,
+                      "group":  "[MFT] ErrorRetry",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "47",
+                      "durationMs":  2443,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs zero macros are preserved (not treated as null)",
+                      "implication":  null,
+                      "group":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\food_item_draft_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "139",
+                      "durationMs":  5246,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "[Scenario] LoadingButton ΓÇö interaction button fires callback when enabled and tapped",
+                      "implication":  null,
+                      "group":  "[Scenario] LoadingButton ΓÇö interaction",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "91",
+                      "durationMs":  3293,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] WorkerAiService ΓÇö empty URL guard parseMedication with empty URL returns failure without throwing",
+                      "implication":  null,
+                      "group":  "[BVA] WorkerAiService ΓÇö empty URL guard",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\worker_ai_service_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "147",
+                      "durationMs":  5587,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] MedicationTile dose formatting fractional dose displays with one decimal place",
+                      "implication":  null,
+                      "group":  "[MFT] MedicationTile dose formatting",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "113",
+                      "durationMs":  4420,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] DayTotalsBar ΓÇö rendering shows PROT, CARBS, FAT cells only when each \u003e 0",
+                      "implication":  null,
+                      "group":  "[MFT] DayTotalsBar ΓÇö rendering",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "68",
+                      "durationMs":  2789,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] ReactionLevel ΓÇö fromLabel boundary fromLabel returns pending for null",
+                      "implication":  null,
+                      "group":  "[BVA] ReactionLevel ΓÇö fromLabel boundary",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "126",
+                      "durationMs":  4892,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ErrorRetry wraps in Semantics when semanticsId is provided",
+                      "implication":  null,
+                      "group":  "[MFT] ErrorRetry",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "14",
+                      "durationMs":  1987,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ImportService.parseJson parses version",
+                      "implication":  null,
+                      "group":  "[MFT] ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "125",
+                      "durationMs":  5537,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] MedicationTile dose formatting integer dose displays without decimal point",
+                      "implication":  null,
+                      "group":  "[MFT] MedicationTile dose formatting",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "17",
+                      "durationMs":  2009,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ImportService.parseJson parses ingredients",
+                      "implication":  null,
+                      "group":  "[MFT] ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "102",
+                      "durationMs":  4515,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ErrorBanner renders message text in red",
+                      "implication":  null,
+                      "group":  "[MFT] ErrorBanner",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "152",
+                      "durationMs":  5681,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] MedicationTile ΓÇö null fields null dose shows only time and route in subtitle",
+                      "implication":  null,
+                      "group":  "[BVA] MedicationTile ΓÇö null fields",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "28",
+                      "durationMs":  2097,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ExportService static helpers mealToJson embeds food_items and reaction_logs",
+                      "implication":  null,
+                      "group":  "[MFT] ExportService static helpers",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "99",
+                      "durationMs":  4174,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] DayTotalsBar ΓÇö zero threshold collapses to SizedBox.shrink when all values are zero",
+                      "implication":  null,
+                      "group":  "[BVA] DayTotalsBar ΓÇö zero threshold",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "115",
+                      "durationMs":  4498,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] DayTotalsBar ΓÇö rendering renders all four cells when all values are non-zero",
+                      "implication":  null,
+                      "group":  "[MFT] DayTotalsBar ΓÇö rendering",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "75",
+                      "durationMs":  3049,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ImportSelection.totalCount counts only selected indices, not total available",
+                      "implication":  null,
+                      "group":  "[MFT] ImportSelection.totalCount",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "45",
+                      "durationMs":  2437,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs missing ingredients key defaults to empty list",
+                      "implication":  null,
+                      "group":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\food_item_draft_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "60",
+                      "durationMs":  2777,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ReactionLevel ΓÇö label all values have a non-empty label",
+                      "implication":  null,
+                      "group":  "[MFT] ReactionLevel ΓÇö label",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "83",
+                      "durationMs":  3103,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] MealImportRecord.dupeKey ΓÇö edge cases empty food items list produces trailing pipe with no names",
+                      "implication":  null,
+                      "group":  "[BVA] MealImportRecord.dupeKey ΓÇö edge cases",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "122",
+                      "durationMs":  4837,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ErrorRetry tapping Retry fires onRetry callback",
+                      "implication":  null,
+                      "group":  "[MFT] ErrorRetry",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "150",
+                      "durationMs":  5665,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ReactionBadge renders label for ReactionLevel.mild",
+                      "implication":  null,
+                      "group":  "[MFT] ReactionBadge",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "105",
+                      "durationMs":  4907,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] LoadingButton ΓÇö rendering shows label when not loading",
+                      "implication":  null,
+                      "group":  "[MFT] LoadingButton ΓÇö rendering",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "106",
+                      "durationMs":  4271,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] DayTotalsBar ΓÇö zero threshold renders DAY TOTALS header when cal is non-zero",
+                      "implication":  null,
+                      "group":  "[BVA] DayTotalsBar ΓÇö zero threshold",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "23",
+                      "durationMs":  2045,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] ImportService.parseJson ΓÇö edge inputs handles completely empty payload",
+                      "implication":  null,
+                      "group":  "[BVA] ImportService.parseJson ΓÇö edge inputs",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "114",
+                      "durationMs":  4458,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] DayTotalsBar ΓÇö rendering truncates double values to int for display",
+                      "implication":  null,
+                      "group":  "[MFT] DayTotalsBar ΓÇö rendering",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "136",
+                      "durationMs":  5138,
+                      "contract":  null,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "rationale":  null,
+                      "name":  "[INV] LoadingButton ΓÇö disabled invariant button is disabled when disabled flag is true",
+                      "implication":  null,
+                      "group":  "[INV] LoadingButton ΓÇö disabled invariant",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "163",
+                      "durationMs":  6018,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] SymptomsBanner custom margin is accepted without error",
+                      "implication":  null,
+                      "group":  "[MFT] SymptomsBanner",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "85",
+                      "durationMs":  3114,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] MealImportRecord.dupeKey ΓÇö edge cases same food item listed twice both appear in key",
+                      "implication":  null,
+                      "group":  "[BVA] MealImportRecord.dupeKey ΓÇö edge cases",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "146",
+                      "durationMs":  5949,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] SymptomsBanner prepends After-meal: to the symptoms text",
+                      "implication":  null,
+                      "group":  "[MFT] SymptomsBanner",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "59",
+                      "durationMs":  2775,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ReactionLevel ΓÇö label label returns human-readable string for each level",
+                      "implication":  null,
+                      "group":  "[MFT] ReactionLevel ΓÇö label",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "69",
+                      "durationMs":  2791,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] ReactionLevel ΓÇö fromLabel boundary fromLabel returns pending for unknown string",
+                      "implication":  null,
+                      "group":  "[BVA] ReactionLevel ΓÇö fromLabel boundary",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "54",
+                      "durationMs":  2762,
+                      "contract":  null,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "rationale":  null,
+                      "name":  "[INV] ReactionLevel ΓÇö int round-trip fromInt(toInt(x)) == x for every level",
+                      "implication":  null,
+                      "group":  "[INV] ReactionLevel ΓÇö int round-trip",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "66",
+                      "durationMs":  2787,
+                      "contract":  null,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "rationale":  null,
+                      "name":  "[INV] ReactionLevel ΓÇö fromLabel round-trip fromLabel(level.label) == level for every level",
+                      "implication":  null,
+                      "group":  "[INV] ReactionLevel ΓÇö fromLabel round-trip",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "57",
+                      "durationMs":  2772,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] ReactionLevel ΓÇö int boundary fromInt out-of-range index throws RangeError",
+                      "implication":  null,
+                      "group":  "[BVA] ReactionLevel ΓÇö int boundary",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "129",
+                      "durationMs":  4986,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] LoadingButton ΓÇö rendering shows spinner and hides label when loading",
+                      "implication":  null,
+                      "group":  "[MFT] LoadingButton ΓÇö rendering",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "43",
+                      "durationMs":  2431,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs coerces double calories to int (worker returns doubles)",
+                      "implication":  null,
+                      "group":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\food_item_draft_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "130",
+                      "durationMs":  5033,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] LoadingButton ΓÇö rendering wraps in Semantics when semanticsId is provided",
+                      "implication":  null,
+                      "group":  "[MFT] LoadingButton ΓÇö rendering",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "80",
+                      "durationMs":  3083,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] MealImportRecord.dupeKey food names are sorted alphabetically before joining",
+                      "implication":  null,
+                      "group":  "[MFT] MealImportRecord.dupeKey",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "79",
+                      "durationMs":  3072,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] MealImportRecord.dupeKey format is date|time|mealType|sorted-lowercase-food-names",
+                      "implication":  null,
+                      "group":  "[MFT] MealImportRecord.dupeKey",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "158",
+                      "durationMs":  5756,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ReactionBadge pending uses neutral colour (no green/red tint)",
+                      "implication":  null,
+                      "group":  "[MFT] ReactionBadge",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "41",
+                      "durationMs":  2426,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "[Scenario] FoodItemDraft.fromJson parses all fields when present",
+                      "implication":  null,
+                      "group":  "[Scenario] FoodItemDraft.fromJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\food_item_draft_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "74",
+                      "durationMs":  3045,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ImportSelection.totalCount sums across all three sets",
+                      "implication":  null,
+                      "group":  "[MFT] ImportSelection.totalCount",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "34",
+                      "durationMs":  2116,
+                      "contract":  null,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "rationale":  null,
+                      "name":  "[INV] ExportService ΓÇö round-trip export ΓåÆ parse ΓåÆ same meal type, food name, calories, reaction",
+                      "implication":  null,
+                      "group":  "[INV] ExportService ΓÇö round-trip",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "62",
+                      "durationMs":  2781,
+                      "contract":  null,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "rationale":  null,
+                      "name":  "[INV] ReactionLevel ΓÇö name round-trip byName(level.name) == level for every level",
+                      "implication":  null,
+                      "group":  "[INV] ReactionLevel ΓÇö name round-trip",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "155",
+                      "durationMs":  5733,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ReactionBadge renders label for ReactionLevel.bad",
+                      "implication":  null,
+                      "group":  "[MFT] ReactionBadge",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "44",
+                      "durationMs":  2434,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs missing optional fields default to null",
+                      "implication":  null,
+                      "group":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\food_item_draft_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "31",
+                      "durationMs":  2139,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "placeholder",
+                      "implication":  null,
+                      "group":  "",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\widget_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "140",
+                      "durationMs":  5244,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] MacroTotalsBar ΓÇö rendering appends g suffix to protein, carbs, fat",
+                      "implication":  null,
+                      "group":  "[MFT] MacroTotalsBar ΓÇö rendering",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "92",
+                      "durationMs":  3296,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] WorkerAiService ΓÇö empty URL guard parseMeal with empty URL and image returns failure without throwing",
+                      "implication":  null,
+                      "group":  "[BVA] WorkerAiService ΓÇö empty URL guard",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\worker_ai_service_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "148",
+                      "durationMs":  5640,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] MedicationTile dose formatting renders medication name",
+                      "implication":  null,
+                      "group":  "[MFT] MedicationTile dose formatting",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "27",
+                      "durationMs":  2090,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ExportService static helpers mealToJson includes all required keys",
+                      "implication":  null,
+                      "group":  "[MFT] ExportService static helpers",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "16",
+                      "durationMs":  2004,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ImportService.parseJson parses food items",
+                      "implication":  null,
+                      "group":  "[MFT] ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "64",
+                      "durationMs":  2784,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] ReactionLevel ΓÇö byName boundary byName throws ArgumentError for unknown string",
+                      "implication":  null,
+                      "group":  "[BVA] ReactionLevel ΓÇö byName boundary",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "24",
+                      "durationMs":  2072,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] ImportService.parseJson ΓÇö edge inputs handles unknown reaction name gracefully",
+                      "implication":  null,
+                      "group":  "[BVA] ImportService.parseJson ΓÇö edge inputs",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "19",
+                      "durationMs":  2024,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ImportService.parseJson parses medications",
+                      "implication":  null,
+                      "group":  "[MFT] ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "29",
+                      "durationMs":  2104,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ExportService static helpers foodItemToJson serialises reaction as enum name",
+                      "implication":  null,
+                      "group":  "[MFT] ExportService static helpers",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "133",
+                      "durationMs":  5603,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ReactionBadge renders label for ReactionLevel.pending",
+                      "implication":  null,
+                      "group":  "[MFT] ReactionBadge",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "160",
+                      "durationMs":  5804,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ReactionBadge none level renders No reaction label",
+                      "implication":  null,
+                      "group":  "[MFT] ReactionBadge",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "94",
+                      "durationMs":  3299,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] WorkerAiService ΓÇö missing input guard constructed with explicit url exposes it via parseMeal failure message",
+                      "implication":  null,
+                      "group":  "[BVA] WorkerAiService ΓÇö missing input guard",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\worker_ai_service_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "128",
+                      "durationMs":  4944,
+                      "contract":  null,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "rationale":  null,
+                      "name":  "[INV] ErrorRetry ΓÇö callback invariant n taps ΓåÆ callback fires n times",
+                      "implication":  null,
+                      "group":  "[INV] ErrorRetry ΓÇö callback invariant",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "143",
+                      "durationMs":  5281,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "[Scenario] LoadingButton ΓÇö interaction no Semantics wrapper when semanticsId is null",
+                      "implication":  null,
+                      "group":  "[Scenario] LoadingButton ΓÇö interaction",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "81",
+                      "durationMs":  3098,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] MealImportRecord.dupeKey food names are lowercased",
+                      "implication":  null,
+                      "group":  "[MFT] MealImportRecord.dupeKey",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "107",
+                      "durationMs":  4311,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] DayTotalsBar ΓÇö zero threshold shows CAL cell when cal \u003e 0",
+                      "implication":  null,
+                      "group":  "[BVA] DayTotalsBar ΓÇö zero threshold",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "157",
+                      "durationMs":  5885,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "[Scenario] MedicationTile ΓÇö interaction shows notes in expanded children",
+                      "implication":  null,
+                      "group":  "[Scenario] MedicationTile ΓÇö interaction",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "48",
+                      "durationMs":  2448,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs ingredients with empty strings are preserved as-is",
+                      "implication":  null,
+                      "group":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\food_item_draft_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "108",
+                      "durationMs":  4377,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] DayTotalsBar ΓÇö zero threshold hides CAL cell when cal is zero",
+                      "implication":  null,
+                      "group":  "[BVA] DayTotalsBar ΓÇö zero threshold",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "90",
+                      "durationMs":  3289,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] WorkerAiService ΓÇö empty URL guard parseMeal with empty URL returns failure without throwing",
+                      "implication":  null,
+                      "group":  "[BVA] WorkerAiService ΓÇö empty URL guard",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\worker_ai_service_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "21",
+                      "durationMs":  2039,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ImportService.parseJson dupe key is date|time|mealType|sorted-food-names",
+                      "implication":  null,
+                      "group":  "[MFT] ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "153",
+                      "durationMs":  5690,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ReactionBadge renders label for ReactionLevel.moderate",
+                      "implication":  null,
+                      "group":  "[MFT] ReactionBadge",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "46",
+                      "durationMs":  2440,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs null ingredients key defaults to empty list",
+                      "implication":  null,
+                      "group":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\food_item_draft_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "159",
+                      "durationMs":  5781,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ReactionBadge bad level renders Bad label",
+                      "implication":  null,
+                      "group":  "[MFT] ReactionBadge",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "161",
+                      "durationMs":  5949,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "[Scenario] MedicationTile ΓÇö interaction no notes ΓÇö children section is empty after expand",
+                      "implication":  null,
+                      "group":  "[Scenario] MedicationTile ΓÇö interaction",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "135",
+                      "durationMs":  5095,
+                      "contract":  null,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "rationale":  null,
+                      "name":  "[INV] LoadingButton ΓÇö disabled invariant button is disabled when isLoading is true",
+                      "implication":  null,
+                      "group":  "[INV] LoadingButton ΓÇö disabled invariant",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "111",
+                      "durationMs":  5133,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] MacroTotalsBar ΓÇö rendering renders all four stat labels",
+                      "implication":  null,
+                      "group":  "[MFT] MacroTotalsBar ΓÇö rendering",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "149",
+                      "durationMs":  5639,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ReactionBadge renders label for ReactionLevel.none",
+                      "implication":  null,
+                      "group":  "[MFT] ReactionBadge",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "84",
+                      "durationMs":  3108,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] MealImportRecord.dupeKey ΓÇö edge cases single food item produces no comma",
+                      "implication":  null,
+                      "group":  "[BVA] MealImportRecord.dupeKey ΓÇö edge cases",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "137",
+                      "durationMs":  5204,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] MacroTotalsBar ΓÇö rendering displays provided calorie value",
+                      "implication":  null,
+                      "group":  "[MFT] MacroTotalsBar ΓÇö rendering",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "package:flutter_test\\src\\widget_tester.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "32",
+                      "durationMs":  2108,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ExportService static helpers medicationToJson includes all fields",
+                      "implication":  null,
+                      "group":  "[MFT] ExportService static helpers",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "55",
+                      "durationMs":  2767,
+                      "contract":  null,
+                      "tags":  [
+                                   "INV"
+                               ],
+                      "rationale":  null,
+                      "name":  "[INV] ReactionLevel ΓÇö int round-trip toInt returns index value",
+                      "implication":  null,
+                      "group":  "[INV] ReactionLevel ΓÇö int round-trip",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "15",
+                      "durationMs":  1997,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ImportService.parseJson parses meal count and fields",
+                      "implication":  null,
+                      "group":  "[MFT] ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "25",
+                      "durationMs":  2082,
+                      "contract":  null,
+                      "tags":  [
+                                   "Boundary"
+                               ],
+                      "rationale":  null,
+                      "name":  "[BVA] ImportService.parseJson ΓÇö edge inputs v1 payload (no medications key) parses without error",
+                      "implication":  null,
+                      "group":  "[BVA] ImportService.parseJson ΓÇö edge inputs",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "18",
+                      "durationMs":  2017,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "[MFT] ImportService.parseJson parses reaction logs",
+                      "implication":  null,
+                      "group":  "[MFT] ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  }
+              ]
+}

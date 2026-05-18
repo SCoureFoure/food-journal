@@ -9,6 +9,14 @@ enum ReactionLevel {
 
   static ReactionLevel fromInt(int i) => ReactionLevel.values[i];
 
+  static ReactionLevel fromLabel(String? label) => switch (label) {
+        'No reaction' => ReactionLevel.none,
+        'Mild'        => ReactionLevel.mild,
+        'Moderate'    => ReactionLevel.moderate,
+        'Bad'         => ReactionLevel.bad,
+        _             => ReactionLevel.pending,
+      };
+
   String get label => switch (this) {
         ReactionLevel.pending => 'Pending',
         ReactionLevel.none => 'No reaction',

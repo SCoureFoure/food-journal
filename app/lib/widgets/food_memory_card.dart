@@ -40,7 +40,7 @@ class FoodMemoryCard extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                ReactionBadge(level: ReactionLevel.mild), // TODO: derive from reactionPattern
+                ReactionBadge(level: ReactionLevel.fromLabel(memory.reactionPattern)),
                 const SizedBox(height: 4),
                 Text(
                   '${memory.occurrences}x',

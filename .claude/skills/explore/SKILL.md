@@ -89,6 +89,7 @@ Then wait for the next screen's anchor before screenshotting.
 | Home         | `btn-export`                    | Export icon in app bar                         |
 | Home         | `home-loading`                  | Still loading                                  |
 | Home         | `home-error`                    | Error state                                    |
+| Home         | `week-section-YYYY-MM-DD`       | Week summary header + its day sections         |
 | Home         | `date-section-YYYY-MM-DD`       | Collapsible date group card                    |
 | Home         | `meal-tile-<id>`                | Collapsible meal tile (whole tile)             |
 | Home         | `meal-tile-header-<id>`         | Meal tile header only — use this to tap toggle |

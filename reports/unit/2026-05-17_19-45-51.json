@@ -1,0 +1,319 @@
+﻿{
+    "meta":  {
+                 "run_id":  "unit_2026-05-17_19-45-51",
+                 "layer":  "unit",
+                 "timestamp":  "2026-05-17T19:46:04.2929217-04:00",
+                 "durationMs":  10291,
+                 "runner":  "flutter-test",
+                 "exitCode":  0,
+                 "label":  ""
+             },
+    "summary":  {
+                    "total":  17,
+                    "passed":  17,
+                    "failed":  0,
+                    "skipped":  0,
+                    "passRate":  1
+                },
+    "generativeMetrics":  {
+                              "scenario":  {
+                                               "violations":  0,
+                                               "total":  12,
+                                               "passed":  12
+                                           },
+                              "inv":  {
+                                          "violations":  0,
+                                          "total":  0,
+                                          "passed":  0
+                                      },
+                              "mft":  {
+                                          "violations":  0,
+                                          "total":  5,
+                                          "passed":  5
+                                      },
+                              "boundary":  {
+                                               "violations":  0,
+                                               "total":  0,
+                                               "passed":  0
+                                           },
+                              "dir":  {
+                                          "violations":  0,
+                                          "total":  0,
+                                          "passed":  0
+                                      }
+                          },
+    "tests":  [
+                  {
+                      "failure":  null,
+                      "id":  "16",
+                      "durationMs":  10210,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "ImportService.parseJson v1 payload (no medications key) parses without error",
+                      "implication":  null,
+                      "group":  "ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "11",
+                      "durationMs":  10188,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "ImportService.parseJson parses medications",
+                      "implication":  null,
+                      "group":  "ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "18",
+                      "durationMs":  10215,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "ExportService static helpers mealToJson includes all required keys",
+                      "implication":  null,
+                      "group":  "ExportService static helpers",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "12",
+                      "durationMs":  10192,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "ImportService.parseJson parses food memories",
+                      "implication":  null,
+                      "group":  "ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "10",
+                      "durationMs":  10184,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "ImportService.parseJson parses reaction logs",
+                      "implication":  null,
+                      "group":  "ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "21",
+                      "durationMs":  10226,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "ExportService static helpers medicationToJson includes all fields",
+                      "implication":  null,
+                      "group":  "ExportService static helpers",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "22",
+                      "durationMs":  10230,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "ExportService static helpers round-trip: export → parse → same meal type and food name",
+                      "implication":  null,
+                      "group":  "ExportService static helpers",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "8",
+                      "durationMs":  10176,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "ImportService.parseJson parses food items",
+                      "implication":  null,
+                      "group":  "ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "15",
+                      "durationMs":  10207,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "ImportService.parseJson handles unknown reaction name gracefully",
+                      "implication":  null,
+                      "group":  "ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "9",
+                      "durationMs":  10179,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "ImportService.parseJson parses ingredients",
+                      "implication":  null,
+                      "group":  "ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "24",
+                      "durationMs":  10271,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "placeholder",
+                      "implication":  null,
+                      "group":  "",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\widget_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "14",
+                      "durationMs":  10203,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "ImportService.parseJson handles completely empty payload",
+                      "implication":  null,
+                      "group":  "ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "7",
+                      "durationMs":  10172,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "ImportService.parseJson parses meal count and fields",
+                      "implication":  null,
+                      "group":  "ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "20",
+                      "durationMs":  10223,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "ExportService static helpers foodItemToJson serialises reaction as enum name",
+                      "implication":  null,
+                      "group":  "ExportService static helpers",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "6",
+                      "durationMs":  10167,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "ImportService.parseJson parses version",
+                      "implication":  null,
+                      "group":  "ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "19",
+                      "durationMs":  10219,
+                      "contract":  null,
+                      "tags":  [
+                                   "MFT"
+                               ],
+                      "rationale":  null,
+                      "name":  "ExportService static helpers mealToJson embeds food_items and reaction_logs",
+                      "implication":  null,
+                      "group":  "ExportService static helpers",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  },
+                  {
+                      "failure":  null,
+                      "id":  "13",
+                      "durationMs":  10200,
+                      "contract":  null,
+                      "tags":  [
+                                   "Scenario"
+                               ],
+                      "rationale":  null,
+                      "name":  "ImportService.parseJson dupe key is date|time|mealType|sorted-food-names",
+                      "implication":  null,
+                      "group":  "ImportService.parseJson",
+                      "status":  "pass",
+                      "testOutput":  null,
+                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                  }
+              ]
+}

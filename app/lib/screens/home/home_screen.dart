@@ -6,7 +6,7 @@ import '../../models/reaction_log.dart';
 import '../../services/settings_service.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/error_display.dart';
-import '../../widgets/home/date_section.dart';
+import '../../widgets/home/week_summary_section.dart';
 import '../../widgets/lined_paper_background.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -101,6 +101,23 @@ class _HomeScreenState extends State<HomeScreen> {
     return date.year == now.year && date.month == now.month && date.day == now.day;
   }
 
+  DateTime _mondayOf(DateTime date) {
+    return DateTime(date.year, date.month, date.day - (date.weekday - 1));
+  }
+
+  List<({DateTime weekStart, List<DateTime> dates})> _weekGroups() {
+    final Map<DateTime, List<DateTime>> byWeek = {};
+    for (final date in _sortedDates) {
+      final ws = _mondayOf(date);
+      byWeek.putIfAbsent(ws, () => []).add(date);
+    }
+    final sortedStarts = byWeek.keys.toList()..sort((a, b) => b.compareTo(a));
+    return sortedStarts.map((ws) {
+      final dates = byWeek[ws]!..sort((a, b) => b.compareTo(a));
+      return (weekStart: ws, dates: dates);
+    }).toList();
+  }
+
   void _closeFab() => setState(() => _fabOpen = false);
 
   Future<void> _navigate(String route, {Object? arguments}) async {
@@ -119,7 +136,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return LinedPaperBackground(
+    return Semantics(
+      identifier: 'home-screen',
+      child: LinedPaperBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -160,6 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: _buildFab(context),
     ),
+    ),
     );
   }
 
@@ -190,20 +210,22 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    final groups = _weekGroups();
     return Semantics(
       identifier: 'home-meal-list',
       child: ListView.builder(
         padding: const EdgeInsets.only(top: 8, bottom: 100),
-        itemCount: _sortedDates.length,
+        itemCount: groups.length,
         itemBuilder: (_, i) {
-          final date = _sortedDates[i];
-          return DateSection(
-            date: date,
-            meals: _mealsByDate[date] ?? [],
-            medications: _medsByDate[date] ?? [],
-            feelings: _feelingsByDate[date] ?? [],
+          final group = groups[i];
+          return WeekSummarySection(
+            weekStart: group.weekStart,
+            dates: group.dates,
+            mealsByDate: _mealsByDate,
+            medsByDate: _medsByDate,
+            feelingsByDate: _feelingsByDate,
             storage: _storage,
-            isToday: _isToday(date),
+            isToday: _isToday,
             onReload: _load,
           );
         },

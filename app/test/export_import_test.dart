@@ -92,9 +92,9 @@ const _sampleJson = '''
 ''';
 
 void main() {
-  // ─── ImportService.parseJson ────────────────────────────────────────────────
+  // ─── ImportService.parseJson — happy path ─────────────────────────────────
 
-  group('ImportService.parseJson', () {
+  group('[MFT] ImportService.parseJson', () {
     test('parses version', () {
       final payload = ImportService.parseJson(_sampleJson);
       expect(payload.version, 2);
@@ -167,7 +167,11 @@ void main() {
       // food items: Eggs, Toast → sorted lowercase: eggs, toast
       expect(key, '2026-05-14|7:30 AM|breakfast|eggs,toast');
     });
+  });
 
+  // ─── ImportService.parseJson — edge inputs ────────────────────────────────
+
+  group('[BVA] ImportService.parseJson — edge inputs', () {
     test('handles completely empty payload', () {
       final payload = ImportService.parseJson('{"version": 1}');
       expect(payload.version, 1);
@@ -214,9 +218,9 @@ void main() {
     });
   });
 
-  // ─── ExportService static helpers ──────────────────────────────────────────
+  // ─── ExportService static helpers ─────────────────────────────────────────
 
-  group('ExportService static helpers', () {
+  group('[MFT] ExportService static helpers', () {
     final meal = MealEntry(
       id: 1,
       date: DateTime(2026, 5, 14),
@@ -311,8 +315,35 @@ void main() {
       expect(json.containsKey('created_at'), true);
       expect(json.containsKey('image_data'), true);
     });
+  });
 
-    test('round-trip: export → parse → same meal type and food name', () {
+  // ─── ExportService round-trip ─────────────────────────────────────────────
+
+  group('[INV] ExportService — round-trip', () {
+    test('export → parse → same meal type, food name, calories, reaction', () {
+      final meal = MealEntry(
+        id: 1,
+        date: DateTime(2026, 5, 14),
+        time: '7:30 AM',
+        mealType: 'breakfast',
+        rawInput: 'eggs and toast',
+        createdAt: DateTime(2026, 5, 14, 7, 30),
+      );
+      final foodItem = FoodItem(
+        id: 10,
+        mealId: 1,
+        name: 'Eggs',
+        calories: 180,
+        protein: 12,
+        reaction: ReactionLevel.none,
+      );
+      final ingredient = Ingredient(
+        foodItemId: 10,
+        name: 'eggs',
+        quantity: '2',
+        unit: 'whole',
+      );
+
       final itemJson = ExportService.foodItemToJson(foodItem, [ingredient]);
       final mealJson = ExportService.mealToJson(meal, [itemJson], []);
 

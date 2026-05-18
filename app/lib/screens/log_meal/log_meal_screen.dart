@@ -356,7 +356,9 @@ class _LogMealScreenState extends State<LogMealScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
+    return Semantics(
+      identifier: 'log-meal-screen',
+      child: Scaffold(
       appBar: AppBar(title: Text(_isEditing ? 'Edit Meal' : 'Log Meal')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -466,6 +468,7 @@ class _LogMealScreenState extends State<LogMealScreen> {
               ),
             ),
           ),
+      ),
     );
   }
 }

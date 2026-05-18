@@ -16,7 +16,7 @@ class DateSection extends StatefulWidget {
   final List<MealEntry> meals;
   final List<Medication> medications;
   final List<ReactionLog> feelings;
-  final StorageService storage;
+  final StorageService? storage;
   final bool isToday;
   final VoidCallback onReload;
 
@@ -26,7 +26,7 @@ class DateSection extends StatefulWidget {
     required this.meals,
     required this.medications,
     required this.feelings,
-    required this.storage,
+    this.storage,
     required this.isToday,
     required this.onReload,
   });
@@ -40,9 +40,9 @@ class _DateSectionState extends State<DateSection> {
   bool _totalsLoaded = false;
 
   Future<void> _loadTotals() async {
-    if (_totalsLoaded) return;
+    if (_totalsLoaded || widget.storage == null) return;
     final ids = widget.meals.where((m) => m.id != null).map((m) => m.id!).toList();
-    final t = await widget.storage.getMacroTotalsForMeals(ids);
+    final t = await widget.storage!.getMacroTotalsForMeals(ids);
     if (!mounted) return;
     setState(() {
       _totals = t;
@@ -60,7 +60,7 @@ class _DateSectionState extends State<DateSection> {
     for (final m in widget.meals) {
       entries.add((
         sortTime: _toDateTime(m.date, m.time),
-        tile: MealTile(meal: m, storage: widget.storage, onReload: widget.onReload),
+        tile: MealTile(meal: m, storage: widget.storage!, onReload: widget.onReload),
       ));
     }
     for (final m in widget.medications) {
@@ -117,9 +117,14 @@ class _DateSectionState extends State<DateSection> {
           onExpansionChanged: (expanded) {
             if (expanded && widget.meals.isNotEmpty) _loadTotals();
           },
-          title: Text(dateStr,
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-          subtitle: Text(subtitle, style: theme.textTheme.bodySmall),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(dateStr, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+              Text(subtitle, style: theme.textTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+            ],
+          ),
           children: [
             if (_totals != null && widget.meals.isNotEmpty)
               DayTotalsBar(cal: _totals!.cal, prot: _totals!.prot, carbs: _totals!.carbs, fat: _totals!.fat),
