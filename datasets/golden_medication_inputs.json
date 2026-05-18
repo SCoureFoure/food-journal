@@ -1,0 +1,107 @@
+[
+  {
+    "id": "med_001",
+    "description": "Clear dose and unit — Metformin",
+    "test_theory": "MFT",
+    "input": { "text": "Metformin 500mg" },
+    "expect": { "dose": 500, "unit": "mg" }
+  },
+  {
+    "id": "med_002",
+    "description": "Clear dose and unit — Ibuprofen",
+    "test_theory": "MFT",
+    "input": { "text": "Ibuprofen 400mg" },
+    "expect": { "dose": 400, "unit": "mg" }
+  },
+  {
+    "id": "med_003",
+    "description": "Clear dose and unit — Tylenol high dose",
+    "test_theory": "MFT",
+    "input": { "text": "Tylenol 1000mg" },
+    "expect": { "dose": 1000, "unit": "mg" }
+  },
+  {
+    "id": "med_004",
+    "description": "Name only — no dose, no route (no-inference)",
+    "test_theory": "INV",
+    "input": { "text": "Metformin" },
+    "expect": { "dose": null, "route": null }
+  },
+  {
+    "id": "med_005",
+    "description": "Name only — Lisinopril (no-inference, must not assume oral)",
+    "test_theory": "INV",
+    "input": { "text": "Lisinopril" },
+    "expect": { "dose": null, "route": null }
+  },
+  {
+    "id": "med_006",
+    "description": "Vague reference — must not infer anything",
+    "test_theory": "INV",
+    "input": { "text": "my blood pressure medication" },
+    "expect": { "dose": null, "route": null }
+  },
+  {
+    "id": "med_007",
+    "description": "Word order — dose before name",
+    "test_theory": "INV",
+    "input": { "text": "500mg ibuprofen" },
+    "expect": { "dose": 500, "unit": "mg" }
+  },
+  {
+    "id": "med_008",
+    "description": "Case invariance — all caps",
+    "test_theory": "INV",
+    "input": { "text": "METFORMIN 500MG" },
+    "expect": { "dose": 500, "unit": "mg" }
+  },
+  {
+    "id": "med_009",
+    "description": "Route explicitly stated — oral",
+    "test_theory": "MFT",
+    "input": { "text": "Aspirin 81mg oral" },
+    "expect": { "dose": 81, "unit": "mg", "route": "oral" }
+  },
+  {
+    "id": "med_010",
+    "description": "Route explicitly stated — subcutaneous (maps to other)",
+    "test_theory": "MFT",
+    "input": { "text": "Insulin 10 units subcutaneous" },
+    "expect": { "dose": 10, "route_non_null": true }
+  },
+  {
+    "id": "med_011",
+    "description": "Dose stated but route must NOT be inferred — Lisinopril",
+    "test_theory": "INV",
+    "input": { "text": "Lisinopril 10mg" },
+    "expect": { "dose": 10, "unit": "mg", "route": null }
+  },
+  {
+    "id": "med_012",
+    "description": "Dose stated but route must NOT be inferred — Tylenol",
+    "test_theory": "INV",
+    "input": { "text": "Tylenol 1000mg" },
+    "expect": { "dose": 1000, "unit": "mg", "route": null }
+  },
+  {
+    "id": "med_013",
+    "description": "Food/drug ambiguity — ginger root capsule",
+    "test_theory": "BVA",
+    "input": { "text": "ginger root 500mg capsule" },
+    "expect": { "note": "success or failure both acceptable — testing robustness" }
+  },
+  {
+    "id": "med_014",
+    "description": "Supplement — fish oil",
+    "test_theory": "MFT",
+    "input": { "text": "fish oil 1000mg" },
+    "expect": { "dose": 1000, "unit": "mg" }
+  },
+  {
+    "id": "med_015",
+    "description": "BVA — extreme dose must not crash",
+    "test_theory": "BVA",
+    "input": { "text": "Aspirin 50000mg" },
+    "expect": { "note": "must parse without error regardless of dose magnitude" }
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0.0",
+  "note": "Populated by scripts/run_llm_judge.ps1. Do not edit manually.",
+  "run_id": null,
+  "generated_at": null,
+  "judgement_count": 0,
+  "pass_count": 0,
+  "meal_judgements": [],
+  "medication_judgements": []
+}

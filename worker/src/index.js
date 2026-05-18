@@ -19,14 +19,22 @@ export default {
       return new Response('Method not allowed', { status: 405 });
     }
 
+    const startMs = Date.now();
     const { task, text, image, mealType } = await request.json();
 
     const authHeader = request.headers.get('Authorization');
     const isPaidRequest = env.TEST_AUTH_TOKEN && authHeader === `Bearer ${env.TEST_AUTH_TOKEN}`;
     const apiKey = isPaidRequest ? env.GEMINI_API_KEY_PAID : env.GEMINI_API_KEY;
 
+    console.log(JSON.stringify({
+      event: 'req', ts: new Date().toISOString(),
+      task, hasText: !!text, textLen: text?.length ?? 0,
+      hasImage: !!image, mealType: mealType ?? null, paid: isPaidRequest,
+    }));
+
     const promptEntry = prompts[task];
     if (!promptEntry) {
+      console.log(JSON.stringify({ event: 'err', ts: new Date().toISOString(), task, reason: 'unknown_task', durationMs: Date.now() - startMs }));
       return new Response(JSON.stringify({ error: `Unknown task: ${task}` }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -39,6 +47,7 @@ export default {
     if (userText) parts.push({ text: userText });
 
     if (parts.length === 0) {
+      console.log(JSON.stringify({ event: 'err', ts: new Date().toISOString(), task, reason: 'no_input', durationMs: Date.now() - startMs }));
       return new Response(JSON.stringify({ error: 'Provide text or image' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -59,6 +68,7 @@ export default {
 
     if (!res.ok) {
       const err = await res.text();
+      console.log(JSON.stringify({ event: 'err', ts: new Date().toISOString(), task, reason: 'gemini_error', geminiStatus: res.status, durationMs: Date.now() - startMs }));
       return new Response(JSON.stringify({ error: err }), {
         status: res.status,
         headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
@@ -68,6 +78,8 @@ export default {
     const data = await res.json();
     const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
     const cleaned = rawText.replace(/```json\s*/g, '').replace(/\s*```/g, '').trim();
+
+    console.log(JSON.stringify({ event: 'res', ts: new Date().toISOString(), task, outputLen: cleaned.length, durationMs: Date.now() - startMs }));
 
     return new Response(cleaned, {
       headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },

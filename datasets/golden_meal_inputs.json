@@ -1,0 +1,130 @@
+[
+  {
+    "id": "meal_001",
+    "description": "Simple breakfast — eggs and toast",
+    "test_theory": "MFT",
+    "input": { "text": "scrambled eggs and toast with butter", "mealType": "breakfast" }
+  },
+  {
+    "id": "meal_002",
+    "description": "Simple breakfast — yogurt parfait",
+    "test_theory": "MFT",
+    "input": { "text": "greek yogurt with granola and blueberries", "mealType": "breakfast" }
+  },
+  {
+    "id": "meal_003",
+    "description": "Simple lunch — chicken salad",
+    "test_theory": "MFT",
+    "input": { "text": "grilled chicken salad with romaine lettuce, cherry tomatoes, and balsamic dressing", "mealType": "lunch" }
+  },
+  {
+    "id": "meal_004",
+    "description": "Simple dinner — pasta",
+    "test_theory": "MFT",
+    "input": { "text": "spaghetti bolognese with ground beef and parmesan cheese", "mealType": "dinner" }
+  },
+  {
+    "id": "meal_005",
+    "description": "Protein-dominant — shake",
+    "test_theory": "MFT",
+    "input": { "text": "protein shake with two scoops whey protein, almond milk, and banana", "mealType": "snack" }
+  },
+  {
+    "id": "meal_006",
+    "description": "Protein-dominant — grilled fish",
+    "test_theory": "MFT",
+    "input": { "text": "grilled salmon fillet with steamed broccoli and lemon butter", "mealType": "dinner" }
+  },
+  {
+    "id": "meal_007",
+    "description": "High-calorie — burger and fries",
+    "test_theory": "MFT",
+    "input": { "text": "double bacon cheeseburger with large fries and large coke", "mealType": "lunch" }
+  },
+  {
+    "id": "meal_008",
+    "description": "High-calorie — pizza",
+    "test_theory": "MFT",
+    "input": { "text": "three slices pepperoni pizza, extra cheese, deep dish", "mealType": "dinner" }
+  },
+  {
+    "id": "meal_009",
+    "description": "Multi-item complex dinner",
+    "test_theory": "MFT",
+    "input": { "text": "roasted chicken thigh, mashed potatoes with gravy, green beans, dinner roll with butter", "mealType": "dinner" }
+  },
+  {
+    "id": "meal_010",
+    "description": "Multi-item sushi platter",
+    "test_theory": "MFT",
+    "input": { "text": "six california rolls, four salmon nigiri, miso soup, and edamame", "mealType": "dinner" }
+  },
+  {
+    "id": "meal_011",
+    "description": "Temporal reference — same as last night (context provided)",
+    "test_theory": "DIR",
+    "input": {
+      "text": "same as last night",
+      "mealType": "dinner",
+      "mealContext": "Recent meals:\n- Yesterday Dinner: grilled salmon with asparagus (450 cal, 38g protein, 12g carbs, 18g fat)"
+    }
+  },
+  {
+    "id": "meal_012",
+    "description": "Temporal reference — leftovers (context provided)",
+    "test_theory": "DIR",
+    "input": {
+      "text": "leftovers from lunch",
+      "mealType": "snack",
+      "mealContext": "Recent meals:\n- Today Lunch: chicken caesar salad with croutons (520 cal, 42g protein, 28g carbs, 22g fat)"
+    }
+  },
+  {
+    "id": "meal_013",
+    "description": "Temporal reference — no context provided (graceful degradation)",
+    "test_theory": "BVA",
+    "input": { "text": "same as yesterday", "mealType": "breakfast" }
+  },
+  {
+    "id": "meal_014",
+    "description": "Vague reference — the usual (no context)",
+    "test_theory": "BVA",
+    "input": { "text": "the usual", "mealType": "lunch" }
+  },
+  {
+    "id": "meal_015",
+    "description": "Vague — grabbed something quick",
+    "test_theory": "BVA",
+    "input": { "text": "grabbed something quick to eat", "mealType": "snack" }
+  },
+  {
+    "id": "meal_016",
+    "description": "Minimal — just coffee",
+    "test_theory": "BVA",
+    "input": { "text": "coffee with oat milk", "mealType": "breakfast" }
+  },
+  {
+    "id": "meal_017",
+    "description": "Ethnic dish — pho",
+    "test_theory": "MFT",
+    "input": { "text": "pho bo with bean sprouts, fresh basil, hoisin sauce, and sriracha", "mealType": "lunch" }
+  },
+  {
+    "id": "meal_018",
+    "description": "Ethnic dish — shakshuka",
+    "test_theory": "MFT",
+    "input": { "text": "shakshuka with two eggs, feta cheese crumbles, and toasted pita bread", "mealType": "breakfast" }
+  },
+  {
+    "id": "meal_019",
+    "description": "INV phrasing — scrambled eggs variant A",
+    "test_theory": "INV",
+    "input": { "text": "scrambled eggs on toast", "mealType": "breakfast" }
+  },
+  {
+    "id": "meal_020",
+    "description": "INV phrasing — scrambled eggs variant B (word order swap)",
+    "test_theory": "INV",
+    "input": { "text": "eggs scrambled on toast", "mealType": "breakfast" }
+  }
+]

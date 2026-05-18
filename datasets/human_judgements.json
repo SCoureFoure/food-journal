@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "instructions": "After running scripts/run_llm_judge.ps1, review each LLM judgement and fill in your own assessment below. Set each boolean field to true/false. Leave null if you haven't reviewed yet. Alignment is computed by compute_alignment.ps1 — target is >85% agreement with LLM judge on 'overall'.",
+  "criteria": {
+    "names_pass": "ALL food/medication names are specific and real (not generic like 'food item', 'dish', 'medication', 'pill')",
+    "title_pass": "[meal only] Title is descriptive and specific — not just 'Breakfast', 'Lunch', 'Dinner', 'Meal', or a single generic word",
+    "macros_pass": "[meal only] If macros are present, they are physically plausible for the stated portion. true if all macros are null.",
+    "count_pass": "At least 1 food/medication item was extracted",
+    "no_inference_pass": "[medication only] No fields (dose, route, unit) have values that were NOT explicitly stated in the input text",
+    "overall": "Your holistic Pass/Fail — would you trust this output in the app?"
+  },
+  "meal_judgements": [
+    { "input_id": "meal_001", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_002", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_003", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_004", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_005", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_006", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_007", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_008", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_009", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_010", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_011", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_012", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_013", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_014", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_015", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_016", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_017", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_018", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_019", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" },
+    { "input_id": "meal_020", "judged_at": null, "parsed_output": null, "names_pass": null, "title_pass": null, "macros_pass": null, "count_pass": null, "overall": null, "notes": "" }
+  ],
+  "medication_judgements": [
+    { "input_id": "med_001", "judged_at": null, "parsed_output": null, "names_pass": null, "count_pass": null, "no_inference_pass": null, "overall": null, "notes": "" },
+    { "input_id": "med_002", "judged_at": null, "parsed_output": null, "names_pass": null, "count_pass": null, "no_inference_pass": null, "overall": null, "notes": "" },
+    { "input_id": "med_003", "judged_at": null, "parsed_output": null, "names_pass": null, "count_pass": null, "no_inference_pass": null, "overall": null, "notes": "" },
+    { "input_id": "med_004", "judged_at": null, "parsed_output": null, "names_pass": null, "count_pass": null, "no_inference_pass": null, "overall": null, "notes": "" },
+    { "input_id": "med_005", "judged_at": null, "parsed_output": null, "names_pass": null, "count_pass": null, "no_inference_pass": null, "overall": null, "notes": "" },
+    { "input_id": "med_006", "judged_at": null, "parsed_output": null, "names_pass": null, "count_pass": null, "no_inference_pass": null, "overall": null, "notes": "" },
+    { "input_id": "med_007", "judged_at": null, "parsed_output": null, "names_pass": null, "count_pass": null, "no_inference_pass": null, "overall": null, "notes": "" },
+    { "input_id": "med_008", "judged_at": null, "parsed_output": null, "names_pass": null, "count_pass": null, "no_inference_pass": null, "overall": null, "notes": "" },
+    { "input_id": "med_009", "judged_at": null, "parsed_output": null, "names_pass": null, "count_pass": null, "no_inference_pass": null, "overall": null, "notes": "" },
+    { "input_id": "med_010", "judged_at": null, "parsed_output": null, "names_pass": null, "count_pass": null, "no_inference_pass": null, "overall": null, "notes": "" },
+    { "input_id": "med_011", "judged_at": null, "parsed_output": null, "names_pass": null, "count_pass": null, "no_inference_pass": null, "overall": null, "notes": "" },
+    { "input_id": "med_012", "judged_at": null, "parsed_output": null, "names_pass": null, "count_pass": null, "no_inference_pass": null, "overall": null, "notes": "" },
+    { "input_id": "med_013", "judged_at": null, "parsed_output": null, "names_pass": null, "count_pass": null, "no_inference_pass": null, "overall": null, "notes": "" },
+    { "input_id": "med_014", "judged_at": null, "parsed_output": null, "names_pass": null, "count_pass": null, "no_inference_pass": null, "overall": null, "notes": "" },
+    { "input_id": "med_015", "judged_at": null, "parsed_output": null, "names_pass": null, "count_pass": null, "no_inference_pass": null, "overall": null, "notes": "" }
+  ]
+}

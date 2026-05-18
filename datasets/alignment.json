@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "note": "Populated by scripts/compute_alignment.ps1 after both human_judgements.json and llm_judgements.json have data.",
+  "computed_at": null,
+  "total_compared": 0,
+  "target_agreement": 0.85,
+  "status": "no_data",
+  "overall_agreement": null,
+  "meal": {
+    "overall_agreement": null,
+    "per_criterion": {
+      "names_pass": null,
+      "title_pass": null,
+      "macros_pass": null,
+      "count_pass": null,
+      "overall": null
+    }
+  },
+  "medication": {
+    "overall_agreement": null,
+    "per_criterion": {
+      "names_pass": null,
+      "count_pass": null,
+      "no_inference_pass": null,
+      "overall": null
+    }
+  }
+}
