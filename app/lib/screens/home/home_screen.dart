@@ -153,10 +153,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _showWaterSheet() async {
     _closeFab();
-    await showModalBottomSheet<bool>(
+    await showDialog<bool>(
       context: context,
-      isScrollControlled: true,
-      builder: (_) => const LogWaterSheet(),
+      builder: (_) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+        child: SingleChildScrollView(child: const LogWaterSheet()),
+      ),
     );
     _load();
   }

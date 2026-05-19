@@ -102,10 +102,12 @@ class _WaterRow extends StatelessWidget {
             const Spacer(),
             GestureDetector(
               onTap: () async {
-                await showModalBottomSheet<bool>(
+                await showDialog<bool>(
                   context: context,
-                  isScrollControlled: true,
-                  builder: (_) => LogWaterSheet(existingLog: log),
+                  builder: (_) => Dialog(
+                    insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                    child: SingleChildScrollView(child: LogWaterSheet(existingLog: log)),
+                  ),
                 );
                 onReload();
               },

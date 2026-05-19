@@ -132,12 +132,11 @@ class _LogWaterSheetState extends State<LogWaterSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bottomPad = MediaQuery.of(context).viewInsets.bottom;
 
     return Semantics(
       identifier: 'log-water-sheet',
       child: Padding(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomPad),
+        padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
