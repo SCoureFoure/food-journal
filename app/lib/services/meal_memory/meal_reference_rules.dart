@@ -35,6 +35,8 @@ final _temporalRules = <ReferenceRule>[
       RegExp(r'\bearlier today\b', caseSensitive: false),
       RegExp(r'\bearlier\b', caseSensitive: false),
       RegExp(r'\ba few hours ago\b', caseSensitive: false),
+      RegExp(r'\bfrom today\b', caseSensitive: false),
+      RegExp(r'\btoday\b', caseSensitive: false),
     ],
   ),
   ReferenceRule(

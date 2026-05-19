@@ -9,6 +9,8 @@ import '../models/ingredient.dart';
 import '../models/meal_entry.dart';
 import '../models/medication.dart';
 import '../models/reaction_log.dart';
+import '../models/water_log.dart';
+import '../models/weight_log.dart';
 import 'database/app_database.dart' as db;
 import 'meal_memory/meal_memory_service.dart';
 
@@ -420,6 +422,106 @@ class StorageService {
     });
   }
 
+  // ── Water ────────────────────────────────────────────────────────────────────
+
+  Future<int> saveWaterLog(WaterLog log) async {
+    return _db.into(_db.waterLogs).insert(
+      db.WaterLogsCompanion.insert(
+        date: log.date,
+        time: log.time,
+        amountMl: log.amountMl,
+        notes: Value(log.notes),
+        createdAt: log.createdAt,
+      ),
+    );
+  }
+
+  Future<void> updateWaterLog(WaterLog log) async {
+    await (_db.update(_db.waterLogs)..where((t) => t.id.equals(log.id!))).write(
+      db.WaterLogsCompanion(
+        date: Value(log.date),
+        time: Value(log.time),
+        amountMl: Value(log.amountMl),
+        notes: Value(log.notes),
+      ),
+    );
+  }
+
+  Future<void> deleteWaterLog(int id) async {
+    await (_db.delete(_db.waterLogs)..where((t) => t.id.equals(id))).go();
+  }
+
+  Future<List<WaterLog>> getWaterLogsForDay(DateTime date) async {
+    final start = DateTime(date.year, date.month, date.day);
+    final end = start.add(const Duration(days: 1));
+    final rows = await (_db.select(_db.waterLogs)
+          ..where((t) => t.date.isBiggerOrEqualValue(start) & t.date.isSmallerThanValue(end))
+          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+        .get();
+    return rows.map(_waterLogFromRow).toList();
+  }
+
+  Future<List<WaterLog>> getAllWaterLogs() async {
+    final rows = await (_db.select(_db.waterLogs)
+          ..orderBy([
+            (t) => OrderingTerm.desc(t.date),
+            (t) => OrderingTerm.asc(t.createdAt),
+          ]))
+        .get();
+    return rows.map(_waterLogFromRow).toList();
+  }
+
+  // ── Weight ───────────────────────────────────────────────────────────────────
+
+  Future<int> saveWeightLog(WeightLog log) async {
+    return _db.into(_db.weightLogs).insert(
+      db.WeightLogsCompanion.insert(
+        date: log.date,
+        time: log.time,
+        weightValue: log.weightValue,
+        unit: log.unit,
+        notes: Value(log.notes),
+        createdAt: log.createdAt,
+      ),
+    );
+  }
+
+  Future<void> updateWeightLog(WeightLog log) async {
+    await (_db.update(_db.weightLogs)..where((t) => t.id.equals(log.id!))).write(
+      db.WeightLogsCompanion(
+        date: Value(log.date),
+        time: Value(log.time),
+        weightValue: Value(log.weightValue),
+        unit: Value(log.unit),
+        notes: Value(log.notes),
+      ),
+    );
+  }
+
+  Future<void> deleteWeightLog(int id) async {
+    await (_db.delete(_db.weightLogs)..where((t) => t.id.equals(id))).go();
+  }
+
+  Future<List<WeightLog>> getWeightLogsForDay(DateTime date) async {
+    final start = DateTime(date.year, date.month, date.day);
+    final end = start.add(const Duration(days: 1));
+    final rows = await (_db.select(_db.weightLogs)
+          ..where((t) => t.date.isBiggerOrEqualValue(start) & t.date.isSmallerThanValue(end))
+          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+        .get();
+    return rows.map(_weightLogFromRow).toList();
+  }
+
+  Future<List<WeightLog>> getAllWeightLogs() async {
+    final rows = await (_db.select(_db.weightLogs)
+          ..orderBy([
+            (t) => OrderingTerm.desc(t.date),
+            (t) => OrderingTerm.asc(t.createdAt),
+          ]))
+        .get();
+    return rows.map(_weightLogFromRow).toList();
+  }
+
   // ── Misc ─────────────────────────────────────────────────────────────────────
 
   Future<bool> hasMeals() async {
@@ -505,6 +607,25 @@ class StorageService {
         rawInput: row.rawInput,
         notes: row.notes,
         imageData: row.imageData,
+        createdAt: row.createdAt,
+      );
+
+  WaterLog _waterLogFromRow(db.WaterLog row) => WaterLog(
+        id: row.id,
+        date: row.date,
+        time: row.time,
+        amountMl: row.amountMl,
+        notes: row.notes,
+        createdAt: row.createdAt,
+      );
+
+  WeightLog _weightLogFromRow(db.WeightLog row) => WeightLog(
+        id: row.id,
+        date: row.date,
+        time: row.time,
+        weightValue: row.weightValue,
+        unit: row.unit,
+        notes: row.notes,
         createdAt: row.createdAt,
       );
 }

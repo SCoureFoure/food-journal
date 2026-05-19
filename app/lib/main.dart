@@ -4,11 +4,13 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'models/meal_entry.dart';
 import 'models/medication.dart';
 import 'models/reaction_log.dart';
+import 'models/weight_log.dart';
 import 'screens/checkin/checkin_screen.dart';
 import 'screens/export/export_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/log_meal/log_meal_screen.dart';
 import 'screens/log_medication/log_medication_screen.dart';
+import 'screens/log_weight/log_weight_screen.dart';
 import 'screens/meal_detail/meal_detail_screen.dart';
 import 'services/notification_service.dart';
 import 'services/seed_service.dart';
@@ -45,6 +47,7 @@ class FoodJournalApp extends StatelessWidget {
         '/': (_) => const HomeScreen(),
         '/log': (_) => const LogMealScreen(),
         '/log_medication': (_) => const LogMedicationScreen(),
+        '/log_weight': (_) => const LogWeightScreen(),
         '/export': (_) => const ExportScreen(),
       },
       onGenerateRoute: (settings) {
@@ -76,6 +79,12 @@ class FoodJournalApp extends StatelessWidget {
           final log = settings.arguments as ReactionLog;
           return MaterialPageRoute(
             builder: (_) => CheckinScreen(existingLog: log),
+          );
+        }
+        if (settings.name == '/edit_weight') {
+          final log = settings.arguments as WeightLog;
+          return MaterialPageRoute(
+            builder: (_) => LogWeightScreen(existingLog: log),
           );
         }
         return null;

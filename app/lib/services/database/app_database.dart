@@ -82,9 +82,28 @@ class MealFingerprints extends Table {
   IntColumn get createdAt => integer()(); // Unix ms
 }
 
+class WaterLogs extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  DateTimeColumn get date => dateTime()();
+  TextColumn get time => text()();
+  IntColumn get amountMl => integer()();
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
+class WeightLogs extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  DateTimeColumn get date => dateTime()();
+  TextColumn get time => text()();
+  RealColumn get weightValue => real()();
+  TextColumn get unit => text()(); // 'lbs' or 'kg'
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
 // ─── Database ─────────────────────────────────────────────────────────────────
 
-@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories, Medications, MealFingerprints])
+@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories, Medications, MealFingerprints, WaterLogs, WeightLogs])
 class AppDatabase extends _$AppDatabase {
   static final AppDatabase _instance = AppDatabase._internal();
 
@@ -93,7 +112,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(_openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -154,6 +173,29 @@ class AppDatabase extends _$AppDatabase {
         await customStatement(
           'CREATE INDEX IF NOT EXISTS idx_fingerprints_type ON meal_fingerprints(meal_type, date DESC)',
         );
+      }
+      if (from < 5) {
+        await customStatement('''
+          CREATE TABLE IF NOT EXISTS water_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date INTEGER NOT NULL,
+            time TEXT NOT NULL,
+            amount_ml INTEGER NOT NULL,
+            notes TEXT,
+            created_at INTEGER NOT NULL
+          )
+        ''');
+        await customStatement('''
+          CREATE TABLE IF NOT EXISTS weight_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date INTEGER NOT NULL,
+            time TEXT NOT NULL,
+            weight_value REAL NOT NULL,
+            unit TEXT NOT NULL,
+            notes TEXT,
+            created_at INTEGER NOT NULL
+          )
+        ''');
       }
     },
   );

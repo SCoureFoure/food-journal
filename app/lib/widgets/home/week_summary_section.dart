@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import '../../models/meal_entry.dart';
 import '../../models/medication.dart';
 import '../../models/reaction_log.dart';
+import '../../models/water_log.dart';
+import '../../models/weight_log.dart';
 import '../../services/storage_service.dart';
 import 'date_section.dart';
 
@@ -16,6 +18,8 @@ class WeekSummarySection extends StatefulWidget {
   final Map<DateTime, List<MealEntry>> mealsByDate;
   final Map<DateTime, List<Medication>> medsByDate;
   final Map<DateTime, List<ReactionLog>> feelingsByDate;
+  final Map<DateTime, List<WaterLog>> waterByDate;
+  final Map<DateTime, List<WeightLog>> weightByDate;
   final StorageService? storage;
   final bool Function(DateTime) isToday;
   final VoidCallback onReload;
@@ -30,6 +34,8 @@ class WeekSummarySection extends StatefulWidget {
     required this.mealsByDate,
     required this.medsByDate,
     required this.feelingsByDate,
+    required this.waterByDate,
+    required this.weightByDate,
     this.storage,
     required this.isToday,
     required this.onReload,
@@ -129,6 +135,8 @@ class _WeekSummarySectionState extends State<WeekSummarySection> {
                   meals: widget.mealsByDate[date] ?? [],
                   medications: widget.medsByDate[date] ?? [],
                   feelings: widget.feelingsByDate[date] ?? [],
+                  waterLogs: widget.waterByDate[date] ?? [],
+                  weightLogs: widget.weightByDate[date] ?? [],
                   storage: storage,
                   isToday: widget.isToday(date),
                   onReload: widget.onReload,

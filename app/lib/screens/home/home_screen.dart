@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../../models/meal_entry.dart';
 import '../../models/medication.dart';
 import '../../models/reaction_log.dart';
+import '../../models/water_log.dart';
+import '../../models/weight_log.dart';
+import '../../screens/log_water/log_water_sheet.dart';
 import '../../services/settings_service.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/error_display.dart';
@@ -23,6 +26,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<DateTime, List<MealEntry>> _mealsByDate = {};
   Map<DateTime, List<Medication>> _medsByDate = {};
   Map<DateTime, List<ReactionLog>> _feelingsByDate = {};
+  Map<DateTime, List<WaterLog>> _waterByDate = {};
+  Map<DateTime, List<WeightLog>> _weightByDate = {};
   List<DateTime> _sortedDates = [];
   bool _loading = true;
   String? _errorMessage;
@@ -50,10 +55,14 @@ class _HomeScreenState extends State<HomeScreen> {
         _storage.getAllMeals(),
         _storage.getAllMedications(),
         _storage.getStandaloneReactionLogs(),
+        _storage.getAllWaterLogs(),
+        _storage.getAllWeightLogs(),
       ]);
       final meals = results[0] as List<MealEntry>;
       final meds = results[1] as List<Medication>;
       final feelings = results[2] as List<ReactionLog>;
+      final waterLogs = results[3] as List<WaterLog>;
+      final weightLogs = results[4] as List<WeightLog>;
 
       final mealsByDate = <DateTime, List<MealEntry>>{};
       for (final meal in meals) {
@@ -73,10 +82,24 @@ class _HomeScreenState extends State<HomeScreen> {
         feelingsByDate.putIfAbsent(key, () => []).add(log);
       }
 
+      final waterByDate = <DateTime, List<WaterLog>>{};
+      for (final log in waterLogs) {
+        final key = DateTime(log.date.year, log.date.month, log.date.day);
+        waterByDate.putIfAbsent(key, () => []).add(log);
+      }
+
+      final weightByDate = <DateTime, List<WeightLog>>{};
+      for (final log in weightLogs) {
+        final key = DateTime(log.date.year, log.date.month, log.date.day);
+        weightByDate.putIfAbsent(key, () => []).add(log);
+      }
+
       final allDates = {
         ...mealsByDate.keys,
         ...medsByDate.keys,
         ...feelingsByDate.keys,
+        ...waterByDate.keys,
+        ...weightByDate.keys,
       }.toList()..sort((a, b) => b.compareTo(a));
 
       if (!mounted) return;
@@ -84,6 +107,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _mealsByDate = mealsByDate;
         _medsByDate = medsByDate;
         _feelingsByDate = feelingsByDate;
+        _waterByDate = waterByDate;
+        _weightByDate = weightByDate;
         _sortedDates = allDates;
         _loading = false;
       });
@@ -123,6 +148,16 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _navigate(String route, {Object? arguments}) async {
     _closeFab();
     await Navigator.pushNamed(context, route, arguments: arguments);
+    _load();
+  }
+
+  Future<void> _showWaterSheet() async {
+    _closeFab();
+    await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => const LogWaterSheet(),
+    );
     _load();
   }
 
@@ -224,6 +259,8 @@ class _HomeScreenState extends State<HomeScreen> {
             mealsByDate: _mealsByDate,
             medsByDate: _medsByDate,
             feelingsByDate: _feelingsByDate,
+            waterByDate: _waterByDate,
+            weightByDate: _weightByDate,
             storage: _storage,
             isToday: _isToday,
             onReload: _load,
@@ -253,6 +290,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   _MiniFabOption(
+                    label: 'Medication',
+                    icon: Icons.medication_outlined,
+                    color: theme.colorScheme.secondary,
+                    onTap: () => _navigate('/log_medication'),
+                  ),
+                  const SizedBox(height: 8),
+                  _MiniFabOption(
                     label: 'Feeling…',
                     icon: Icons.sentiment_satisfied_alt_outlined,
                     color: theme.colorScheme.tertiary,
@@ -260,10 +304,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 8),
                   _MiniFabOption(
-                    label: 'Medication',
-                    icon: Icons.medication_outlined,
-                    color: theme.colorScheme.secondary,
-                    onTap: () => _navigate('/log_medication'),
+                    label: 'Weigh-in',
+                    icon: Icons.monitor_weight_outlined,
+                    color: theme.colorScheme.secondary.withAlpha(180),
+                    onTap: () => _navigate('/log_weight'),
+                  ),
+                  const SizedBox(height: 8),
+                  _MiniFabOption(
+                    label: 'Water',
+                    icon: Icons.water_drop_outlined,
+                    color: Colors.blue.shade400,
+                    onTap: _showWaterSheet,
                   ),
                   const SizedBox(height: 8),
                   _MiniFabOption(

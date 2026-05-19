@@ -104,19 +104,22 @@ class MealMemoryService {
       final items = await (_db.select(_db.foodItems)
             ..where((t) => t.mealId.equals(meal.id)))
           .get();
-      final foodsSummary = items.isNotEmpty
-          ? items.map((f) => f.name).join(', ')
-          : 'unknown';
-      final totalCals = items.fold<int>(0, (s, f) => s + (f.calories ?? 0));
-      final totalProtein =
-          items.fold<double>(0.0, (s, f) => s + (f.protein?.toDouble() ?? 0.0));
       final label = _dateLabel(_toDateString(meal.date), now);
       final type = ' ${meal.mealType}';
-      final macros = _formatMacros(
-        totalCals > 0 ? totalCals : null,
-        totalProtein > 0 ? totalProtein : null,
-      );
-      buf.writeln('- $label$type: $foodsSummary$macros');
+      if (items.isEmpty) {
+        buf.writeln('- $label$type: unknown');
+      } else {
+        final itemStrs = items.map((f) {
+          final parts = <String>[];
+          if (f.calories != null) parts.add('${f.calories} cal');
+          if (f.protein != null) parts.add('${f.protein}g prot');
+          if (f.carbs != null) parts.add('${f.carbs}g carbs');
+          if (f.fat != null) parts.add('${f.fat}g fat');
+          final macroStr = parts.isEmpty ? '' : ' (${parts.join(', ')})';
+          return '${f.name}$macroStr';
+        }).join('; ');
+        buf.writeln('- $label$type: $itemStrs');
+      }
     }
     return buf.toString().trim();
   }
@@ -236,11 +239,4 @@ class MealMemoryService {
     }
   }
 
-  String _formatMacros(int? cals, double? protein) {
-    if (cals == null && protein == null) return '';
-    final parts = <String>[];
-    if (cals != null) parts.add('$cals cal');
-    if (protein != null) parts.add('${protein.round()}g protein');
-    return ' (${parts.join(', ')})';
-  }
 }

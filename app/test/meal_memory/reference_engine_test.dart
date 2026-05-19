@@ -21,6 +21,8 @@ void main() {
     test('the usual → true', () => expect(ref('the usual breakfast'), isTrue));
     test('named day → true', () => expect(ref('leftovers from last friday'), isTrue));
     test('earlier → true', () => expect(ref('had some earlier'), isTrue));
+    test('today → true', () => expect(ref('2 more cheeseburgers from today'), isTrue));
+    test('from today → true', () => expect(ref('same thing from today'), isTrue));
     test('plain food → false', () => expect(ref('I had a chicken sandwich'), isFalse));
     test('empty → false', () => expect(ref(''), isFalse));
   });
@@ -34,6 +36,14 @@ void main() {
 
     test('"leftovers from last night" → offset 1', () {
       expect(spec('leftovers from last night').dateOffset, equals(1));
+    });
+
+    test('"from today" → offset 0', () {
+      expect(spec('2 more cheeseburgers from today').dateOffset, equals(0));
+    });
+
+    test('"today" → offset 0', () {
+      expect(spec('had it today').dateOffset, equals(0));
     });
 
     test('"had that for breakfast yesterday" → offset 1', () {
@@ -231,13 +241,14 @@ void main() {
 
   group('buildContextSnippet format', () {
     test('output starts with "Recent meals:" header', () {
-      // Verify the format string that gets injected into the Gemini prompt.
-      // This is a unit test of the format shape, not DB content.
-      // Format: "Recent meals:\n- <label> <mealType>: <foods> (<macros>)"
-      const snippet = 'Recent meals:\n- Yesterday dinner: grilled chicken, rice (450 cal, 35g protein)';
+      // Format: "Recent meals:\n- <label> <mealType>: <item> (<cal> cal, <prot>g prot, <carbs>g carbs, <fat>g fat)"
+      const snippet =
+          'Recent meals:\n- Yesterday Dinner: grilled chicken (320 cal, 35g prot, 0g carbs, 8g fat); rice (130 cal, 3g prot, 28g carbs, 1g fat)';
       expect(snippet, startsWith('Recent meals:'));
       expect(snippet, contains('- Yesterday'));
-      expect(snippet, contains(':'));
+      expect(snippet, contains('prot'));
+      expect(snippet, contains('carbs'));
+      expect(snippet, contains('fat'));
     });
   });
 }
