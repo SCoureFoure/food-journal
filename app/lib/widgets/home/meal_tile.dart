@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../models/food_item.dart';
@@ -28,6 +30,16 @@ class _MealTileState extends State<MealTile> {
   void initState() {
     super.initState();
     _loadItems();
+  }
+
+  @override
+  void didUpdateWidget(MealTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.meal.id != widget.meal.id) {
+      _loaded = false;
+      _items = [];
+      _loadItems();
+    }
   }
 
   Future<void> _loadItems() async {
@@ -134,6 +146,8 @@ class _MealTileState extends State<MealTile> {
             ? GestureDetector(
                 onTap: () async {
                   await Navigator.pushNamed(context, '/edit_meal', arguments: meal);
+                  if (mounted) setState(() { _loaded = false; _items = []; });
+                  unawaited(_loadItems());
                   widget.onReload();
                 },
                 child: const Icon(Icons.edit_outlined, size: 24),
@@ -158,6 +172,8 @@ class _MealTileState extends State<MealTile> {
                     ingredients: i.ingredients,
                     onEdit: () async {
                       await Navigator.pushNamed(context, '/edit_meal', arguments: meal);
+                      if (mounted) setState(() { _loaded = false; _items = []; });
+                      unawaited(_loadItems());
                       widget.onReload();
                     },
                   )),

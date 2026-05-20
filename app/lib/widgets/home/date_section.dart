@@ -68,7 +68,7 @@ class _DateSectionState extends State<DateSection> {
     for (final m in widget.meals) {
       entries.add((
         sortTime: _toDateTime(m.date, m.time),
-        tile: MealTile(meal: m, storage: widget.storage!, onReload: widget.onReload),
+        tile: MealTile(key: ValueKey(m.id), meal: m, storage: widget.storage!, onReload: widget.onReload),
       ));
     }
     for (final m in widget.medications) {
