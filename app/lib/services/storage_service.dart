@@ -15,8 +15,10 @@ import 'database/app_database.dart' as db;
 import 'meal_memory/meal_memory_service.dart';
 
 class StorageService {
-  final _db = db.AppDatabase();
-  final _memory = MealMemoryService();
+  // lazy so test subclasses that never touch the DB don't trigger the
+  // native sqlite3 connection during construction.
+  late final _db = db.AppDatabase();
+  late final _memory = MealMemoryService();
 
   // ── Meals ────────────────────────────────────────────────────────────────────
 
@@ -394,6 +396,53 @@ class StorageService {
     );
   }
 
+  /// Returns up to 30 distinct food items matching [query], ordered by most recently logged.
+  /// Each result carries the macro snapshot from the most recent log of that item name.
+  /// Pass an empty string to get the 30 most recent distinct items.
+  Future<List<FoodItemDraft>> searchFoodHistory(String query) async {
+    final q = query.trim().isEmpty ? '%' : '%${query.trim()}%';
+    final rows = await _db.customSelect(
+      '''
+      SELECT fi.name, fi.portion, fi.prep, fi.calories, fi.protein, fi.carbs, fi.fat,
+             MAX(m.date) AS last_used
+      FROM food_items fi
+      JOIN meals m ON fi.meal_id = m.id
+      WHERE LOWER(fi.name) LIKE LOWER(?)
+      GROUP BY LOWER(fi.name)
+      ORDER BY last_used DESC
+      LIMIT 30
+      ''',
+      variables: [Variable.withString(q)],
+      readsFrom: {_db.foodItems, _db.meals},
+    ).get();
+
+    return rows
+        .map((row) => FoodItemDraft(
+              name: row.read<String>('name'),
+              portion: row.readNullable<String>('portion'),
+              prep: row.readNullable<String>('prep'),
+              calories: row.readNullable<int>('calories'),
+              protein: row.readNullable<int>('protein'),
+              carbs: row.readNullable<int>('carbs'),
+              fat: row.readNullable<int>('fat'),
+            ))
+        .toList();
+  }
+
+  // TODO_FAVORITES: call this from the favorites toggle UI in FoodHistorySearchSheet
+  // and from EditableFoodItemCard once the heart icon is added.
+  Future<void> toggleFoodFavorite(String foodName) async {
+    await _db.transaction(() async {
+      final existing = await (_db.select(_db.foodMemories)
+            ..where((t) => t.foodName.equals(foodName)))
+          .getSingleOrNull();
+      if (existing == null) return;
+      await (_db.update(_db.foodMemories)
+            ..where((t) => t.foodName.equals(foodName)))
+          .write(db.FoodMemoriesCompanion(favorited: Value(!existing.favorited)));
+    });
+  }
+
   Future<void> upsertFoodMemory(String foodName, ReactionLevel reaction) async {
     await _db.transaction(() async {
       final existing = await (_db.select(_db.foodMemories)
@@ -593,6 +642,7 @@ class StorageService {
         occurrences: row.occurrences,
         lastSeen: row.lastSeen,
         flagged: row.flagged,
+        favorited: row.favorited,
       );
 
   Medication _medicationFromRow(db.Medication row) => Medication(

@@ -54,6 +54,8 @@ class FoodMemories extends Table {
   IntColumn get occurrences => integer().withDefault(const Constant(0))();
   DateTimeColumn get lastSeen => dateTime()();
   BoolColumn get flagged => boolean().withDefault(const Constant(false))();
+  // TODO_FAVORITES: toggle this via StorageService.toggleFoodFavorite(foodName)
+  BoolColumn get favorited => boolean().withDefault(const Constant(false))();
 }
 
 class Medications extends Table {
@@ -111,8 +113,16 @@ class AppDatabase extends _$AppDatabase {
 
   AppDatabase._internal() : super(_openConnection());
 
+  // Exposed as a static constant so tests can assert the current version
+  // without instantiating the singleton (which requires native sqlite3).
+  static const int currentSchemaVersion = 6;
+
+  // The declared migration ceiling versions in the order they appear in
+  // onUpgrade.  Must be non-decreasing — tested in migration_order_test.dart.
+  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6];
+
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => currentSchemaVersion;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -196,6 +206,11 @@ class AppDatabase extends _$AppDatabase {
             created_at INTEGER NOT NULL
           )
         ''');
+      }
+      if (from < 6) {
+        await customStatement(
+          'ALTER TABLE food_memories ADD COLUMN favorited INTEGER NOT NULL DEFAULT 0',
+        );
       }
     },
   );

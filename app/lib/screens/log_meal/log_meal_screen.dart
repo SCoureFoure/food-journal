@@ -14,6 +14,7 @@ import '../../services/storage_service.dart';
 import '../../utils/date_time_utils.dart';
 import '../../widgets/editable_food_item_card.dart';
 import '../../widgets/error_display.dart';
+import '../../widgets/food_history_search_sheet.dart';
 import '../../widgets/loading_button.dart';
 import '../../widgets/log_date_time_row.dart';
 import '../../widgets/log_description_section.dart';
@@ -346,6 +347,16 @@ class _LogMealScreenState extends State<LogMealScreen> {
     setState(() => _foodItems.add(FoodItemFormData.blank()));
   }
 
+  Future<void> _addFromHistory() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => FoodHistorySearchSheet(
+        onSelect: (draft) => setState(() => _foodItems.add(FoodItemFormData.fromDraft(draft))),
+      ),
+    );
+  }
+
   void _removeItem(int index) {
     setState(() {
       _foodItems[index].dispose();
@@ -428,10 +439,21 @@ class _LogMealScreenState extends State<LogMealScreen> {
                     children: [
                       Text('Food items', style: theme.textTheme.titleSmall),
                       const Spacer(),
-                      TextButton.icon(
-                        onPressed: _isSaving ? null : _addBlankItem,
-                        icon: const Icon(Icons.add, size: 16),
-                        label: const Text('Add item'),
+                      Semantics(
+                        identifier: 'btn-add-from-history',
+                        child: TextButton.icon(
+                          onPressed: _isSaving ? null : _addFromHistory,
+                          icon: const Icon(Icons.history, size: 16),
+                          label: const Text('History'),
+                        ),
+                      ),
+                      Semantics(
+                        identifier: 'btn-add-item',
+                        child: TextButton.icon(
+                          onPressed: _isSaving ? null : _addBlankItem,
+                          icon: const Icon(Icons.add, size: 16),
+                          label: const Text('Add item'),
+                        ),
                       ),
                     ],
                   ),

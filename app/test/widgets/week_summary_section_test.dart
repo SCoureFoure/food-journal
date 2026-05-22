@@ -44,6 +44,8 @@ WeekSummarySection _section({
       mealsByDate: mealsByDate,
       medsByDate: const {},
       feelingsByDate: const {},
+      waterByDate: const {},
+      weightByDate: const {},
       isToday: (_) => false,
       onReload: () {},
       macroFetcher: fetcher,

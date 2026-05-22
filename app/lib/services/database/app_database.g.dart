@@ -1981,6 +1981,21 @@ class $FoodMemoriesTable extends FoodMemories
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _favoritedMeta = const VerificationMeta(
+    'favorited',
+  );
+  @override
+  late final GeneratedColumn<bool> favorited = GeneratedColumn<bool>(
+    'favorited',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("favorited" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1989,6 +2004,7 @@ class $FoodMemoriesTable extends FoodMemories
     occurrences,
     lastSeen,
     flagged,
+    favorited,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2045,6 +2061,12 @@ class $FoodMemoriesTable extends FoodMemories
         flagged.isAcceptableOrUnknown(data['flagged']!, _flaggedMeta),
       );
     }
+    if (data.containsKey('favorited')) {
+      context.handle(
+        _favoritedMeta,
+        favorited.isAcceptableOrUnknown(data['favorited']!, _favoritedMeta),
+      );
+    }
     return context;
   }
 
@@ -2078,6 +2100,10 @@ class $FoodMemoriesTable extends FoodMemories
         DriftSqlType.bool,
         data['${effectivePrefix}flagged'],
       )!,
+      favorited: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}favorited'],
+      )!,
     );
   }
 
@@ -2094,6 +2120,7 @@ class FoodMemory extends DataClass implements Insertable<FoodMemory> {
   final int occurrences;
   final DateTime lastSeen;
   final bool flagged;
+  final bool favorited;
   const FoodMemory({
     required this.id,
     required this.foodName,
@@ -2101,6 +2128,7 @@ class FoodMemory extends DataClass implements Insertable<FoodMemory> {
     required this.occurrences,
     required this.lastSeen,
     required this.flagged,
+    required this.favorited,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2113,6 +2141,7 @@ class FoodMemory extends DataClass implements Insertable<FoodMemory> {
     map['occurrences'] = Variable<int>(occurrences);
     map['last_seen'] = Variable<DateTime>(lastSeen);
     map['flagged'] = Variable<bool>(flagged);
+    map['favorited'] = Variable<bool>(favorited);
     return map;
   }
 
@@ -2126,6 +2155,7 @@ class FoodMemory extends DataClass implements Insertable<FoodMemory> {
       occurrences: Value(occurrences),
       lastSeen: Value(lastSeen),
       flagged: Value(flagged),
+      favorited: Value(favorited),
     );
   }
 
@@ -2141,6 +2171,7 @@ class FoodMemory extends DataClass implements Insertable<FoodMemory> {
       occurrences: serializer.fromJson<int>(json['occurrences']),
       lastSeen: serializer.fromJson<DateTime>(json['lastSeen']),
       flagged: serializer.fromJson<bool>(json['flagged']),
+      favorited: serializer.fromJson<bool>(json['favorited']),
     );
   }
   @override
@@ -2153,6 +2184,7 @@ class FoodMemory extends DataClass implements Insertable<FoodMemory> {
       'occurrences': serializer.toJson<int>(occurrences),
       'lastSeen': serializer.toJson<DateTime>(lastSeen),
       'flagged': serializer.toJson<bool>(flagged),
+      'favorited': serializer.toJson<bool>(favorited),
     };
   }
 
@@ -2163,6 +2195,7 @@ class FoodMemory extends DataClass implements Insertable<FoodMemory> {
     int? occurrences,
     DateTime? lastSeen,
     bool? flagged,
+    bool? favorited,
   }) => FoodMemory(
     id: id ?? this.id,
     foodName: foodName ?? this.foodName,
@@ -2172,6 +2205,7 @@ class FoodMemory extends DataClass implements Insertable<FoodMemory> {
     occurrences: occurrences ?? this.occurrences,
     lastSeen: lastSeen ?? this.lastSeen,
     flagged: flagged ?? this.flagged,
+    favorited: favorited ?? this.favorited,
   );
   FoodMemory copyWithCompanion(FoodMemoriesCompanion data) {
     return FoodMemory(
@@ -2185,6 +2219,7 @@ class FoodMemory extends DataClass implements Insertable<FoodMemory> {
           : this.occurrences,
       lastSeen: data.lastSeen.present ? data.lastSeen.value : this.lastSeen,
       flagged: data.flagged.present ? data.flagged.value : this.flagged,
+      favorited: data.favorited.present ? data.favorited.value : this.favorited,
     );
   }
 
@@ -2196,7 +2231,8 @@ class FoodMemory extends DataClass implements Insertable<FoodMemory> {
           ..write('reactionPattern: $reactionPattern, ')
           ..write('occurrences: $occurrences, ')
           ..write('lastSeen: $lastSeen, ')
-          ..write('flagged: $flagged')
+          ..write('flagged: $flagged, ')
+          ..write('favorited: $favorited')
           ..write(')'))
         .toString();
   }
@@ -2209,6 +2245,7 @@ class FoodMemory extends DataClass implements Insertable<FoodMemory> {
     occurrences,
     lastSeen,
     flagged,
+    favorited,
   );
   @override
   bool operator ==(Object other) =>
@@ -2219,7 +2256,8 @@ class FoodMemory extends DataClass implements Insertable<FoodMemory> {
           other.reactionPattern == this.reactionPattern &&
           other.occurrences == this.occurrences &&
           other.lastSeen == this.lastSeen &&
-          other.flagged == this.flagged);
+          other.flagged == this.flagged &&
+          other.favorited == this.favorited);
 }
 
 class FoodMemoriesCompanion extends UpdateCompanion<FoodMemory> {
@@ -2229,6 +2267,7 @@ class FoodMemoriesCompanion extends UpdateCompanion<FoodMemory> {
   final Value<int> occurrences;
   final Value<DateTime> lastSeen;
   final Value<bool> flagged;
+  final Value<bool> favorited;
   const FoodMemoriesCompanion({
     this.id = const Value.absent(),
     this.foodName = const Value.absent(),
@@ -2236,6 +2275,7 @@ class FoodMemoriesCompanion extends UpdateCompanion<FoodMemory> {
     this.occurrences = const Value.absent(),
     this.lastSeen = const Value.absent(),
     this.flagged = const Value.absent(),
+    this.favorited = const Value.absent(),
   });
   FoodMemoriesCompanion.insert({
     this.id = const Value.absent(),
@@ -2244,6 +2284,7 @@ class FoodMemoriesCompanion extends UpdateCompanion<FoodMemory> {
     this.occurrences = const Value.absent(),
     required DateTime lastSeen,
     this.flagged = const Value.absent(),
+    this.favorited = const Value.absent(),
   }) : foodName = Value(foodName),
        lastSeen = Value(lastSeen);
   static Insertable<FoodMemory> custom({
@@ -2253,6 +2294,7 @@ class FoodMemoriesCompanion extends UpdateCompanion<FoodMemory> {
     Expression<int>? occurrences,
     Expression<DateTime>? lastSeen,
     Expression<bool>? flagged,
+    Expression<bool>? favorited,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2261,6 +2303,7 @@ class FoodMemoriesCompanion extends UpdateCompanion<FoodMemory> {
       if (occurrences != null) 'occurrences': occurrences,
       if (lastSeen != null) 'last_seen': lastSeen,
       if (flagged != null) 'flagged': flagged,
+      if (favorited != null) 'favorited': favorited,
     });
   }
 
@@ -2271,6 +2314,7 @@ class FoodMemoriesCompanion extends UpdateCompanion<FoodMemory> {
     Value<int>? occurrences,
     Value<DateTime>? lastSeen,
     Value<bool>? flagged,
+    Value<bool>? favorited,
   }) {
     return FoodMemoriesCompanion(
       id: id ?? this.id,
@@ -2279,6 +2323,7 @@ class FoodMemoriesCompanion extends UpdateCompanion<FoodMemory> {
       occurrences: occurrences ?? this.occurrences,
       lastSeen: lastSeen ?? this.lastSeen,
       flagged: flagged ?? this.flagged,
+      favorited: favorited ?? this.favorited,
     );
   }
 
@@ -2303,6 +2348,9 @@ class FoodMemoriesCompanion extends UpdateCompanion<FoodMemory> {
     if (flagged.present) {
       map['flagged'] = Variable<bool>(flagged.value);
     }
+    if (favorited.present) {
+      map['favorited'] = Variable<bool>(favorited.value);
+    }
     return map;
   }
 
@@ -2314,7 +2362,8 @@ class FoodMemoriesCompanion extends UpdateCompanion<FoodMemory> {
           ..write('reactionPattern: $reactionPattern, ')
           ..write('occurrences: $occurrences, ')
           ..write('lastSeen: $lastSeen, ')
-          ..write('flagged: $flagged')
+          ..write('flagged: $flagged, ')
+          ..write('favorited: $favorited')
           ..write(')'))
         .toString();
   }
@@ -5903,6 +5952,7 @@ typedef $$FoodMemoriesTableCreateCompanionBuilder =
       Value<int> occurrences,
       required DateTime lastSeen,
       Value<bool> flagged,
+      Value<bool> favorited,
     });
 typedef $$FoodMemoriesTableUpdateCompanionBuilder =
     FoodMemoriesCompanion Function({
@@ -5912,6 +5962,7 @@ typedef $$FoodMemoriesTableUpdateCompanionBuilder =
       Value<int> occurrences,
       Value<DateTime> lastSeen,
       Value<bool> flagged,
+      Value<bool> favorited,
     });
 
 class $$FoodMemoriesTableFilterComposer
@@ -5950,6 +6001,11 @@ class $$FoodMemoriesTableFilterComposer
 
   ColumnFilters<bool> get flagged => $composableBuilder(
     column: $table.flagged,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get favorited => $composableBuilder(
+    column: $table.favorited,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -5992,6 +6048,11 @@ class $$FoodMemoriesTableOrderingComposer
     column: $table.flagged,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get favorited => $composableBuilder(
+    column: $table.favorited,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$FoodMemoriesTableAnnotationComposer
@@ -6024,6 +6085,9 @@ class $$FoodMemoriesTableAnnotationComposer
 
   GeneratedColumn<bool> get flagged =>
       $composableBuilder(column: $table.flagged, builder: (column) => column);
+
+  GeneratedColumn<bool> get favorited =>
+      $composableBuilder(column: $table.favorited, builder: (column) => column);
 }
 
 class $$FoodMemoriesTableTableManager
@@ -6063,6 +6127,7 @@ class $$FoodMemoriesTableTableManager
                 Value<int> occurrences = const Value.absent(),
                 Value<DateTime> lastSeen = const Value.absent(),
                 Value<bool> flagged = const Value.absent(),
+                Value<bool> favorited = const Value.absent(),
               }) => FoodMemoriesCompanion(
                 id: id,
                 foodName: foodName,
@@ -6070,6 +6135,7 @@ class $$FoodMemoriesTableTableManager
                 occurrences: occurrences,
                 lastSeen: lastSeen,
                 flagged: flagged,
+                favorited: favorited,
               ),
           createCompanionCallback:
               ({
@@ -6079,6 +6145,7 @@ class $$FoodMemoriesTableTableManager
                 Value<int> occurrences = const Value.absent(),
                 required DateTime lastSeen,
                 Value<bool> flagged = const Value.absent(),
+                Value<bool> favorited = const Value.absent(),
               }) => FoodMemoriesCompanion.insert(
                 id: id,
                 foodName: foodName,
@@ -6086,6 +6153,7 @@ class $$FoodMemoriesTableTableManager
                 occurrences: occurrences,
                 lastSeen: lastSeen,
                 flagged: flagged,
+                favorited: favorited,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
