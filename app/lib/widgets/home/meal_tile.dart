@@ -25,6 +25,7 @@ class _MealTileState extends State<MealTile> {
   bool _loaded = false;
   bool _loadingItems = false;
   List<({FoodItem item, List<Ingredient> ingredients})> _items = [];
+  Set<String> _favoritedNames = {};
 
   @override
   void initState() {
@@ -46,10 +47,14 @@ class _MealTileState extends State<MealTile> {
     if (_loaded || _loadingItems) return;
     setState(() => _loadingItems = true);
     try {
-      final result = await widget.storage.getFoodItemsWithIngredients(widget.meal.id!);
+      final results = await Future.wait([
+        widget.storage.getFoodItemsWithIngredients(widget.meal.id!),
+        widget.storage.getFavoritedFoodNames(),
+      ]);
       if (!mounted) return;
       setState(() {
-        _items = result;
+        _items = results[0] as List<({FoodItem item, List<Ingredient> ingredients})>;
+        _favoritedNames = results[1] as Set<String>;
         _loaded = true;
         _loadingItems = false;
       });
@@ -57,6 +62,12 @@ class _MealTileState extends State<MealTile> {
       if (!mounted) return;
       setState(() => _loadingItems = false);
     }
+  }
+
+  Future<void> _toggleFavorite(String foodName) async {
+    await widget.storage.toggleFoodFavorite(foodName);
+    final updated = await widget.storage.getFavoritedFoodNames();
+    if (mounted) setState(() => _favoritedNames = updated);
   }
 
   // Scrolls the minimum needed to keep this tile in view.
@@ -170,6 +181,8 @@ class _MealTileState extends State<MealTile> {
                   ..._items.map((i) => FoodItemCard(
                     item: i.item,
                     ingredients: i.ingredients,
+                    favorited: _favoritedNames.contains(i.item.name.toLowerCase()),
+                    onToggleFavorite: () => _toggleFavorite(i.item.name),
                     onEdit: () async {
                       await Navigator.pushNamed(context, '/edit_meal', arguments: meal);
                       if (mounted) setState(() { _loaded = false; _items = []; });

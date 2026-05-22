@@ -7,14 +7,9 @@ import '../services/storage_service.dart';
 
 class FoodHistorySearchSheet extends StatefulWidget {
   final void Function(FoodItemDraft) onSelect;
-  // Injected for testing; defaults to the shared singleton in production.
   final StorageService? storageOverride;
 
-  const FoodHistorySearchSheet({
-    super.key,
-    required this.onSelect,
-    this.storageOverride,
-  });
+  const FoodHistorySearchSheet({super.key, required this.onSelect, this.storageOverride});
 
   @override
   State<FoodHistorySearchSheet> createState() => _FoodHistorySearchSheetState();
@@ -26,6 +21,7 @@ class _FoodHistorySearchSheetState extends State<FoodHistorySearchSheet> {
   Timer? _debounce;
   List<FoodItemDraft> _results = [];
   bool _loading = true;
+  bool _favoritesOnly = false;
 
   @override
   void initState() {
@@ -42,8 +38,13 @@ class _FoodHistorySearchSheetState extends State<FoodHistorySearchSheet> {
 
   Future<void> _load(String query) async {
     setState(() => _loading = true);
-    final results = await _storage.searchFoodHistory(query);
+    final results = await _storage.searchFoodHistory(query, favoritesOnly: _favoritesOnly);
     if (mounted) setState(() { _results = results; _loading = false; });
+  }
+
+  Future<void> _toggleFavorite(FoodItemDraft item) async {
+    await _storage.toggleFoodFavorite(item.name);
+    if (mounted) _load(_searchCtrl.text);
   }
 
   @override
@@ -87,10 +88,34 @@ class _FoodHistorySearchSheetState extends State<FoodHistorySearchSheet> {
                     Expanded(
                       child: Text('Add from history', style: theme.textTheme.titleMedium),
                     ),
-                    // TODO_FAVORITES: Add a filter chip or tab here to toggle between
-                    // "History" (all items) and "Favorites" (favorited == true).
-                    // Storage already has toggleFoodFavorite(foodName) and searchFoodHistory
-                    // returns FoodItemDraft — add a favorites query variant alongside it.
+                    Semantics(
+                      identifier: 'btn-history-filter-all',
+                      child: FilterChip(
+                        label: const Text('All'),
+                        selected: !_favoritesOnly,
+                        onSelected: (_) {
+                          setState(() => _favoritesOnly = false);
+                          _load(_searchCtrl.text);
+                        },
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Semantics(
+                      identifier: 'btn-history-filter-favorites',
+                      child: FilterChip(
+                        label: const Text('Favorites'),
+                        avatar: const Icon(Icons.star, size: 14),
+                        selected: _favoritesOnly,
+                        onSelected: (_) {
+                          setState(() => _favoritesOnly = true);
+                          _load(_searchCtrl.text);
+                        },
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -122,9 +147,7 @@ class _FoodHistorySearchSheetState extends State<FoodHistorySearchSheet> {
                         ? Padding(
                             padding: const EdgeInsets.all(24),
                             child: Text(
-                              _searchCtrl.text.isEmpty
-                                  ? 'No meal history yet.'
-                                  : 'No items match "${_searchCtrl.text}".',
+                              _emptyMessage,
                               textAlign: TextAlign.center,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.outline,
@@ -141,10 +164,29 @@ class _FoodHistorySearchSheetState extends State<FoodHistorySearchSheet> {
                                 child: ListTile(
                                   title: Text(item.name),
                                   subtitle: _subtitle(item, theme),
-                                  trailing: const Icon(Icons.add_circle_outline, size: 20),
-                                  // TODO_FAVORITES: Add a bookmark/star IconButton here.
-                                  // On tap: call _storage.toggleFoodFavorite(item.name)
-                                  // then setState to refresh the list (or update local state).
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Semantics(
+                                        identifier: 'btn-favorite-${item.name}',
+                                        child: IconButton(
+                                          icon: Icon(
+                                            item.favorited ? Icons.star : Icons.star_border,
+                                            size: 20,
+                                            color: item.favorited
+                                                ? theme.colorScheme.primary
+                                                : theme.colorScheme.outline,
+                                          ),
+                                          onPressed: () => _toggleFavorite(item),
+                                          visualDensity: VisualDensity.compact,
+                                          padding: EdgeInsets.zero,
+                                          tooltip: item.favorited ? 'Remove favorite' : 'Add to favorites',
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      const Icon(Icons.add_circle_outline, size: 20),
+                                    ],
+                                  ),
                                   onTap: () {
                                     Navigator.of(context).pop();
                                     widget.onSelect(item);
@@ -160,6 +202,17 @@ class _FoodHistorySearchSheetState extends State<FoodHistorySearchSheet> {
         ),
       ),
     );
+  }
+
+  String get _emptyMessage {
+    if (_favoritesOnly) {
+      return _searchCtrl.text.isEmpty
+          ? 'No favorites yet — tap the star on any item.'
+          : 'No favorites match "${_searchCtrl.text}".';
+    }
+    return _searchCtrl.text.isEmpty
+        ? 'No meal history yet.'
+        : 'No items match "${_searchCtrl.text}".';
   }
 
   Widget? _subtitle(FoodItemDraft item, ThemeData theme) {

@@ -8,8 +8,17 @@ class FoodItemCard extends StatelessWidget {
   final FoodItem item;
   final List<Ingredient> ingredients;
   final VoidCallback? onEdit;
+  final bool favorited;
+  final VoidCallback? onToggleFavorite;
 
-  const FoodItemCard({super.key, required this.item, required this.ingredients, this.onEdit});
+  const FoodItemCard({
+    super.key,
+    required this.item,
+    required this.ingredients,
+    this.onEdit,
+    this.favorited = false,
+    this.onToggleFavorite,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +29,7 @@ class FoodItemCard extends StatelessWidget {
       fontWeight: FontWeight.w600,
     );
 
-    return Card(
+    Widget card = Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -30,6 +39,23 @@ class FoodItemCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(child: Text(item.name, style: theme.textTheme.titleSmall)),
+                if (onToggleFavorite != null)
+                  Semantics(
+                    identifier: 'btn-favorite-${item.id}',
+                    child: GestureDetector(
+                      onTap: onToggleFavorite,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: Icon(
+                          favorited ? Icons.favorite : Icons.favorite_border,
+                          size: 18,
+                          color: favorited
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ),
                 if (onEdit != null)
                   GestureDetector(
                     onTap: onEdit,
@@ -77,6 +103,15 @@ class FoodItemCard extends StatelessWidget {
         ),
       ),
     );
+
+    if (onToggleFavorite != null) {
+      card = GestureDetector(
+        onDoubleTap: onToggleFavorite,
+        child: card,
+      );
+    }
+
+    return card;
   }
 }
 

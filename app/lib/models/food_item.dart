@@ -92,6 +92,8 @@ class FoodItemDraft {
   final int? fat;
   final List<String> ingredients;
   final String? notes;
+  /// Only populated when loaded from history search; always false for AI-parsed drafts.
+  final bool favorited;
 
   const FoodItemDraft({
     required this.name,
@@ -103,6 +105,7 @@ class FoodItemDraft {
     this.fat,
     this.ingredients = const [],
     this.notes,
+    this.favorited = false,
   });
 
   factory FoodItemDraft.fromJson(Map<String, dynamic> json) {

@@ -378,6 +378,13 @@ class StorageService {
 
   // ── Food Memory ──────────────────────────────────────────────────────────────
 
+  Future<Set<String>> getFavoritedFoodNames() async {
+    final rows = await (_db.select(_db.foodMemories)
+          ..where((t) => t.favorited.equals(true)))
+        .get();
+    return rows.map((r) => r.foodName.toLowerCase()).toSet();
+  }
+
   Future<List<FoodMemory>> getFoodMemory() async {
     final rows = await _db.select(_db.foodMemories).get();
     return rows.map(_foodMemoryFromRow).toList();
@@ -391,29 +398,36 @@ class StorageService {
         occurrences: Value(memory.occurrences),
         lastSeen: memory.lastSeen,
         flagged: Value(memory.flagged),
+        favorited: Value(memory.favorited),
       ),
       mode: InsertMode.insertOrReplace,
     );
   }
 
   /// Returns up to 30 distinct food items matching [query], ordered by most recently logged.
-  /// Each result carries the macro snapshot from the most recent log of that item name.
+  /// Each result carries the macro snapshot from the most recent log of that item name
+  /// and the current [FoodItemDraft.favorited] state from food_memories.
   /// Pass an empty string to get the 30 most recent distinct items.
-  Future<List<FoodItemDraft>> searchFoodHistory(String query) async {
+  /// Set [favoritesOnly] to restrict to items where food_memories.favorited = true.
+  Future<List<FoodItemDraft>> searchFoodHistory(String query, {bool favoritesOnly = false}) async {
     final q = query.trim().isEmpty ? '%' : '%${query.trim()}%';
+    final favFilter = favoritesOnly ? 'AND COALESCE(fm.favorited, 0) = 1' : '';
     final rows = await _db.customSelect(
       '''
       SELECT fi.name, fi.portion, fi.prep, fi.calories, fi.protein, fi.carbs, fi.fat,
-             MAX(m.date) AS last_used
+             MAX(m.date) AS last_used,
+             COALESCE(fm.favorited, 0) AS is_favorited
       FROM food_items fi
       JOIN meals m ON fi.meal_id = m.id
+      LEFT JOIN food_memories fm ON LOWER(fi.name) = LOWER(fm.food_name)
       WHERE LOWER(fi.name) LIKE LOWER(?)
+      $favFilter
       GROUP BY LOWER(fi.name)
       ORDER BY last_used DESC
       LIMIT 30
       ''',
       variables: [Variable.withString(q)],
-      readsFrom: {_db.foodItems, _db.meals},
+      readsFrom: {_db.foodItems, _db.meals, _db.foodMemories},
     ).get();
 
     return rows
@@ -425,21 +439,30 @@ class StorageService {
               protein: row.readNullable<int>('protein'),
               carbs: row.readNullable<int>('carbs'),
               fat: row.readNullable<int>('fat'),
+              favorited: row.read<int>('is_favorited') == 1,
             ))
         .toList();
   }
 
-  // TODO_FAVORITES: call this from the favorites toggle UI in FoodHistorySearchSheet
-  // and from EditableFoodItemCard once the heart icon is added.
   Future<void> toggleFoodFavorite(String foodName) async {
     await _db.transaction(() async {
       final existing = await (_db.select(_db.foodMemories)
             ..where((t) => t.foodName.equals(foodName)))
           .getSingleOrNull();
-      if (existing == null) return;
-      await (_db.update(_db.foodMemories)
-            ..where((t) => t.foodName.equals(foodName)))
-          .write(db.FoodMemoriesCompanion(favorited: Value(!existing.favorited)));
+      if (existing == null) {
+        // Food was logged before memory entry existed — create one, already favorited.
+        await _db.into(_db.foodMemories).insert(
+          db.FoodMemoriesCompanion.insert(
+            foodName: foodName,
+            lastSeen: DateTime.now(),
+            favorited: const Value(true),
+          ),
+        );
+      } else {
+        await (_db.update(_db.foodMemories)
+              ..where((t) => t.foodName.equals(foodName)))
+            .write(db.FoodMemoriesCompanion(favorited: Value(!existing.favorited)));
+      }
     });
   }
 

@@ -30,6 +30,32 @@ void main() {
     });
   });
 
+  // ─── favorited field ──────────────────────────────────────────────────────
+
+  group('[MFT] FoodItemDraft.favorited — default and construction', () {
+    test('favorited defaults to false when not supplied', () {
+      const draft = FoodItemDraft(name: 'Oats');
+      expect(draft.favorited, isFalse);
+    });
+
+    test('favorited can be set to true at construction', () {
+      const draft = FoodItemDraft(name: 'Oats', favorited: true);
+      expect(draft.favorited, isTrue);
+    });
+
+    test('fromJson always produces favorited=false (field is not in AI JSON output)', () {
+      final draft = FoodItemDraft.fromJson({
+        'name': 'Chicken breast',
+        'ingredients': [],
+        // even if a rogue payload includes the field, fromJson ignores it
+        'favorited': true,
+      });
+      expect(draft.favorited, isFalse,
+          reason: 'AI-parsed drafts must never carry a favorited flag; '
+              'only history queries populate it');
+    });
+  });
+
   // ─── Edge inputs ─────────────────────────────────────────────────────────
 
   group('[BVA] FoodItemDraft.fromJson — edge inputs', () {
