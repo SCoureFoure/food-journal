@@ -5,11 +5,19 @@ import 'package:flutter/material.dart';
 import '../models/food_item.dart';
 import '../services/storage_service.dart';
 
+// ignore_for_file: use_build_context_synchronously
+
 class FoodHistorySearchSheet extends StatefulWidget {
   final void Function(FoodItemDraft) onSelect;
   final StorageService? storageOverride;
+  final bool initialFavoritesOnly;
 
-  const FoodHistorySearchSheet({super.key, required this.onSelect, this.storageOverride});
+  const FoodHistorySearchSheet({
+    super.key,
+    required this.onSelect,
+    this.storageOverride,
+    this.initialFavoritesOnly = false,
+  });
 
   @override
   State<FoodHistorySearchSheet> createState() => _FoodHistorySearchSheetState();
@@ -27,6 +35,7 @@ class _FoodHistorySearchSheetState extends State<FoodHistorySearchSheet> {
   void initState() {
     super.initState();
     _storage = widget.storageOverride ?? StorageService();
+    _favoritesOnly = widget.initialFavoritesOnly;
     _load('');
     _searchCtrl.addListener(_onChanged);
   }
@@ -44,6 +53,28 @@ class _FoodHistorySearchSheetState extends State<FoodHistorySearchSheet> {
 
   Future<void> _toggleFavorite(FoodItemDraft item) async {
     await _storage.toggleFoodFavorite(item.name);
+    if (mounted) _load(_searchCtrl.text);
+  }
+
+  Future<void> _deleteSavedItem(FoodItemDraft item) async {
+    if (item.savedItemId == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete saved item?'),
+        content: Text('"${item.name}" will be removed. This cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('Delete',
+                style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    await _storage.deleteSavedItem(item.savedItemId!);
     if (mounted) _load(_searchCtrl.text);
   }
 
@@ -162,27 +193,48 @@ class _FoodHistorySearchSheetState extends State<FoodHistorySearchSheet> {
                               return Semantics(
                                 identifier: 'history-item-$i',
                                 child: ListTile(
+                                  leading: item.isComposite
+                                      ? Icon(Icons.bookmark_outline,
+                                          size: 18,
+                                          color: theme.colorScheme.tertiary)
+                                      : null,
                                   title: Text(item.name),
                                   subtitle: _subtitle(item, theme),
                                   trailing: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Semantics(
-                                        identifier: 'btn-favorite-${item.name}',
-                                        child: IconButton(
-                                          icon: Icon(
-                                            item.favorited ? Icons.star : Icons.star_border,
-                                            size: 20,
-                                            color: item.favorited
-                                                ? theme.colorScheme.primary
-                                                : theme.colorScheme.outline,
+                                      if (item.isComposite)
+                                        Semantics(
+                                          identifier: 'btn-delete-saved-${item.name}',
+                                          child: IconButton(
+                                            icon: Icon(Icons.delete_outline,
+                                                size: 20,
+                                                color: theme.colorScheme.error),
+                                            onPressed: () => _deleteSavedItem(item),
+                                            visualDensity: VisualDensity.compact,
+                                            padding: EdgeInsets.zero,
+                                            tooltip: 'Delete saved item',
                                           ),
-                                          onPressed: () => _toggleFavorite(item),
-                                          visualDensity: VisualDensity.compact,
-                                          padding: EdgeInsets.zero,
-                                          tooltip: item.favorited ? 'Remove favorite' : 'Add to favorites',
+                                        )
+                                      else
+                                        Semantics(
+                                          identifier: 'btn-favorite-${item.name}',
+                                          child: IconButton(
+                                            icon: Icon(
+                                              item.favorited ? Icons.star : Icons.star_border,
+                                              size: 20,
+                                              color: item.favorited
+                                                  ? theme.colorScheme.primary
+                                                  : theme.colorScheme.outline,
+                                            ),
+                                            onPressed: () => _toggleFavorite(item),
+                                            visualDensity: VisualDensity.compact,
+                                            padding: EdgeInsets.zero,
+                                            tooltip: item.favorited
+                                                ? 'Remove favorite'
+                                                : 'Add to favorites',
+                                          ),
                                         ),
-                                      ),
                                       const SizedBox(width: 4),
                                       const Icon(Icons.add_circle_outline, size: 20),
                                     ],

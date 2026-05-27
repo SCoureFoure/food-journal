@@ -259,6 +259,91 @@ void main() {
     });
   });
 
+  // ── Calorie total in subtitle ─────────────────────────────────────────────
+
+  group('[MFT] MealTile — _totalCalories subtitle', () {
+    testWidgets('subtitle shows "time · N cal" when items are loaded with calories',
+        (tester) async {
+      final storage = _FakeStorage()
+        ..itemsResult = [
+          (item: FoodItem(id: 1, mealId: 1, name: 'Eggs', calories: 140), ingredients: []),
+          (item: FoodItem(id: 2, mealId: 1, name: 'Toast', calories: 80), ingredients: []),
+        ]
+        ..favoritedNames = {};
+
+      await tester.pumpWidget(_wrap(meal: _meal(), storage: storage));
+      await tester.pump();
+
+      // Subtitle should show the time plus total calories (220)
+      expect(find.textContaining('220 cal'), findsOneWidget,
+          reason: '_totalCalories must sum calories across all loaded items');
+    });
+
+    testWidgets('subtitle shows only time when all items have null calories',
+        (tester) async {
+      final storage = _FakeStorage()
+        ..itemsResult = [
+          (item: FoodItem(id: 1, mealId: 1, name: 'Mystery food'), ingredients: []),
+        ]
+        ..favoritedNames = {};
+
+      await tester.pumpWidget(_wrap(meal: _meal(), storage: storage));
+      await tester.pump();
+
+      // _totalCalories is null when no item has calories — subtitle is just meal.time
+      expect(find.textContaining(' cal'), findsNothing,
+          reason: 'No cal text when all items have null calories');
+    });
+
+    testWidgets('subtitle shows only time when items list is empty',
+        (tester) async {
+      final storage = _FakeStorage()
+        ..itemsResult = []
+        ..favoritedNames = {};
+
+      await tester.pumpWidget(_wrap(meal: _meal(), storage: storage));
+      await tester.pump();
+
+      expect(find.textContaining(' cal'), findsNothing,
+          reason: '_totalCalories returns null when items list is empty');
+    });
+
+    testWidgets('subtitle shows only time when total calories sums to zero',
+        (tester) async {
+      // BVA: calories=0 items should sum to 0; _totalCalories returns null for 0
+      // to avoid showing "12:00 PM · 0 cal" which looks like no data.
+      final storage = _FakeStorage()
+        ..itemsResult = [
+          (item: FoodItem(id: 1, mealId: 1, name: 'Water', calories: 0), ingredients: []),
+        ]
+        ..favoritedNames = {};
+
+      await tester.pumpWidget(_wrap(meal: _meal(), storage: storage));
+      await tester.pump();
+
+      expect(find.textContaining(' cal'), findsNothing,
+          reason: '_totalCalories returns null for zero sum — "0 cal" subtitle is suppressed');
+    });
+
+    testWidgets('subtitle total includes items where calories is null (counts as zero)',
+        (tester) async {
+      // Mixed: one item has calories, one has null — null treated as 0 in fold
+      final storage = _FakeStorage()
+        ..itemsResult = [
+          (item: FoodItem(id: 1, mealId: 1, name: 'Eggs', calories: 140), ingredients: []),
+          (item: FoodItem(id: 2, mealId: 1, name: 'Mystery side'), ingredients: []),
+        ]
+        ..favoritedNames = {};
+
+      await tester.pumpWidget(_wrap(meal: _meal(), storage: storage));
+      await tester.pump();
+
+      // 140 + 0 = 140, which is > 0 so subtitle shows it
+      expect(find.textContaining('140 cal'), findsOneWidget,
+          reason: 'Items with null calories contribute 0 to the total');
+    });
+  });
+
   // ── Multiple items ─────────────────────────────────────────────────────────
 
   group('[EQUIV] MealTile — multiple items, mixed favorited state', () {

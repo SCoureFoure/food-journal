@@ -13,6 +13,7 @@ import 'package:food_journal/widgets/food_history_search_sheet.dart';
 class _FakeStorage extends StorageService {
   final List<FoodItemDraft> Function(String, bool) searchImpl;
   final List<String> toggleCalls = [];
+  final List<int> deleteSavedItemCalls = [];
 
   _FakeStorage({required this.searchImpl});
 
@@ -26,6 +27,10 @@ class _FakeStorage extends StorageService {
   @override
   Future<void> toggleFoodFavorite(String foodName) async =>
       toggleCalls.add(foodName);
+
+  @override
+  Future<void> deleteSavedItem(int id) async =>
+      deleteSavedItemCalls.add(id);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -480,6 +485,243 @@ void main() {
 
       expect(callCount, greaterThan(countBeforeTap),
           reason: 'A reload must fire after toggleFoodFavorite so the star icon updates');
+    });
+  });
+
+  // ── initialFavoritesOnly param ────────────────────────────────────────────
+
+  group('[MFT] FoodHistorySearchSheet — initialFavoritesOnly param', () {
+    testWidgets('initialFavoritesOnly=true opens with Favorites chip selected',
+        (tester) async {
+      final storage = _FakeStorage(searchImpl: (_, __) => []);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FoodHistorySearchSheet(
+              storageOverride: storage,
+              initialFavoritesOnly: true,
+              onSelect: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final chips = tester.widgetList<FilterChip>(find.byType(FilterChip)).toList();
+      final favChip = chips.firstWhere((c) => (c.label as Text).data == 'Favorites');
+      expect(favChip.selected, isTrue,
+          reason: 'initialFavoritesOnly=true must pre-select the Favorites chip');
+    });
+
+    testWidgets('initialFavoritesOnly=true calls searchFoodHistory with favoritesOnly=true',
+        (tester) async {
+      final capturedFlags = <bool>[];
+      final storage = _FakeStorage(
+        searchImpl: (_, favOnly) {
+          capturedFlags.add(favOnly);
+          return [];
+        },
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FoodHistorySearchSheet(
+              storageOverride: storage,
+              initialFavoritesOnly: true,
+              onSelect: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(capturedFlags, contains(true),
+          reason: 'Initial load with initialFavoritesOnly=true must pass favoritesOnly=true '
+              'to searchFoodHistory');
+    });
+
+    testWidgets('initialFavoritesOnly=false (default) opens with All chip selected',
+        (tester) async {
+      final storage = _FakeStorage(searchImpl: (_, __) => []);
+      await tester.pumpWidget(_sheet(storage: storage));
+      await tester.pump();
+
+      final chips = tester.widgetList<FilterChip>(find.byType(FilterChip)).toList();
+      final allChip = chips.firstWhere((c) => (c.label as Text).data == 'All');
+      expect(allChip.selected, isTrue,
+          reason: 'Default sheet must start on All chip, not Favorites');
+    });
+
+    testWidgets('initialFavoritesOnly=true shows "No favorites yet" when empty',
+        (tester) async {
+      final storage = _FakeStorage(searchImpl: (_, __) => []);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FoodHistorySearchSheet(
+              storageOverride: storage,
+              initialFavoritesOnly: true,
+              onSelect: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        find.text('No favorites yet — tap the star on any item.'),
+        findsOneWidget,
+        reason: 'Empty favorites list must show the correct empty-state message',
+      );
+    });
+  });
+
+  // ── Composite item rendering ──────────────────────────────────────────────
+
+  group('[MFT] FoodHistorySearchSheet — composite items (saved_items)', () {
+    FoodItemDraft composite({
+      String name = 'Breakfast Bowl',
+      int savedItemId = 1,
+      int? calories = 450,
+      int? protein = 22,
+    }) =>
+        FoodItemDraft(
+          name: name,
+          calories: calories,
+          protein: protein,
+          isComposite: true,
+          savedItemId: savedItemId,
+          ingredients: ['Oats', 'Banana'],
+        );
+
+    testWidgets('composite item shows bookmark_outline icon instead of star',
+        (tester) async {
+      final storage = _FakeStorage(
+        searchImpl: (_, __) => [composite(name: 'Power Bowl')],
+      );
+      await tester.pumpWidget(_sheet(storage: storage));
+      await tester.pump();
+
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is Icon && w.icon == Icons.bookmark_outline && w.size == 18,
+        ),
+        findsAtLeastNWidgets(1),
+        reason: 'Composite items must use bookmark_outline as their leading icon',
+      );
+      // No star button for composite items
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is Semantics && (w.properties.identifier ?? '').startsWith('btn-favorite-'),
+        ),
+        findsNothing,
+        reason: 'Composite items must not show a star/favorite button',
+      );
+    });
+
+    testWidgets('composite item shows delete button with correct semantics id',
+        (tester) async {
+      final storage = _FakeStorage(
+        searchImpl: (_, __) => [composite(name: 'Power Bowl')],
+      );
+      await tester.pumpWidget(_sheet(storage: storage));
+      await tester.pump();
+
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is Semantics &&
+              w.properties.identifier == 'btn-delete-saved-Power Bowl',
+        ),
+        findsOneWidget,
+        reason: 'Composite item must show a delete button with identifier '
+            '"btn-delete-saved-<name>"',
+      );
+    });
+
+    testWidgets('non-composite item shows star button, not delete button',
+        (tester) async {
+      final storage = _FakeStorage(
+        searchImpl: (_, __) => [_draft(name: 'Eggs', favorited: false)],
+      );
+      await tester.pumpWidget(_sheet(storage: storage));
+      await tester.pump();
+
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is Semantics &&
+              w.properties.identifier == 'btn-favorite-Eggs',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is Semantics &&
+              (w.properties.identifier ?? '').startsWith('btn-delete-saved-'),
+        ),
+        findsNothing,
+        reason: 'Non-composite items must not show a delete button',
+      );
+    });
+
+    testWidgets('mixed list renders correct buttons per item type', (tester) async {
+      final storage = _FakeStorage(
+        searchImpl: (_, __) => [
+          _draft(name: 'Eggs', favorited: false), // regular
+          composite(name: 'Power Bowl', savedItemId: 5), // composite
+        ],
+      );
+      await tester.pumpWidget(_sheet(storage: storage));
+      await tester.pump();
+
+      // One star button (Eggs) + one delete button (Power Bowl)
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is Semantics &&
+              (w.properties.identifier ?? '').startsWith('btn-favorite-'),
+        ),
+        findsOneWidget,
+        reason: 'Exactly one star button for the regular item',
+      );
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is Semantics &&
+              (w.properties.identifier ?? '').startsWith('btn-delete-saved-'),
+        ),
+        findsOneWidget,
+        reason: 'Exactly one delete button for the composite item',
+      );
+    });
+
+    testWidgets('tapping composite item calls onSelect with isComposite=true and savedItemId',
+        (tester) async {
+      FoodItemDraft? selected;
+      final target = composite(name: 'Power Bowl', savedItemId: 42, calories: 450);
+      final storage = _FakeStorage(searchImpl: (_, __) => [target]);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FoodHistorySearchSheet(
+              storageOverride: storage,
+              onSelect: (d) => selected = d,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.text('Power Bowl'));
+      await tester.pumpAndSettle();
+
+      expect(selected, isNotNull);
+      expect(selected!.isComposite, isTrue,
+          reason: 'Selecting a composite item must preserve isComposite=true on the draft');
+      expect(selected!.savedItemId, 42,
+          reason: 'Selecting a composite item must preserve the savedItemId');
     });
   });
 

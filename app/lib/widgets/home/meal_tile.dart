@@ -124,6 +124,12 @@ class _MealTileState extends State<MealTile> {
     }
   }
 
+  int? get _totalCalories {
+    if (!_loaded || _items.isEmpty) return null;
+    final total = _items.fold<int>(0, (sum, i) => sum + (i.item.calories ?? 0));
+    return total > 0 ? total : null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -152,7 +158,10 @@ class _MealTileState extends State<MealTile> {
           child: Text(meal.mealType,
               style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
         ),
-        subtitle: Text(meal.time, style: theme.textTheme.bodySmall),
+        subtitle: _totalCalories != null
+            ? Text('${meal.time} · $_totalCalories cal',
+                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline))
+            : Text(meal.time, style: theme.textTheme.bodySmall),
         trailing: (_loaded && _items.isEmpty)
             ? GestureDetector(
                 onTap: () async {

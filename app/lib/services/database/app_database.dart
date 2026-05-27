@@ -103,9 +103,20 @@ class WeightLogs extends Table {
   DateTimeColumn get createdAt => dateTime()();
 }
 
+class SavedItems extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  IntColumn get calories => integer().nullable()();
+  IntColumn get protein => integer().nullable()();
+  IntColumn get carbs => integer().nullable()();
+  IntColumn get fat => integer().nullable()();
+  TextColumn get componentsJson => text()(); // JSON array of component names
+  DateTimeColumn get createdAt => dateTime()();
+}
+
 // ─── Database ─────────────────────────────────────────────────────────────────
 
-@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories, Medications, MealFingerprints, WaterLogs, WeightLogs])
+@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories, Medications, MealFingerprints, WaterLogs, WeightLogs, SavedItems])
 class AppDatabase extends _$AppDatabase {
   static final AppDatabase _instance = AppDatabase._internal();
 
@@ -115,11 +126,11 @@ class AppDatabase extends _$AppDatabase {
 
   // Exposed as a static constant so tests can assert the current version
   // without instantiating the singleton (which requires native sqlite3).
-  static const int currentSchemaVersion = 6;
+  static const int currentSchemaVersion = 7;
 
   // The declared migration ceiling versions in the order they appear in
   // onUpgrade.  Must be non-decreasing — tested in migration_order_test.dart.
-  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6];
+  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7];
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -211,6 +222,20 @@ class AppDatabase extends _$AppDatabase {
         await customStatement(
           'ALTER TABLE food_memories ADD COLUMN favorited INTEGER NOT NULL DEFAULT 0',
         );
+      }
+      if (from < 7) {
+        await customStatement('''
+          CREATE TABLE IF NOT EXISTS saved_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            calories INTEGER,
+            protein INTEGER,
+            carbs INTEGER,
+            fat INTEGER,
+            components_json TEXT NOT NULL,
+            created_at INTEGER NOT NULL
+          )
+        ''');
       }
     },
   );

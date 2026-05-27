@@ -9,6 +9,7 @@ import '../models/ingredient.dart';
 import '../models/meal_entry.dart';
 import '../models/medication.dart';
 import '../models/reaction_log.dart';
+import '../models/saved_item.dart';
 import '../models/water_log.dart';
 import '../models/weight_log.dart';
 import 'database/app_database.dart' as db;
@@ -407,41 +408,85 @@ class StorageService {
   /// Returns up to 30 distinct food items matching [query], ordered by most recently logged.
   /// Each result carries the macro snapshot from the most recent log of that item name
   /// and the current [FoodItemDraft.favorited] state from food_memories.
+  /// Saved composite items are included in the results (except when [favoritesOnly] is true).
   /// Pass an empty string to get the 30 most recent distinct items.
   /// Set [favoritesOnly] to restrict to items where food_memories.favorited = true.
   Future<List<FoodItemDraft>> searchFoodHistory(String query, {bool favoritesOnly = false}) async {
     final q = query.trim().isEmpty ? '%' : '%${query.trim()}%';
     final favFilter = favoritesOnly ? 'AND COALESCE(fm.favorited, 0) = 1' : '';
+
+    final String sql;
+    final List<Variable<Object>> variables;
+    final Set<ResultSetImplementation<dynamic, dynamic>> readsFrom;
+
+    if (favoritesOnly) {
+      sql = '''
+        SELECT fi.name, fi.portion, fi.prep, fi.calories, fi.protein, fi.carbs, fi.fat,
+               MAX(m.date) AS last_used,
+               COALESCE(fm.favorited, 0) AS is_favorited,
+               0 AS is_composite,
+               CAST(NULL AS INTEGER) AS saved_item_id
+        FROM food_items fi
+        JOIN meals m ON fi.meal_id = m.id
+        LEFT JOIN food_memories fm ON LOWER(fi.name) = LOWER(fm.food_name)
+        WHERE LOWER(fi.name) LIKE LOWER(?) $favFilter
+        GROUP BY LOWER(fi.name)
+        ORDER BY last_used DESC
+        LIMIT 30
+      ''';
+      variables = [Variable.withString(q)];
+      readsFrom = {_db.foodItems, _db.meals, _db.foodMemories};
+    } else {
+      sql = '''
+        SELECT fi.name, fi.portion, fi.prep, fi.calories, fi.protein, fi.carbs, fi.fat,
+               MAX(m.date) AS last_used,
+               COALESCE(fm.favorited, 0) AS is_favorited,
+               0 AS is_composite,
+               CAST(NULL AS INTEGER) AS saved_item_id,
+               CAST(NULL AS TEXT) AS components_json
+        FROM food_items fi
+        JOIN meals m ON fi.meal_id = m.id
+        LEFT JOIN food_memories fm ON LOWER(fi.name) = LOWER(fm.food_name)
+        WHERE LOWER(fi.name) LIKE LOWER(?)
+        GROUP BY LOWER(fi.name)
+        UNION ALL
+        SELECT si.name, NULL, NULL, si.calories, si.protein, si.carbs, si.fat,
+               si.created_at, 0, 1, si.id, si.components_json
+        FROM saved_items si
+        WHERE LOWER(si.name) LIKE LOWER(?)
+        ORDER BY last_used DESC
+        LIMIT 30
+      ''';
+      variables = [Variable.withString(q), Variable.withString(q)];
+      readsFrom = {_db.foodItems, _db.meals, _db.foodMemories, _db.savedItems};
+    }
+
     final rows = await _db.customSelect(
-      '''
-      SELECT fi.name, fi.portion, fi.prep, fi.calories, fi.protein, fi.carbs, fi.fat,
-             MAX(m.date) AS last_used,
-             COALESCE(fm.favorited, 0) AS is_favorited
-      FROM food_items fi
-      JOIN meals m ON fi.meal_id = m.id
-      LEFT JOIN food_memories fm ON LOWER(fi.name) = LOWER(fm.food_name)
-      WHERE LOWER(fi.name) LIKE LOWER(?)
-      $favFilter
-      GROUP BY LOWER(fi.name)
-      ORDER BY last_used DESC
-      LIMIT 30
-      ''',
-      variables: [Variable.withString(q)],
-      readsFrom: {_db.foodItems, _db.meals, _db.foodMemories},
+      sql,
+      variables: variables,
+      readsFrom: readsFrom,
     ).get();
 
-    return rows
-        .map((row) => FoodItemDraft(
-              name: row.read<String>('name'),
-              portion: row.readNullable<String>('portion'),
-              prep: row.readNullable<String>('prep'),
-              calories: row.readNullable<int>('calories'),
-              protein: row.readNullable<int>('protein'),
-              carbs: row.readNullable<int>('carbs'),
-              fat: row.readNullable<int>('fat'),
-              favorited: row.read<int>('is_favorited') == 1,
-            ))
-        .toList();
+    return rows.map((row) {
+      final isComposite = row.read<int>('is_composite') == 1;
+      final componentsRaw = isComposite ? row.readNullable<String>('components_json') : null;
+      final components = componentsRaw != null
+          ? List<String>.from(jsonDecode(componentsRaw) as List)
+          : <String>[];
+      return FoodItemDraft(
+        name: row.read<String>('name'),
+        portion: row.readNullable<String>('portion'),
+        prep: row.readNullable<String>('prep'),
+        calories: row.readNullable<int>('calories'),
+        protein: row.readNullable<int>('protein'),
+        carbs: row.readNullable<int>('carbs'),
+        fat: row.readNullable<int>('fat'),
+        ingredients: components,
+        favorited: row.read<int>('is_favorited') == 1,
+        isComposite: isComposite,
+        savedItemId: row.readNullable<int>('saved_item_id'),
+      );
+    }).toList();
   }
 
   Future<void> toggleFoodFavorite(String foodName) async {
@@ -592,6 +637,49 @@ class StorageService {
           ]))
         .get();
     return rows.map(_weightLogFromRow).toList();
+  }
+
+  // ── Saved Items ──────────────────────────────────────────────────────────────
+
+  Future<List<FoodItemDraft>> searchSavedItems(String query) async {
+    final rows = await (_db.select(_db.savedItems)
+          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+        .get();
+    final q = query.trim().toLowerCase();
+    final filtered = q.isEmpty
+        ? rows
+        : rows.where((r) => r.name.toLowerCase().contains(q)).toList();
+    return filtered.map((row) {
+      final components = List<String>.from(jsonDecode(row.componentsJson) as List);
+      return FoodItemDraft(
+        name: row.name,
+        calories: row.calories,
+        protein: row.protein,
+        carbs: row.carbs,
+        fat: row.fat,
+        ingredients: components,
+        isComposite: true,
+        savedItemId: row.id,
+      );
+    }).toList();
+  }
+
+  Future<int> saveSavedItem(SavedItem item) async {
+    return _db.into(_db.savedItems).insert(
+      db.SavedItemsCompanion.insert(
+        name: item.name,
+        calories: Value(item.calories),
+        protein: Value(item.protein),
+        carbs: Value(item.carbs),
+        fat: Value(item.fat),
+        componentsJson: jsonEncode(item.components),
+        createdAt: item.createdAt,
+      ),
+    );
+  }
+
+  Future<void> deleteSavedItem(int id) async {
+    await (_db.delete(_db.savedItems)..where((t) => t.id.equals(id))).go();
   }
 
   // ── Misc ─────────────────────────────────────────────────────────────────────

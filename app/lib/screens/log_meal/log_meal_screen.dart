@@ -14,7 +14,9 @@ import '../../services/storage_service.dart';
 import '../../utils/date_time_utils.dart';
 import '../../widgets/editable_food_item_card.dart';
 import '../../widgets/error_display.dart';
+import '../../widgets/create_saved_item_sheet.dart';
 import '../../widgets/food_history_search_sheet.dart';
+import '../../widgets/saved_items_sheet.dart';
 import '../../widgets/loading_button.dart';
 import '../../widgets/log_date_time_row.dart';
 import '../../widgets/log_description_section.dart';
@@ -357,6 +359,37 @@ class _LogMealScreenState extends State<LogMealScreen> {
     );
   }
 
+  Future<void> _addFromFavorites() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => FoodHistorySearchSheet(
+        initialFavoritesOnly: true,
+        onSelect: (draft) => setState(() => _foodItems.add(FoodItemFormData.fromDraft(draft))),
+      ),
+    );
+  }
+
+  Future<void> _openMyItems() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => SavedItemsSheet(
+        onSelect: (draft) => setState(() => _foodItems.add(FoodItemFormData.fromDraft(draft))),
+      ),
+    );
+  }
+
+  Future<void> _openCreateItem() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => CreateSavedItemSheet(
+        onCreated: (draft) => setState(() => _foodItems.add(FoodItemFormData.fromDraft(draft))),
+      ),
+    );
+  }
+
   void _removeItem(int index) {
     setState(() {
       _foodItems[index].dispose();
@@ -435,24 +468,77 @@ class _LogMealScreenState extends State<LogMealScreen> {
                   const SizedBox(height: 20),
                   if (!_aiEnabled && _suggestions.isNotEmpty && !_suggestionDismissed)
                     _buildDidYouMeanBanner(theme),
+                  Text('Food items', style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 2),
+                  // Discovery row — compact labeled icon buttons
                   Row(
                     children: [
-                      Text('Food items', style: theme.textTheme.titleSmall),
-                      const Spacer(),
+                      Semantics(
+                        identifier: 'btn-add-from-favorites',
+                        child: TextButton.icon(
+                          onPressed: _isSaving ? null : _addFromFavorites,
+                          icon: const Icon(Icons.star_outline, size: 15),
+                          label: const Text('Favorites'),
+                          style: TextButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                        ),
+                      ),
                       Semantics(
                         identifier: 'btn-add-from-history',
                         child: TextButton.icon(
                           onPressed: _isSaving ? null : _addFromHistory,
-                          icon: const Icon(Icons.history, size: 16),
+                          icon: const Icon(Icons.history, size: 15),
                           label: const Text('History'),
+                          style: TextButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
                         ),
                       ),
                       Semantics(
-                        identifier: 'btn-add-item',
+                        identifier: 'btn-my-items',
                         child: TextButton.icon(
-                          onPressed: _isSaving ? null : _addBlankItem,
-                          icon: const Icon(Icons.add, size: 16),
-                          label: const Text('Add item'),
+                          onPressed: _isSaving ? null : _openMyItems,
+                          icon: const Icon(Icons.bookmark_outline, size: 15),
+                          label: const Text('My Items'),
+                          style: TextButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Action row — two equal-width buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Semantics(
+                          identifier: 'btn-create-item',
+                          child: OutlinedButton.icon(
+                            onPressed: _isSaving ? null : _openCreateItem,
+                            icon: const Icon(Icons.add_box_outlined, size: 16),
+                            label: const Text('Create item'),
+                            style: OutlinedButton.styleFrom(
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Semantics(
+                          identifier: 'btn-add-item',
+                          child: OutlinedButton.icon(
+                            onPressed: _isSaving ? null : _addBlankItem,
+                            icon: const Icon(Icons.add, size: 16),
+                            label: const Text('Add item'),
+                            style: OutlinedButton.styleFrom(
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
                         ),
                       ),
                     ],

@@ -94,6 +94,10 @@ class FoodItemDraft {
   final String? notes;
   /// Only populated when loaded from history search; always false for AI-parsed drafts.
   final bool favorited;
+  /// True when this draft came from a saved composite item rather than meal history.
+  final bool isComposite;
+  /// Non-null when [isComposite] is true — the id in the saved_items table.
+  final int? savedItemId;
 
   const FoodItemDraft({
     required this.name,
@@ -106,6 +110,8 @@ class FoodItemDraft {
     this.ingredients = const [],
     this.notes,
     this.favorited = false,
+    this.isComposite = false,
+    this.savedItemId,
   });
 
   factory FoodItemDraft.fromJson(Map<String, dynamic> json) {
