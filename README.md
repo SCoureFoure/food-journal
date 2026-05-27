@@ -1,6 +1,50 @@
 # Food Journal
 
-Mobile-first journal for tracking meals, macros, ingredients, medications, and GI/health reactions. An AI layer (Cloudflare Worker + Gemini) parses unstructured input — text descriptions, photos — into structured data. All data stays on-device (SQLite). No backend, no cloud sync.
+Mobile-first journal for tracking meals, macros, ingredients, medications, water, weight, and GI/health reactions. An AI layer (Cloudflare Worker + Gemini) parses unstructured input — text descriptions, photos — into structured data. All data stays on-device (SQLite). No backend, no cloud sync - which is a feature, not an oversight.
+
+## Features
+
+### Logging
+
+| Entry type | How it works |
+| ---------- | ------------ |
+| **Food / Meal** | Describe in free text and/or attach a photo. AI parses → pre-fills food items, portions, macros, ingredients. Review and confirm before saving. Multiple food items per meal. |
+| **Medication** | Same text/photo flow. AI extracts name, dose, unit, route. Manual entry always available. |
+| **Water** | Quick-entry sheet (no AI). Log amount in ml; daily total shown in feed. |
+| **Weigh-in** | Log weight in lbs or kg with optional notes. Appears in the feed alongside other entries. |
+| **Feeling** | Standalone reaction log — multi-select symptoms, severity, free-text notes — no meal required. Also triggered by check-in notifications. |
+
+### Home feed
+
+- Entries grouped by **week**, then by day — meals, medications, water, weight, and feelings in one chronological view
+- **Weekly macro summary** — total calories, protein, carbs, fat for the week
+- **Reaction badges** on food items flagged in food memory
+- Expandable day sections; today highlighted
+
+### AI & meal intelligence
+
+- **AI parsing** — Cloudflare Worker + Gemini (primary); direct Claude API fallback. Handles both meal and medication input.
+- **Meal memory engine** — detects temporal references ("leftovers from last night", "the usual") and injects relevant past-meal context into the prompt so AI can pre-fill without you repeating yourself
+- **AI toggle** — disable AI in Settings; all entry screens fall back to manual form instantly
+
+### Food history & saved items
+
+- **Food history search** — search any food item logged in the past; one tap re-uses it in the current meal
+- **Favorites** — star foods in history or food memory; filter history to favorites-only for quick re-use
+- **Saved items** — create named food templates with macros (e.g., "My Protein Shake — 300 cal / 40g protein"); insert into any meal log with one tap
+
+### Reaction tracking & food memory
+
+- Push notification ~90 min after each meal/medication save (configurable delay)
+- Check-in screen: multi-select symptoms, severity (none/mild/moderate/bad), notes
+- **Food memory** — automatically flags foods with 2+ non-none reactions; configurable lookback window (30 / 90 / 180 days / all time)
+- Flagged foods show a warning badge anywhere they appear in the feed
+
+### Export & import
+
+- **CSV export** — full journal with `entry_type` column; shareable via OS share sheet
+- **Grocery list export** — aggregates ingredients from selected date range, deduplicated and sorted
+- **JSON import** — import wizard with duplicate detection and merge
 
 ## App flow
 
@@ -9,6 +53,8 @@ flowchart TD
     A([User]) -->|FAB: Food| B[Log Meal screen]
     A -->|FAB: Medication| BM[Log Medication screen]
     A -->|FAB: Feeling| BF[Check-in screen\nstandalone mood/reaction log]
+    A -->|FAB: Water| BW[Log Water sheet]
+    A -->|FAB: Weigh-in| BWG[Log Weight screen]
     B -->|isReferential?| MEM[Meal Memory engine\ndetect temporal references\nbuild context snippet]
     MEM -->|context injected into prompt| C[Cloudflare Worker\nGemini model]
     B -->|no temporal ref| C
@@ -18,7 +64,9 @@ flowchart TD
     D -->|confirm| E[(SQLite / drift)]
     DM -->|confirm| E
     BF --> E
-    E --> F[Home screen\nweek-grouped feed: meals · meds · feelings]
+    BW --> E
+    BWG --> E
+    E --> F[Home screen\nweek-grouped feed: meals · meds · water · weight · feelings]
     E -->|schedule +90 min| G[Local notification]
     G -->|tap| H[Check-in screen\nlinked to meal]
     H --> E
@@ -26,7 +74,7 @@ flowchart TD
     F -->|import| J[Import wizard\nJSON → dupe-detect → merge]
 ```
 
-Standalone Feeling logs (`FAB → Feeling`) save a `ReactionLog` with no linked meal — they appear in the home feed as their own tile. AI can be toggled off in Settings; both log screens fall back to manual entry form when disabled.
+Standalone Feeling logs (`FAB → Feeling`) save a `ReactionLog` with no linked meal — they appear in the home feed as their own tile. AI can be toggled off in Settings; all entry screens fall back to manual form when disabled.
 
 ## Stack
 
@@ -35,7 +83,7 @@ Standalone Feeling logs (`FAB → Feeling`) save a `ReactionLog` with no linked 
 | UI | Flutter (Dart) | Android primary, iOS same codebase |
 | AI — primary | Cloudflare Worker + Gemini | `MEAL_PARSER_URL` in `.env`; handles `parse_meal` and `parse_medication` tasks |
 | AI — fallback | Claude API (`claude-sonnet-4-6`) | Direct REST; `ANTHROPIC_API_KEY` in root `.env` (not `app/.env`); integration tests only |
-| Storage | drift (SQLite) | Local only; schema v4 is a stable contract |
+| Storage | drift (SQLite) | Local only; schema v7 is a stable contract |
 | Settings | shared_preferences | AI toggle (`ai_enabled`); persists across launches |
 | Notifications | flutter_local_notifications | Post-entry check-in, ~90 min configurable delay |
 | Camera | image_picker | Camera primary, gallery fallback |
@@ -67,6 +115,16 @@ Solves "I had the leftovers from last night" without a round-trip or a vector DB
 3. [`meal_memory_service.dart`](app/lib/services/meal_memory/meal_memory_service.dart) — `isReferential()` (O(µs), no DB), `buildContextSnippet()` (≤200 tokens injected into prompt), `findReferentialMeals()` (AI-off quick-copy fallback), `recordFingerprint()` (rolling 40-row window)
 
 The Python reference implementation lives in [`docs/meal_memory_starter/`](docs/meal_memory_starter/) — pattern engine, domain rules, and agent brief explaining the design decisions.
+
+### Food history & saved items — `app/lib/widgets/`
+
+Two bottom-sheet pickers surfaced inside the meal log screen:
+
+- [`food_history_search_sheet.dart`](app/lib/widgets/food_history_search_sheet.dart) — full-text search over every food item ever logged; togglable favorites-only filter; selecting an item pre-fills a new food item row with all prior macros
+- [`saved_items_sheet.dart`](app/lib/widgets/saved_items_sheet.dart) — manage and insert named food templates with stored macros (e.g., protein shakes, recurring snacks)
+- [`create_saved_item_sheet.dart`](app/lib/widgets/create_saved_item_sheet.dart) — create/edit a saved item template
+
+Favorites are stored on `FoodMemories.favorited`; saved items live in the `SavedItems` table.
 
 ### Test suite — `app/test/`
 
@@ -107,9 +165,11 @@ app/
 │   │   ├── database/                 # drift schema + generated code
 │   │   └── meal_memory/              # pattern engine + context injection
 │   ├── screens/
-│   │   ├── home/                     # journal feed, day/week nav
-│   │   ├── log_meal/                 # text + photo input
+│   │   ├── home/                     # journal feed, week-grouped nav
+│   │   ├── log_meal/                 # text + photo input, saved-items picker, history search
 │   │   ├── log_medication/           # medication entry
+│   │   ├── log_water/                # quick water log sheet
+│   │   ├── log_weight/               # weigh-in entry
 │   │   ├── meal_detail/              # view/edit single meal
 │   │   ├── checkin/                  # reaction check-in
 │   │   ├── export/                   # export options
