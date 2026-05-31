@@ -39,6 +39,22 @@ class FoodItemCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(child: Text(item.name, style: theme.textTheme.titleSmall)),
+                if (item.servings > 1)
+                  Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withAlpha(20),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '×${item.servings}',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
                 if (onToggleFavorite != null)
                   Semantics(
                     identifier: 'btn-favorite-${item.id}',

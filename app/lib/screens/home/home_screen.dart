@@ -32,11 +32,18 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loading = true;
   String? _errorMessage;
   bool _fabOpen = false;
+  bool _leftHanded = false;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final lh = await _settings.isLeftHanded;
+    if (mounted) setState(() => _leftHanded = lh);
   }
 
   @override
@@ -163,12 +170,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _load();
   }
 
-  void _showSettings() {
+  Future<void> _showSettings() async {
     _closeFab();
-    showDialog<void>(
+    await showDialog<void>(
       context: context,
       builder: (ctx) => _SettingsDialog(settings: _settings),
     );
+    _loadSettings();
   }
 
   @override
@@ -215,6 +223,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       floatingActionButton: _buildFab(context),
+      floatingActionButtonLocation: _leftHanded
+          ? FloatingActionButtonLocation.startFloat
+          : FloatingActionButtonLocation.endFloat,
     ),
     ),
     );
@@ -276,9 +287,11 @@ class _HomeScreenState extends State<HomeScreen> {
     const dur = Duration(milliseconds: 200);
     final theme = Theme.of(context);
 
+    final alignment = _leftHanded ? CrossAxisAlignment.start : CrossAxisAlignment.end;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: alignment,
       children: [
         AnimatedOpacity(
           opacity: _fabOpen ? 1.0 : 0.0,
@@ -289,13 +302,14 @@ class _HomeScreenState extends State<HomeScreen> {
             child: IgnorePointer(
               ignoring: !_fabOpen,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: alignment,
                 children: [
                   _MiniFabOption(
                     label: 'Medication',
                     icon: Icons.medication_outlined,
                     color: theme.colorScheme.secondary,
                     onTap: () => _navigate('/log_medication'),
+                    leftHanded: _leftHanded,
                   ),
                   const SizedBox(height: 8),
                   _MiniFabOption(
@@ -303,6 +317,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.sentiment_satisfied_alt_outlined,
                     color: theme.colorScheme.tertiary,
                     onTap: () => _navigate('/checkin'),
+                    leftHanded: _leftHanded,
                   ),
                   const SizedBox(height: 8),
                   _MiniFabOption(
@@ -310,6 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.monitor_weight_outlined,
                     color: theme.colorScheme.secondary.withAlpha(180),
                     onTap: () => _navigate('/log_weight'),
+                    leftHanded: _leftHanded,
                   ),
                   const SizedBox(height: 8),
                   _MiniFabOption(
@@ -317,6 +333,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.water_drop_outlined,
                     color: Colors.blue.shade400,
                     onTap: _showWaterSheet,
+                    leftHanded: _leftHanded,
                   ),
                   const SizedBox(height: 8),
                   _MiniFabOption(
@@ -324,6 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.restaurant_outlined,
                     color: theme.colorScheme.primary,
                     onTap: () => _navigate('/log'),
+                    leftHanded: _leftHanded,
                   ),
                   const SizedBox(height: 16),
                 ],
@@ -354,46 +372,49 @@ class _MiniFabOption extends StatelessWidget {
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
+  final bool leftHanded;
 
   const _MiniFabOption({
     required this.label,
     required this.icon,
     required this.color,
     required this.onTap,
+    this.leftHanded = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final fab = FloatingActionButton.small(
+      heroTag: label,
+      backgroundColor: color,
+      foregroundColor: Colors.white,
+      onPressed: onTap,
+      child: Icon(icon, size: 20),
+    );
+    final chip = Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(4),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(4),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withAlpha(30), blurRadius: 4, offset: const Offset(0, 2)),
+            ],
+          ),
+          child: Text(label, style: Theme.of(context).textTheme.labelMedium),
+        ),
+      ),
+    );
+
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(4),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(4),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withAlpha(30), blurRadius: 4, offset: const Offset(0, 2)),
-                ],
-              ),
-              child: Text(label, style: Theme.of(context).textTheme.labelMedium),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        FloatingActionButton.small(
-          heroTag: label,
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          onPressed: onTap,
-          child: Icon(icon, size: 20),
-        ),
-      ],
+      children: leftHanded
+          ? [fab, const SizedBox(width: 8), chip]
+          : [chip, const SizedBox(width: 8), fab],
     );
   }
 }
@@ -410,29 +431,53 @@ class _SettingsDialog extends StatefulWidget {
 
 class _SettingsDialogState extends State<_SettingsDialog> {
   bool? _aiEnabled;
+  bool? _leftHanded;
 
   @override
   void initState() {
     super.initState();
-    widget.settings.isAiEnabled.then((v) {
-      if (mounted) setState(() => _aiEnabled = v);
+    Future.wait([
+      widget.settings.isAiEnabled,
+      widget.settings.isLeftHanded,
+    ]).then((values) {
+      if (mounted) {
+        setState(() {
+          _aiEnabled = values[0];
+          _leftHanded = values[1];
+        });
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final loading = _aiEnabled == null || _leftHanded == null;
     return AlertDialog(
       title: const Text('Settings'),
-      content: _aiEnabled == null
+      content: loading
           ? const SizedBox(height: 48, child: Center(child: CircularProgressIndicator()))
-          : SwitchListTile(
-              title: const Text('AI features'),
-              subtitle: const Text('Autofill with AI on log screens'),
-              value: _aiEnabled!,
-              onChanged: (v) async {
-                await widget.settings.setAiEnabled(v);
-                if (mounted) setState(() => _aiEnabled = v);
-              },
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SwitchListTile(
+                  title: const Text('AI features'),
+                  subtitle: const Text('Autofill with AI on log screens'),
+                  value: _aiEnabled!,
+                  onChanged: (v) async {
+                    await widget.settings.setAiEnabled(v);
+                    if (mounted) setState(() => _aiEnabled = v);
+                  },
+                ),
+                SwitchListTile(
+                  title: const Text('Left-handed mode'),
+                  subtitle: const Text('Move + button to left side'),
+                  value: _leftHanded!,
+                  onChanged: (v) async {
+                    await widget.settings.setLeftHanded(v);
+                    if (mounted) setState(() => _leftHanded = v);
+                  },
+                ),
+              ],
             ),
       actions: [
         TextButton(

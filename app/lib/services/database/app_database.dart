@@ -28,6 +28,7 @@ class FoodItems extends Table {
   IntColumn get fat => integer().nullable()();
   IntColumn get reaction => integer().withDefault(const Constant(0))(); // ReactionLevel index
   TextColumn get notes => text().nullable()();
+  IntColumn get servings => integer().withDefault(const Constant(1))();
 }
 
 class Ingredients extends Table {
@@ -126,11 +127,11 @@ class AppDatabase extends _$AppDatabase {
 
   // Exposed as a static constant so tests can assert the current version
   // without instantiating the singleton (which requires native sqlite3).
-  static const int currentSchemaVersion = 7;
+  static const int currentSchemaVersion = 8;
 
   // The declared migration ceiling versions in the order they appear in
   // onUpgrade.  Must be non-decreasing — tested in migration_order_test.dart.
-  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7];
+  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8];
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -236,6 +237,11 @@ class AppDatabase extends _$AppDatabase {
             created_at INTEGER NOT NULL
           )
         ''');
+      }
+      if (from < 8) {
+        await customStatement(
+          'ALTER TABLE food_items ADD COLUMN servings INTEGER NOT NULL DEFAULT 1',
+        );
       }
     },
   );

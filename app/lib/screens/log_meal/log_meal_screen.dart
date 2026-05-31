@@ -294,6 +294,7 @@ class _LogMealScreenState extends State<LogMealScreen> {
                 carbs: d.carbs,
                 fat: d.fat,
                 notes: d.notes,
+                servings: d.servings,
               ))
           .toList();
 

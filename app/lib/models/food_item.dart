@@ -38,6 +38,7 @@ class FoodItem {
   final int? fat;
   final ReactionLevel reaction;
   final String? notes;
+  final int servings;
 
   const FoodItem({
     this.id,
@@ -51,6 +52,7 @@ class FoodItem {
     this.fat,
     this.reaction = ReactionLevel.pending,
     this.notes,
+    this.servings = 1,
   });
 
   FoodItem copyWith({
@@ -65,6 +67,7 @@ class FoodItem {
     int? fat,
     ReactionLevel? reaction,
     String? notes,
+    int? servings,
   }) {
     return FoodItem(
       id: id ?? this.id,
@@ -78,6 +81,7 @@ class FoodItem {
       fat: fat ?? this.fat,
       reaction: reaction ?? this.reaction,
       notes: notes ?? this.notes,
+      servings: servings ?? this.servings,
     );
   }
 }
@@ -98,6 +102,7 @@ class FoodItemDraft {
   final bool isComposite;
   /// Non-null when [isComposite] is true — the id in the saved_items table.
   final int? savedItemId;
+  final int servings;
 
   const FoodItemDraft({
     required this.name,
@@ -112,6 +117,7 @@ class FoodItemDraft {
     this.favorited = false,
     this.isComposite = false,
     this.savedItemId,
+    this.servings = 1,
   });
 
   factory FoodItemDraft.fromJson(Map<String, dynamic> json) {
@@ -125,6 +131,7 @@ class FoodItemDraft {
       fat: (json['fat'] as num?)?.toInt(),
       ingredients: List<String>.from(json['ingredients'] as List? ?? []),
       notes: json['notes'] as String?,
+      servings: (json['servings'] as num?)?.toInt() ?? 1,
     );
   }
 }

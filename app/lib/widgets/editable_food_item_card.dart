@@ -13,6 +13,7 @@ class FoodItemFormData {
   final fatCtrl = TextEditingController();
   final ingredientsCtrl = TextEditingController();
   final notesCtrl = TextEditingController();
+  int servings = 1;
 
   FoodItemFormData.blank();
 
@@ -30,6 +31,7 @@ class FoodItemFormData {
       return i.name;
     }).join(', ');
     notesCtrl.text = item.notes ?? '';
+    servings = item.servings;
   }
 
   FoodItemFormData.fromDraft(FoodItemDraft d) {
@@ -42,6 +44,7 @@ class FoodItemFormData {
     fatCtrl.text = d.fat?.toString() ?? '';
     ingredientsCtrl.text = d.ingredients.join(', ');
     notesCtrl.text = d.notes ?? '';
+    servings = d.servings;
   }
 
   FoodItemDraft toDraft() {
@@ -58,6 +61,7 @@ class FoodItemFormData {
           ? []
           : ings.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList(),
       notes: notesCtrl.text.trim().isEmpty ? null : notesCtrl.text.trim(),
+      servings: servings,
     );
   }
 
@@ -144,6 +148,38 @@ class _EditableFoodItemCardState extends State<EditableFoodItemCard> {
                       ),
                     ),
                   ),
+                  // Servings stepper — opaque so taps don't toggle expand.
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {}, // absorb; children handle their own taps
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _stepperBtn(
+                          icon: Icons.remove,
+                          onTap: d.servings > 1
+                              ? () => setState(() => d.servings--)
+                              : null,
+                          theme: theme,
+                        ),
+                        SizedBox(
+                          width: 28,
+                          child: Text(
+                            '${d.servings}',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        _stepperBtn(
+                          icon: Icons.add,
+                          onTap: () => setState(() => d.servings++),
+                          theme: theme,
+                        ),
+                      ],
+                    ),
+                  ),
                   // Opaque GestureDetector consumes the tap so it never reaches the parent toggle.
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
@@ -212,6 +248,25 @@ class _EditableFoodItemCardState extends State<EditableFoodItemCard> {
           border: const OutlineInputBorder(),
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        ),
+      );
+
+  Widget _stepperBtn({
+    required IconData icon,
+    required VoidCallback? onTap,
+    required ThemeData theme,
+  }) =>
+      GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          width: 28,
+          height: 48,
+          child: Icon(
+            icon,
+            size: 14,
+            color: onTap != null ? theme.colorScheme.primary : theme.colorScheme.outline.withAlpha(80),
+          ),
         ),
       );
 

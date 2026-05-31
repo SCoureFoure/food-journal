@@ -631,6 +631,18 @@ class $FoodItemsTable extends FoodItems
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _servingsMeta = const VerificationMeta(
+    'servings',
+  );
+  @override
+  late final GeneratedColumn<int> servings = GeneratedColumn<int>(
+    'servings',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -644,6 +656,7 @@ class $FoodItemsTable extends FoodItems
     fat,
     reaction,
     notes,
+    servings,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -724,6 +737,12 @@ class $FoodItemsTable extends FoodItems
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('servings')) {
+      context.handle(
+        _servingsMeta,
+        servings.isAcceptableOrUnknown(data['servings']!, _servingsMeta),
+      );
+    }
     return context;
   }
 
@@ -777,6 +796,10 @@ class $FoodItemsTable extends FoodItems
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      servings: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}servings'],
+      )!,
     );
   }
 
@@ -798,6 +821,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
   final int? fat;
   final int reaction;
   final String? notes;
+  final int servings;
   const FoodItem({
     required this.id,
     required this.mealId,
@@ -810,6 +834,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
     this.fat,
     required this.reaction,
     this.notes,
+    required this.servings,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -839,6 +864,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
+    map['servings'] = Variable<int>(servings);
     return map;
   }
 
@@ -865,6 +891,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      servings: Value(servings),
     );
   }
 
@@ -885,6 +912,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
       fat: serializer.fromJson<int?>(json['fat']),
       reaction: serializer.fromJson<int>(json['reaction']),
       notes: serializer.fromJson<String?>(json['notes']),
+      servings: serializer.fromJson<int>(json['servings']),
     );
   }
   @override
@@ -902,6 +930,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
       'fat': serializer.toJson<int?>(fat),
       'reaction': serializer.toJson<int>(reaction),
       'notes': serializer.toJson<String?>(notes),
+      'servings': serializer.toJson<int>(servings),
     };
   }
 
@@ -917,6 +946,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
     Value<int?> fat = const Value.absent(),
     int? reaction,
     Value<String?> notes = const Value.absent(),
+    int? servings,
   }) => FoodItem(
     id: id ?? this.id,
     mealId: mealId ?? this.mealId,
@@ -929,6 +959,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
     fat: fat.present ? fat.value : this.fat,
     reaction: reaction ?? this.reaction,
     notes: notes.present ? notes.value : this.notes,
+    servings: servings ?? this.servings,
   );
   FoodItem copyWithCompanion(FoodItemsCompanion data) {
     return FoodItem(
@@ -943,6 +974,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
       fat: data.fat.present ? data.fat.value : this.fat,
       reaction: data.reaction.present ? data.reaction.value : this.reaction,
       notes: data.notes.present ? data.notes.value : this.notes,
+      servings: data.servings.present ? data.servings.value : this.servings,
     );
   }
 
@@ -959,7 +991,8 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
           ..write('carbs: $carbs, ')
           ..write('fat: $fat, ')
           ..write('reaction: $reaction, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('servings: $servings')
           ..write(')'))
         .toString();
   }
@@ -977,6 +1010,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
     fat,
     reaction,
     notes,
+    servings,
   );
   @override
   bool operator ==(Object other) =>
@@ -992,7 +1026,8 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
           other.carbs == this.carbs &&
           other.fat == this.fat &&
           other.reaction == this.reaction &&
-          other.notes == this.notes);
+          other.notes == this.notes &&
+          other.servings == this.servings);
 }
 
 class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
@@ -1007,6 +1042,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
   final Value<int?> fat;
   final Value<int> reaction;
   final Value<String?> notes;
+  final Value<int> servings;
   const FoodItemsCompanion({
     this.id = const Value.absent(),
     this.mealId = const Value.absent(),
@@ -1019,6 +1055,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
     this.fat = const Value.absent(),
     this.reaction = const Value.absent(),
     this.notes = const Value.absent(),
+    this.servings = const Value.absent(),
   });
   FoodItemsCompanion.insert({
     this.id = const Value.absent(),
@@ -1032,6 +1069,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
     this.fat = const Value.absent(),
     this.reaction = const Value.absent(),
     this.notes = const Value.absent(),
+    this.servings = const Value.absent(),
   }) : mealId = Value(mealId),
        name = Value(name);
   static Insertable<FoodItem> custom({
@@ -1046,6 +1084,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
     Expression<int>? fat,
     Expression<int>? reaction,
     Expression<String>? notes,
+    Expression<int>? servings,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1059,6 +1098,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
       if (fat != null) 'fat': fat,
       if (reaction != null) 'reaction': reaction,
       if (notes != null) 'notes': notes,
+      if (servings != null) 'servings': servings,
     });
   }
 
@@ -1074,6 +1114,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
     Value<int?>? fat,
     Value<int>? reaction,
     Value<String?>? notes,
+    Value<int>? servings,
   }) {
     return FoodItemsCompanion(
       id: id ?? this.id,
@@ -1087,6 +1128,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
       fat: fat ?? this.fat,
       reaction: reaction ?? this.reaction,
       notes: notes ?? this.notes,
+      servings: servings ?? this.servings,
     );
   }
 
@@ -1126,6 +1168,9 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (servings.present) {
+      map['servings'] = Variable<int>(servings.value);
+    }
     return map;
   }
 
@@ -1142,7 +1187,8 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
           ..write('carbs: $carbs, ')
           ..write('fat: $fat, ')
           ..write('reaction: $reaction, ')
-          ..write('notes: $notes')
+          ..write('notes: $notes, ')
+          ..write('servings: $servings')
           ..write(')'))
         .toString();
   }
@@ -5420,6 +5466,7 @@ typedef $$FoodItemsTableCreateCompanionBuilder =
       Value<int?> fat,
       Value<int> reaction,
       Value<String?> notes,
+      Value<int> servings,
     });
 typedef $$FoodItemsTableUpdateCompanionBuilder =
     FoodItemsCompanion Function({
@@ -5434,6 +5481,7 @@ typedef $$FoodItemsTableUpdateCompanionBuilder =
       Value<int?> fat,
       Value<int> reaction,
       Value<String?> notes,
+      Value<int> servings,
     });
 
 final class $$FoodItemsTableReferences
@@ -5533,6 +5581,11 @@ class $$FoodItemsTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get servings => $composableBuilder(
+    column: $table.servings,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5644,6 +5697,11 @@ class $$FoodItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get servings => $composableBuilder(
+    column: $table.servings,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$MealsTableOrderingComposer get mealId {
     final $$MealsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -5706,6 +5764,9 @@ class $$FoodItemsTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<int> get servings =>
+      $composableBuilder(column: $table.servings, builder: (column) => column);
 
   $$MealsTableAnnotationComposer get mealId {
     final $$MealsTableAnnotationComposer composer = $composerBuilder(
@@ -5795,6 +5856,7 @@ class $$FoodItemsTableTableManager
                 Value<int?> fat = const Value.absent(),
                 Value<int> reaction = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<int> servings = const Value.absent(),
               }) => FoodItemsCompanion(
                 id: id,
                 mealId: mealId,
@@ -5807,6 +5869,7 @@ class $$FoodItemsTableTableManager
                 fat: fat,
                 reaction: reaction,
                 notes: notes,
+                servings: servings,
               ),
           createCompanionCallback:
               ({
@@ -5821,6 +5884,7 @@ class $$FoodItemsTableTableManager
                 Value<int?> fat = const Value.absent(),
                 Value<int> reaction = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<int> servings = const Value.absent(),
               }) => FoodItemsCompanion.insert(
                 id: id,
                 mealId: mealId,
@@ -5833,6 +5897,7 @@ class $$FoodItemsTableTableManager
                 fat: fat,
                 reaction: reaction,
                 notes: notes,
+                servings: servings,
               ),
           withReferenceMapper: (p0) => p0
               .map(

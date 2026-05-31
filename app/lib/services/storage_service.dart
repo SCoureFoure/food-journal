@@ -55,6 +55,7 @@ class StorageService {
             fat: Value(item.fat),
             reaction: Value(item.reaction.toInt()),
             notes: Value(item.notes),
+            servings: Value(item.servings),
           ),
         );
 
@@ -210,6 +211,7 @@ class StorageService {
             fat: Value(item.fat),
             reaction: Value(item.reaction.toInt()),
             notes: Value(item.notes),
+            servings: Value(item.servings),
           ),
         );
         for (final ing in ingredientsByItem[i]) {
@@ -249,10 +251,11 @@ class StorageService {
     for (final id in mealIds) {
       final rows = await (_db.select(_db.foodItems)..where((t) => t.mealId.equals(id))).get();
       for (final row in rows) {
-        cal += row.calories ?? 0;
-        prot += (row.protein ?? 0).toDouble();
-        carbs += (row.carbs ?? 0).toDouble();
-        fat += (row.fat ?? 0).toDouble();
+        final s = row.servings;
+        cal += (row.calories ?? 0) * s;
+        prot += ((row.protein ?? 0) * s).toDouble();
+        carbs += ((row.carbs ?? 0) * s).toDouble();
+        fat += ((row.fat ?? 0) * s).toDouble();
       }
     }
     return (cal: cal, prot: prot, carbs: carbs, fat: fat);
@@ -727,6 +730,7 @@ class StorageService {
         fat: row.fat,
         reaction: ReactionLevel.fromInt(row.reaction),
         notes: row.notes,
+        servings: row.servings,
       );
 
   Ingredient _ingredientFromRow(db.Ingredient row) => Ingredient(
