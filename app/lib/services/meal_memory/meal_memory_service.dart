@@ -38,7 +38,9 @@ class MealSuggestion {
 }
 
 class MealMemoryService {
-  final _db = db.AppDatabase();
+  // Lazy so constructing the service (or a test subclass) doesn't open the
+  // native DB — only buildContextSnippet touches it; isReferential is pure.
+  late final _db = db.AppDatabase();
 
   static const _windowSize = 40;
 

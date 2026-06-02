@@ -115,10 +115,18 @@ class ImportService {
 
       final reactionLogs = (map['reaction_logs'] as List<dynamic>? ?? []).map((r) {
         final rmap = r as Map<String, dynamic>;
+        final symptoms = List<String>.from(rmap['symptoms'] as List);
+        final severity = _reactionFromName(rmap['severity'] as String?);
+        final rawLevels = rmap['symptom_levels'] as Map<String, dynamic>?;
+        final levels = rawLevels != null
+            ? rawLevels.map((k, v) => MapEntry(k, _reactionFromName(v as String?)))
+            : {for (final s in symptoms) s: severity};
         return ReactionLog(
           checkinTime: DateTime.parse(rmap['checkin_time'] as String),
-          symptoms: List<String>.from(rmap['symptoms'] as List),
-          severity: _reactionFromName(rmap['severity'] as String?),
+          symptoms: symptoms,
+          symptomLevels: levels,
+          severity: severity,
+          mood: _moodFromName(rmap['mood'] as String?),
           notes: rmap['notes'] as String?,
         );
       }).toList();
@@ -257,6 +265,15 @@ class ImportService {
       return ReactionLevel.values.byName(name);
     } catch (_) {
       return ReactionLevel.pending;
+    }
+  }
+
+  static Mood? _moodFromName(String? name) {
+    if (name == null) return null;
+    try {
+      return Mood.values.byName(name);
+    } catch (_) {
+      return null;
     }
   }
 }

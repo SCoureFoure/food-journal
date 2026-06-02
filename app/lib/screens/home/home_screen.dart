@@ -384,12 +384,16 @@ class _MiniFabOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fab = FloatingActionButton.small(
-      heroTag: label,
-      backgroundColor: color,
-      foregroundColor: Colors.white,
-      onPressed: onTap,
-      child: Icon(icon, size: 20),
+    final slug = label.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    final fab = Semantics(
+      identifier: 'btn-fab-$slug',
+      child: FloatingActionButton.small(
+        heroTag: label,
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        onPressed: onTap,
+        child: Icon(icon, size: 20),
+      ),
     );
     final chip = Material(
       color: Colors.transparent,

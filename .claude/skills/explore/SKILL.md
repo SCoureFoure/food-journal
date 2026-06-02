@@ -83,7 +83,8 @@ Then wait for the next screen's anchor before screenshotting.
 
 | Screen       | Anchor id                       | Meaning                                        |
 |--------------|---------------------------------|------------------------------------------------|
-| Home         | `btn-log-meal`                  | FAB — home screen ready                        |
+| Home         | `btn-log-entry`                 | FAB — toggles speed-dial. ✱ absorbed; tap via bounds |
+| Home         | `btn-fab-<slug>`                | Speed-dial option (feeling/medication/weighin/water/food). ✱ absorbed |
 | Home         | `home-empty-state`              | No meals — home screen ready                   |
 | Home         | `home-meal-list`                | Has meals — home screen ready                  |
 | Home         | `btn-export`                    | Export icon in app bar                         |
@@ -98,9 +99,25 @@ Then wait for the next screen's anchor before screenshotting.
 | Export       | `btn-date-from`                 | From date picker tile                          |
 | Export       | `btn-date-to`                   | To date picker tile                            |
 | Export       | `btn-export-json`               | Export as JSON button                          |
+| Check-in     | `checkin-screen`                | Feeling check-in screen root                   |
+| Check-in     | `mood-selector`                 | Row of 5 mood faces                            |
+| Check-in     | `mood-<name>`                   | Mood face (great/good/okay/low/awful)          |
+| Check-in     | `symptom-intensity-sheet`       | Notebook-paper panel of per-symptom sliders    |
+| Check-in     | `symptom-slider-<name>`         | Per-symptom intensity slider. ✱ absorbed; surfaces as SeekBar w/ content-desc "<pct>%, <label>" |
+| Create item  | `saved-item-name-field`         | Saved-item name field                          |
+| Create item  | `saved-item-ai-field`           | AI description field (text → parse)            |
+| Create item  | `btn-parse-saved-item-ai`       | Parse-with-AI button                           |
+| Create item  | `btn-create-item-add-blank`     | Add a blank component card                     |
+| Create item  | `saved-item-search-field`       | Search past items to add                       |
+| Create item  | `btn-save-saved-item`           | Save the composite item                        |
+
+Symptom chips have no anchor — tap by `content-desc="<SymptomName>"`.
 
 ⚠ = anchor defined in script scenario but not yet added to Flutter widget. Add
 `Semantics(identifier: 'id')` to the relevant widget before relying on it.
+✱ = `Semantics(identifier:)` is set but the Material widget (FAB/Slider) merges its
+own semantics over it, so the id does NOT surface as a resource-id. Tap via ui.xml
+bounds (clickable/SeekBar node) or `content-desc` instead.
 
 ## Adding anchors to new screens
 

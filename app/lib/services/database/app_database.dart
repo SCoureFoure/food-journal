@@ -44,7 +44,9 @@ class ReactionLogs extends Table {
   IntColumn get mealId => integer().nullable()(); // null = standalone "Feeling..." check-in
   DateTimeColumn get checkinTime => dateTime()();
   TextColumn get symptoms => text()(); // JSON-encoded List<String>
-  IntColumn get severity => integer()(); // ReactionLevel index
+  IntColumn get severity => integer()(); // derived: max ReactionLevel index across symptomLevels
+  IntColumn get mood => integer().nullable()(); // Mood index, null = not recorded
+  TextColumn get symptomLevels => text().nullable()(); // JSON {name: ReactionLevel index}; null = legacy
   TextColumn get notes => text().nullable()();
 }
 
@@ -127,11 +129,11 @@ class AppDatabase extends _$AppDatabase {
 
   // Exposed as a static constant so tests can assert the current version
   // without instantiating the singleton (which requires native sqlite3).
-  static const int currentSchemaVersion = 8;
+  static const int currentSchemaVersion = 10;
 
   // The declared migration ceiling versions in the order they appear in
   // onUpgrade.  Must be non-decreasing — tested in migration_order_test.dart.
-  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8];
+  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10];
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -241,6 +243,16 @@ class AppDatabase extends _$AppDatabase {
       if (from < 8) {
         await customStatement(
           'ALTER TABLE food_items ADD COLUMN servings INTEGER NOT NULL DEFAULT 1',
+        );
+      }
+      if (from < 9) {
+        await customStatement(
+          'ALTER TABLE reaction_logs ADD COLUMN mood INTEGER',
+        );
+      }
+      if (from < 10) {
+        await customStatement(
+          'ALTER TABLE reaction_logs ADD COLUMN symptom_levels TEXT',
         );
       }
     },

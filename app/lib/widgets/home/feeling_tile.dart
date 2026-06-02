@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../models/food_item.dart';
 import '../../models/reaction_log.dart';
 
 class FeelingTile extends StatelessWidget {
@@ -13,9 +12,22 @@ class FeelingTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final timeStr = TimeOfDay.fromDateTime(log.checkinTime).format(context);
-    final severityLabel = log.severity == ReactionLevel.none ? 'No reaction' : log.severity.label;
-    final symptomStr = log.symptoms.isEmpty ? '' : log.symptoms.join(', ');
-    final subtitle = [timeStr, severityLabel, if (symptomStr.isNotEmpty) symptomStr].join(' · ');
+    final symptomStr = log.symptoms
+        .map((s) {
+          final lvl = log.symptomLevels[s];
+          return lvl == null ? s : '$s (${lvl.label})';
+        })
+        .join(', ');
+    final subtitle = [
+      timeStr,
+      if (log.mood != null) log.mood!.label,
+      if (symptomStr.isEmpty) 'No reaction' else symptomStr,
+    ].join(' · ');
+
+    final faceIcon = log.mood?.face ?? Icons.sentiment_satisfied_alt_outlined;
+    final faceColor = (log.mood?.isNegative ?? false)
+        ? theme.colorScheme.error
+        : theme.colorScheme.tertiary;
 
     return Semantics(
       identifier: 'feeling-tile-${log.id}',
@@ -24,8 +36,8 @@ class FeelingTile extends StatelessWidget {
         shape: const Border(),
         collapsedShape: const Border(),
         leading: Icon(
-          Icons.sentiment_satisfied_alt_outlined,
-          color: theme.colorScheme.tertiary,
+          faceIcon,
+          color: faceColor,
         ),
         title: Semantics(
           identifier: 'feeling-tile-header-${log.id}',

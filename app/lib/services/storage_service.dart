@@ -358,11 +358,16 @@ class StorageService {
       db.ReactionLogsCompanion(
         checkinTime: Value(log.checkinTime),
         symptoms: Value(jsonEncode(log.symptoms)),
-        severity: Value(log.severity.toInt()),
+        severity: Value(ReactionLog.deriveSeverity(log.symptomLevels).toInt()),
+        mood: Value(log.mood?.toInt()),
+        symptomLevels: Value(_encodeSymptomLevels(log.symptomLevels)),
         notes: Value(log.notes),
       ),
     );
   }
+
+  static String _encodeSymptomLevels(Map<String, ReactionLevel> levels) =>
+      jsonEncode(levels.map((k, v) => MapEntry(k, v.toInt())));
 
   Future<void> deleteReactionLog(int logId) async {
     await (_db.delete(_db.reactionLogs)..where((t) => t.id.equals(logId))).go();
@@ -374,7 +379,9 @@ class StorageService {
         mealId: Value(log.mealId),
         checkinTime: log.checkinTime,
         symptoms: jsonEncode(log.symptoms),
-        severity: log.severity.toInt(),
+        severity: ReactionLog.deriveSeverity(log.symptomLevels).toInt(),
+        mood: Value(log.mood?.toInt()),
+        symptomLevels: Value(_encodeSymptomLevels(log.symptomLevels)),
         notes: Value(log.notes),
       ),
     );
@@ -746,9 +753,26 @@ class StorageService {
         mealId: row.mealId,
         checkinTime: row.checkinTime,
         symptoms: List<String>.from(jsonDecode(row.symptoms) as List),
+        symptomLevels: _decodeSymptomLevels(row),
         severity: ReactionLevel.fromInt(row.severity),
+        mood: row.mood == null ? null : Mood.fromInt(row.mood!),
         notes: row.notes,
       );
+
+  /// Per-symptom intensities. Legacy rows (null [symptomLevels]) are backfilled
+  /// by assigning every symptom the row's old global severity (min Mild).
+  Map<String, ReactionLevel> _decodeSymptomLevels(db.ReactionLog row) {
+    if (row.symptomLevels != null) {
+      final m = jsonDecode(row.symptomLevels!) as Map<String, dynamic>;
+      return m.map((k, v) => MapEntry(k, ReactionLevel.fromInt(v as int)));
+    }
+    final names = List<String>.from(jsonDecode(row.symptoms) as List);
+    final legacy = ReactionLevel.fromInt(row.severity);
+    final level = legacy == ReactionLevel.none || legacy == ReactionLevel.pending
+        ? ReactionLevel.mild
+        : legacy;
+    return {for (final n in names) n: level};
+  }
 
   FoodMemory _foodMemoryFromRow(db.FoodMemory row) => FoodMemory(
         id: row.id,

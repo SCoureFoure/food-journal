@@ -3,6 +3,7 @@ import '../../models/food_item.dart';
 import '../../models/reaction_log.dart';
 import '../../services/storage_service.dart';
 import '../../utils/date_time_utils.dart';
+import '../../widgets/checkin/notebook_symptom_sliders.dart';
 import '../../widgets/error_display.dart';
 import '../../widgets/loading_button.dart';
 import '../../widgets/log_date_time_row.dart';
@@ -19,8 +20,9 @@ class CheckinScreen extends StatefulWidget {
 
 class _CheckinScreenState extends State<CheckinScreen> {
   final _storage = StorageService();
-  late final Set<String> _selectedSymptoms;
-  late ReactionLevel _severity;
+  // Insertion-ordered: chip tap adds at Mild, slider adjusts, untap removes.
+  late final Map<String, ReactionLevel> _symptomLevels;
+  Mood? _mood;
   final _notesController = TextEditingController();
   late DateTime _checkinDate;
   late TimeOfDay _checkinTime;
@@ -35,14 +37,16 @@ class _CheckinScreenState extends State<CheckinScreen> {
     super.initState();
     if (_isEditing) {
       final log = widget.existingLog!;
-      _selectedSymptoms = Set.from(log.symptoms);
-      _severity = log.severity;
+      _symptomLevels = {
+        for (final name in log.symptoms)
+          name: log.symptomLevels[name] ?? ReactionLevel.mild,
+      };
+      _mood = log.mood;
       _notesController.text = log.notes ?? '';
       _checkinDate = DateTime(log.checkinTime.year, log.checkinTime.month, log.checkinTime.day);
       _checkinTime = TimeOfDay.fromDateTime(log.checkinTime);
     } else {
-      _selectedSymptoms = {};
-      _severity = ReactionLevel.none;
+      _symptomLevels = {};
       _checkinDate = DateTimeUtils.today();
       _checkinTime = TimeOfDay.now();
     }
@@ -63,7 +67,9 @@ class _CheckinScreenState extends State<CheckinScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Semantics(
+      identifier: 'checkin-screen',
+      child: Scaffold(
       appBar: AppBar(title: Text(_title)),
       body: Column(
         children: [
@@ -90,39 +96,78 @@ class _CheckinScreenState extends State<CheckinScreen> {
                     ),
                     const SizedBox(height: 8),
                   ],
+                  const Text('Mood', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Semantics(
+                    identifier: 'mood-selector',
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: Mood.values.map((m) {
+                        final selected = _mood == m;
+                        final color = m.isNegative
+                            ? Theme.of(context).colorScheme.error
+                            : Theme.of(context).colorScheme.primary;
+                        return Semantics(
+                          identifier: 'mood-${m.name}',
+                          child: GestureDetector(
+                            onTap: () => setState(() => _mood = selected ? null : m),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  m.face,
+                                  size: 34,
+                                  color: selected
+                                      ? color
+                                      : Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(120),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  m.label,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                                    color: selected ? color : Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   const Text('Symptoms', style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 4,
                     children: kSymptomOptions.map((s) {
-                      final selected = _selectedSymptoms.contains(s);
+                      final selected = _symptomLevels.containsKey(s);
                       return FilterChip(
                         label: Text(s),
                         selected: selected,
                         onSelected: (v) => setState(() {
                           if (v) {
-                            _selectedSymptoms.add(s);
+                            _symptomLevels[s] = ReactionLevel.mild;
                           } else {
-                            _selectedSymptoms.remove(s);
+                            _symptomLevels.remove(s);
                           }
                         }),
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 16),
-                  const Text('Severity', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  SegmentedButton<ReactionLevel>(
-                    segments: [
-                      ButtonSegment(value: ReactionLevel.none, label: Text(ReactionLevel.none.label)),
-                      ButtonSegment(value: ReactionLevel.mild, label: Text(ReactionLevel.mild.label)),
-                      ButtonSegment(value: ReactionLevel.moderate, label: Text(ReactionLevel.moderate.label)),
-                      ButtonSegment(value: ReactionLevel.bad, label: Text(ReactionLevel.bad.label)),
-                    ],
-                    selected: {_severity},
-                    onSelectionChanged: (s) => setState(() => _severity = s.first),
-                  ),
+                  if (_symptomLevels.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    const Text('How bad?', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    NotebookSymptomSliders(
+                      levels: _symptomLevels,
+                      onChanged: (name, level) =>
+                          setState(() => _symptomLevels[name] = level),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   TextField(
                     controller: _notesController,
@@ -153,6 +198,7 @@ class _CheckinScreenState extends State<CheckinScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -183,7 +229,9 @@ class _CheckinScreenState extends State<CheckinScreen> {
       _isLoading = true;
     });
     try {
-      final symptoms = _selectedSymptoms.toList();
+      final symptoms = _symptomLevels.keys.toList();
+      final severity = ReactionLog.deriveSeverity(_symptomLevels);
+      final notes = _notesController.text.trim().isEmpty ? null : _notesController.text.trim();
 
       if (_isEditing) {
         final updated = ReactionLog(
@@ -192,8 +240,10 @@ class _CheckinScreenState extends State<CheckinScreen> {
           checkinTime: DateTime(_checkinDate.year, _checkinDate.month, _checkinDate.day,
               _checkinTime.hour, _checkinTime.minute),
           symptoms: symptoms,
-          severity: _severity,
-          notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+          symptomLevels: Map.of(_symptomLevels),
+          severity: severity,
+          mood: _mood,
+          notes: notes,
         );
         await _storage.updateReactionLog(updated);
       } else {
@@ -201,18 +251,19 @@ class _CheckinScreenState extends State<CheckinScreen> {
           mealId: widget.mealId,
           checkinTime: DateTime.now(),
           symptoms: symptoms,
-          severity: _severity,
-          notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+          symptomLevels: Map.of(_symptomLevels),
+          severity: severity,
+          mood: _mood,
+          notes: notes,
         ));
 
         if (widget.mealId != null) {
-          final parts = [
-            if (_severity != ReactionLevel.none) _severity.label,
-            if (symptoms.isNotEmpty) symptoms.join(', '),
-          ];
+          final summary = _symptomLevels.entries
+              .map((e) => '${e.key} (${e.value.label})')
+              .join(', ');
           await _storage.updateMealSymptoms(
             widget.mealId!,
-            parts.isEmpty ? 'No reaction' : parts.join(' · '),
+            summary.isEmpty ? 'No reaction' : summary,
           );
         }
       }

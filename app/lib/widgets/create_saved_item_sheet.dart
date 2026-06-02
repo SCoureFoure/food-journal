@@ -4,15 +4,25 @@ import 'package:flutter/material.dart';
 
 import '../models/food_item.dart';
 import '../models/saved_item.dart';
+import '../services/ai_service.dart';
+import '../services/meal_memory/meal_memory_service.dart';
 import '../services/storage_service.dart';
 import 'editable_food_item_card.dart';
 
 class CreateSavedItemSheet extends StatefulWidget {
   final StorageService? storageOverride;
+  final AiService? aiOverride;
+  final MealMemoryService? memoryOverride;
   /// Called after save with the resulting draft, so caller can add it to the meal.
   final void Function(FoodItemDraft)? onCreated;
 
-  const CreateSavedItemSheet({super.key, this.storageOverride, this.onCreated});
+  const CreateSavedItemSheet({
+    super.key,
+    this.storageOverride,
+    this.aiOverride,
+    this.memoryOverride,
+    this.onCreated,
+  });
 
   @override
   State<CreateSavedItemSheet> createState() => _CreateSavedItemSheetState();
@@ -21,12 +31,16 @@ class CreateSavedItemSheet extends StatefulWidget {
 class _CreateSavedItemSheetState extends State<CreateSavedItemSheet> {
   final _nameCtrl = TextEditingController();
   final _searchCtrl = TextEditingController();
+  final _aiCtrl = TextEditingController();
   late final StorageService _storage;
+  late final AiService _ai;
+  late final MealMemoryService _memory;
   Timer? _debounce;
 
   final List<FoodItemFormData> _components = [];
   List<FoodItemDraft> _searchResults = [];
   bool _searching = false;
+  bool _parsing = false;
   bool _saving = false;
   String? _error;
 
@@ -40,7 +54,51 @@ class _CreateSavedItemSheetState extends State<CreateSavedItemSheet> {
   void initState() {
     super.initState();
     _storage = widget.storageOverride ?? StorageService();
+    _ai = widget.aiOverride ?? AiService.fromEnv();
+    _memory = widget.memoryOverride ?? MealMemoryService();
     _searchCtrl.addListener(_onSearchChanged);
+  }
+
+  /// AI-optional: parses the description into component cards and prefills the
+  /// name when empty. Any failure surfaces an error but leaves the manual form
+  /// fully usable — never blocks.
+  Future<void> _parse() async {
+    final text = _aiCtrl.text.trim();
+    if (text.isEmpty) {
+      setState(() => _error = 'Enter a description to parse.');
+      return;
+    }
+    setState(() {
+      _parsing = true;
+      _error = null;
+    });
+
+    // Pull historical meals into context when the text references past meals
+    // ("leftovers", "same as last friday") — reuses the log-meal memory path.
+    String? mealContext;
+    if (_memory.isReferential(text)) {
+      mealContext = await _memory.buildContextSnippet(text);
+    }
+
+    final result = await _ai.parseMeal(text: text, mealContext: mealContext);
+    if (!mounted) return;
+
+    if (!result.success || result.items == null || result.items!.isEmpty) {
+      setState(() {
+        _parsing = false;
+        _error = result.errorMessage ?? 'Could not parse that — add items manually.';
+      });
+      return;
+    }
+
+    for (final draft in result.items!) {
+      _addFormData(FoodItemFormData.fromDraft(draft));
+    }
+    final title = result.title?.trim();
+    if (_nameCtrl.text.trim().isEmpty && title != null && title.isNotEmpty) {
+      _nameCtrl.text = title;
+    }
+    setState(() => _parsing = false);
   }
 
   void _recomputeTotals() {
@@ -146,6 +204,7 @@ class _CreateSavedItemSheetState extends State<CreateSavedItemSheet> {
     _searchCtrl.removeListener(_onSearchChanged);
     _nameCtrl.dispose();
     _searchCtrl.dispose();
+    _aiCtrl.dispose();
     for (final c in _components) {
       c.dispose();
     }
@@ -236,6 +295,46 @@ class _CreateSavedItemSheetState extends State<CreateSavedItemSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        // ── AI parse (optional) ─────────────────────────────
+                        Semantics(
+                          identifier: 'saved-item-ai-field',
+                          child: TextField(
+                            controller: _aiCtrl,
+                            textCapitalization: TextCapitalization.sentences,
+                            minLines: 1,
+                            maxLines: 3,
+                            decoration: const InputDecoration(
+                              labelText: 'Describe it for AI (optional)',
+                              hintText: 'e.g. greek yogurt, granola, honey, blueberries',
+                              prefixIcon: Icon(Icons.auto_awesome, size: 18),
+                              border: OutlineInputBorder(),
+                              isDense: true,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Semantics(
+                            identifier: 'btn-parse-saved-item-ai',
+                            child: OutlinedButton.icon(
+                              onPressed: _parsing ? null : _parse,
+                              icon: _parsing
+                                  ? const SizedBox(
+                                      height: 15, width: 15,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.auto_awesome, size: 15),
+                              label: Text(_parsing ? 'Parsing…' : 'Parse with AI'),
+                              style: OutlinedButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        const Divider(height: 1),
+                        const SizedBox(height: 12),
                         // Component cards
                         ...List.generate(
                           _components.length,

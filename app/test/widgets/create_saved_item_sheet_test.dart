@@ -4,10 +4,14 @@
 // Does not test EditableFoodItemCard internals — only the sheet's own
 // structure, validation, callback, and header-totals logic.
 
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:food_journal/models/food_item.dart';
 import 'package:food_journal/models/saved_item.dart';
+import 'package:food_journal/services/ai_service.dart';
+import 'package:food_journal/services/meal_memory/meal_memory_service.dart';
 import 'package:food_journal/services/storage_service.dart';
 import 'package:food_journal/widgets/create_saved_item_sheet.dart';
 
@@ -34,19 +38,70 @@ class _FakeStorage extends StorageService {
   }
 }
 
+// ── Fake AiService ────────────────────────────────────────────────────────────
+
+class _FakeAi implements AiService {
+  final MealParseResult Function(String? text) mealImpl;
+  int calls = 0;
+  String? lastContext;
+  _FakeAi(this.mealImpl);
+
+  @override
+  Future<MealParseResult> parseMeal({
+    String? text,
+    Uint8List? imageBytes,
+    String? mealType,
+    String? mealContext,
+  }) async {
+    calls++;
+    lastContext = mealContext;
+    return mealImpl(text);
+  }
+
+  @override
+  Future<MedicationParseResult> parseMedication({String? text, Uint8List? imageBytes}) async =>
+      throw UnimplementedError();
+}
+
+// Fake memory: pure overrides, no DB. Referential when text contains "leftover".
+class _FakeMemory extends MealMemoryService {
+  final String snippet;
+  _FakeMemory({this.snippet = 'CONTEXT: last night = pizza'});
+
+  @override
+  bool isReferential(String input) => input.toLowerCase().contains('leftover');
+
+  @override
+  Future<String?> buildContextSnippet(String input) async => snippet;
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 Widget _sheet({
   required StorageService storage,
+  AiService? ai,
+  MealMemoryService? memory,
   void Function(FoodItemDraft)? onCreated,
 }) =>
     MaterialApp(
       home: Scaffold(
         body: CreateSavedItemSheet(
           storageOverride: storage,
+          aiOverride: ai,
+          memoryOverride: memory,
           onCreated: onCreated ?? (_) {},
         ),
       ),
+    );
+
+Finder _aiField() => find.descendant(
+      of: _bySemanticsId('saved-item-ai-field'),
+      matching: find.byType(TextField),
+    );
+
+Finder _nameField() => find.descendant(
+      of: _bySemanticsId('saved-item-name-field'),
+      matching: find.byType(TextField),
     );
 
 // Finds the Semantics node with the given identifier and returns it.
@@ -606,6 +661,153 @@ void main() {
 
       expect(find.textContaining('required'), findsNothing);
       expect(find.textContaining('least one'), findsNothing);
+    });
+  });
+
+  // ── AI parse (spec: create_saved_item_ai_parse) ───────────────────────────
+
+  group('[MFT] CreateSavedItemSheet — AI parse', () {
+    setUpAll(() {
+      // testTheory: MFT
+      // contract: Parsing a description appends component cards and prefills the
+      //           name when empty; failures are non-blocking. See spec
+      //           specs/create_saved_item_ai_parse.spec.md.
+    });
+
+    MealParseResult ok(List<String> names, {String? title}) => MealParseResult(
+          success: true,
+          title: title,
+          items: names.map((n) => FoodItemDraft(name: n)).toList(),
+        );
+
+    // AC2 — text parse populates components.
+    testWidgets('successful parse appends one card per returned item', (tester) async {
+      final storage = _FakeStorage(searchImpl: (_) => []);
+      final ai = _FakeAi((_) => ok(['Yogurt', 'Granola']));
+      await tester.pumpWidget(_sheet(storage: storage, ai: ai));
+      await tester.pump();
+
+      await tester.enterText(_aiField(), 'yogurt and granola');
+      await tester.tap(_bySemanticsId('btn-parse-saved-item-ai'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(Card), findsNWidgets(2));
+    });
+
+    // AC3 — name fill only when empty.
+    testWidgets('fills name from title when name is empty', (tester) async {
+      final storage = _FakeStorage(searchImpl: (_) => []);
+      final ai = _FakeAi((_) => ok(['Oats'], title: 'Power Bowl'));
+      await tester.pumpWidget(_sheet(storage: storage, ai: ai));
+      await tester.pump();
+
+      await tester.enterText(_aiField(), 'oats');
+      await tester.tap(_bySemanticsId('btn-parse-saved-item-ai'));
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<TextField>(_nameField()).controller?.text, 'Power Bowl');
+    });
+
+    testWidgets('does not overwrite a name the user already typed', (tester) async {
+      final storage = _FakeStorage(searchImpl: (_) => []);
+      final ai = _FakeAi((_) => ok(['Oats'], title: 'Power Bowl'));
+      await tester.pumpWidget(_sheet(storage: storage, ai: ai));
+      await tester.pump();
+
+      await tester.enterText(_nameField(), 'My Custom Name');
+      await tester.enterText(_aiField(), 'oats');
+      await tester.tap(_bySemanticsId('btn-parse-saved-item-ai'));
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<TextField>(_nameField()).controller?.text, 'My Custom Name');
+    });
+
+    // AC4 — append, not replace.
+    testWidgets('parsed items append to existing component cards', (tester) async {
+      final storage = _FakeStorage(searchImpl: (_) => []);
+      final ai = _FakeAi((_) => ok(['Honey', 'Berries']));
+      await tester.pumpWidget(_sheet(storage: storage, ai: ai));
+      await tester.pump();
+
+      // Pre-add one manual card.
+      await tester.tap(_bySemanticsId('btn-create-item-add-blank'));
+      await tester.pump();
+      expect(find.byType(Card), findsOneWidget);
+
+      await tester.enterText(_aiField(), 'honey and berries');
+      await tester.tap(_bySemanticsId('btn-parse-saved-item-ai'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(Card), findsNWidgets(3), reason: 'AC4: 1 existing + 2 parsed');
+    });
+
+    // AC5 — failure is non-blocking.
+    testWidgets('parse failure shows error and leaves form usable', (tester) async {
+      final storage = _FakeStorage(searchImpl: (_) => []);
+      final ai = _FakeAi((_) => MealParseResult(success: false, errorMessage: 'Worker down'));
+      await tester.pumpWidget(_sheet(storage: storage, ai: ai));
+      await tester.pump();
+
+      await tester.enterText(_aiField(), 'something');
+      await tester.tap(_bySemanticsId('btn-parse-saved-item-ai'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Worker down'), findsOneWidget);
+      expect(find.byType(Card), findsNothing);
+
+      // Manual path still works after failure.
+      await tester.tap(_bySemanticsId('btn-create-item-add-blank'));
+      await tester.pump();
+      expect(find.byType(Card), findsOneWidget);
+    });
+
+    // AC6 — empty input guard.
+    testWidgets('empty AI field does not call the service and prompts for text',
+        (tester) async {
+      final storage = _FakeStorage(searchImpl: (_) => []);
+      final ai = _FakeAi((_) => ok(['X']));
+      await tester.pumpWidget(_sheet(storage: storage, ai: ai));
+      await tester.pump();
+
+      await tester.tap(_bySemanticsId('btn-parse-saved-item-ai'));
+      await tester.pumpAndSettle();
+
+      expect(ai.calls, 0, reason: 'AC6: no service call on empty input');
+      expect(find.text('Enter a description to parse.'), findsOneWidget);
+      expect(find.byType(Card), findsNothing);
+    });
+
+    // AC7 — historical-meal context injection.
+    testWidgets('referential text builds a context snippet and passes it to parseMeal',
+        (tester) async {
+      final storage = _FakeStorage(searchImpl: (_) => []);
+      final ai = _FakeAi((_) => ok(['Pizza']));
+      final memory = _FakeMemory(snippet: 'CONTEXT: last night = pizza');
+      await tester.pumpWidget(_sheet(storage: storage, ai: ai, memory: memory));
+      await tester.pump();
+
+      await tester.enterText(_aiField(), 'leftovers from last night');
+      await tester.tap(_bySemanticsId('btn-parse-saved-item-ai'));
+      await tester.pumpAndSettle();
+
+      expect(ai.lastContext, 'CONTEXT: last night = pizza',
+          reason: 'AC7: snippet for referential input must reach parseMeal');
+    });
+
+    testWidgets('non-referential text passes null mealContext (no DB hit)',
+        (tester) async {
+      final storage = _FakeStorage(searchImpl: (_) => []);
+      final ai = _FakeAi((_) => ok(['Eggs']));
+      final memory = _FakeMemory();
+      await tester.pumpWidget(_sheet(storage: storage, ai: ai, memory: memory));
+      await tester.pump();
+
+      await tester.enterText(_aiField(), 'two eggs and toast');
+      await tester.tap(_bySemanticsId('btn-parse-saved-item-ai'));
+      await tester.pumpAndSettle();
+
+      expect(ai.lastContext, isNull,
+          reason: 'AC7: non-referential input must not build a snippet');
     });
   });
 }

@@ -137,7 +137,10 @@ class ExportService {
             .map((r) => {
                   'checkin_time': r.checkinTime.toIso8601String(),
                   'symptoms': r.symptoms,
+                  'symptom_levels':
+                      r.symptomLevels.map((k, v) => MapEntry(k, v.name)),
                   'severity': r.severity.name,
+                  'mood': r.mood?.name,
                   'notes': r.notes,
                 })
             .toList(),

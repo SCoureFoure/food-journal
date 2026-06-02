@@ -1605,6 +1605,26 @@ class $ReactionLogsTable extends ReactionLogs
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _moodMeta = const VerificationMeta('mood');
+  @override
+  late final GeneratedColumn<int> mood = GeneratedColumn<int>(
+    'mood',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _symptomLevelsMeta = const VerificationMeta(
+    'symptomLevels',
+  );
+  @override
+  late final GeneratedColumn<String> symptomLevels = GeneratedColumn<String>(
+    'symptom_levels',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
@@ -1621,6 +1641,8 @@ class $ReactionLogsTable extends ReactionLogs
     checkinTime,
     symptoms,
     severity,
+    mood,
+    symptomLevels,
     notes,
   ];
   @override
@@ -1671,6 +1693,21 @@ class $ReactionLogsTable extends ReactionLogs
     } else if (isInserting) {
       context.missing(_severityMeta);
     }
+    if (data.containsKey('mood')) {
+      context.handle(
+        _moodMeta,
+        mood.isAcceptableOrUnknown(data['mood']!, _moodMeta),
+      );
+    }
+    if (data.containsKey('symptom_levels')) {
+      context.handle(
+        _symptomLevelsMeta,
+        symptomLevels.isAcceptableOrUnknown(
+          data['symptom_levels']!,
+          _symptomLevelsMeta,
+        ),
+      );
+    }
     if (data.containsKey('notes')) {
       context.handle(
         _notesMeta,
@@ -1706,6 +1743,14 @@ class $ReactionLogsTable extends ReactionLogs
         DriftSqlType.int,
         data['${effectivePrefix}severity'],
       )!,
+      mood: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}mood'],
+      ),
+      symptomLevels: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}symptom_levels'],
+      ),
       notes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
@@ -1725,6 +1770,8 @@ class ReactionLog extends DataClass implements Insertable<ReactionLog> {
   final DateTime checkinTime;
   final String symptoms;
   final int severity;
+  final int? mood;
+  final String? symptomLevels;
   final String? notes;
   const ReactionLog({
     required this.id,
@@ -1732,6 +1779,8 @@ class ReactionLog extends DataClass implements Insertable<ReactionLog> {
     required this.checkinTime,
     required this.symptoms,
     required this.severity,
+    this.mood,
+    this.symptomLevels,
     this.notes,
   });
   @override
@@ -1744,6 +1793,12 @@ class ReactionLog extends DataClass implements Insertable<ReactionLog> {
     map['checkin_time'] = Variable<DateTime>(checkinTime);
     map['symptoms'] = Variable<String>(symptoms);
     map['severity'] = Variable<int>(severity);
+    if (!nullToAbsent || mood != null) {
+      map['mood'] = Variable<int>(mood);
+    }
+    if (!nullToAbsent || symptomLevels != null) {
+      map['symptom_levels'] = Variable<String>(symptomLevels);
+    }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
@@ -1759,6 +1814,10 @@ class ReactionLog extends DataClass implements Insertable<ReactionLog> {
       checkinTime: Value(checkinTime),
       symptoms: Value(symptoms),
       severity: Value(severity),
+      mood: mood == null && nullToAbsent ? const Value.absent() : Value(mood),
+      symptomLevels: symptomLevels == null && nullToAbsent
+          ? const Value.absent()
+          : Value(symptomLevels),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
@@ -1776,6 +1835,8 @@ class ReactionLog extends DataClass implements Insertable<ReactionLog> {
       checkinTime: serializer.fromJson<DateTime>(json['checkinTime']),
       symptoms: serializer.fromJson<String>(json['symptoms']),
       severity: serializer.fromJson<int>(json['severity']),
+      mood: serializer.fromJson<int?>(json['mood']),
+      symptomLevels: serializer.fromJson<String?>(json['symptomLevels']),
       notes: serializer.fromJson<String?>(json['notes']),
     );
   }
@@ -1788,6 +1849,8 @@ class ReactionLog extends DataClass implements Insertable<ReactionLog> {
       'checkinTime': serializer.toJson<DateTime>(checkinTime),
       'symptoms': serializer.toJson<String>(symptoms),
       'severity': serializer.toJson<int>(severity),
+      'mood': serializer.toJson<int?>(mood),
+      'symptomLevels': serializer.toJson<String?>(symptomLevels),
       'notes': serializer.toJson<String?>(notes),
     };
   }
@@ -1798,6 +1861,8 @@ class ReactionLog extends DataClass implements Insertable<ReactionLog> {
     DateTime? checkinTime,
     String? symptoms,
     int? severity,
+    Value<int?> mood = const Value.absent(),
+    Value<String?> symptomLevels = const Value.absent(),
     Value<String?> notes = const Value.absent(),
   }) => ReactionLog(
     id: id ?? this.id,
@@ -1805,6 +1870,10 @@ class ReactionLog extends DataClass implements Insertable<ReactionLog> {
     checkinTime: checkinTime ?? this.checkinTime,
     symptoms: symptoms ?? this.symptoms,
     severity: severity ?? this.severity,
+    mood: mood.present ? mood.value : this.mood,
+    symptomLevels: symptomLevels.present
+        ? symptomLevels.value
+        : this.symptomLevels,
     notes: notes.present ? notes.value : this.notes,
   );
   ReactionLog copyWithCompanion(ReactionLogsCompanion data) {
@@ -1816,6 +1885,10 @@ class ReactionLog extends DataClass implements Insertable<ReactionLog> {
           : this.checkinTime,
       symptoms: data.symptoms.present ? data.symptoms.value : this.symptoms,
       severity: data.severity.present ? data.severity.value : this.severity,
+      mood: data.mood.present ? data.mood.value : this.mood,
+      symptomLevels: data.symptomLevels.present
+          ? data.symptomLevels.value
+          : this.symptomLevels,
       notes: data.notes.present ? data.notes.value : this.notes,
     );
   }
@@ -1828,14 +1901,24 @@ class ReactionLog extends DataClass implements Insertable<ReactionLog> {
           ..write('checkinTime: $checkinTime, ')
           ..write('symptoms: $symptoms, ')
           ..write('severity: $severity, ')
+          ..write('mood: $mood, ')
+          ..write('symptomLevels: $symptomLevels, ')
           ..write('notes: $notes')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, mealId, checkinTime, symptoms, severity, notes);
+  int get hashCode => Object.hash(
+    id,
+    mealId,
+    checkinTime,
+    symptoms,
+    severity,
+    mood,
+    symptomLevels,
+    notes,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1845,6 +1928,8 @@ class ReactionLog extends DataClass implements Insertable<ReactionLog> {
           other.checkinTime == this.checkinTime &&
           other.symptoms == this.symptoms &&
           other.severity == this.severity &&
+          other.mood == this.mood &&
+          other.symptomLevels == this.symptomLevels &&
           other.notes == this.notes);
 }
 
@@ -1854,6 +1939,8 @@ class ReactionLogsCompanion extends UpdateCompanion<ReactionLog> {
   final Value<DateTime> checkinTime;
   final Value<String> symptoms;
   final Value<int> severity;
+  final Value<int?> mood;
+  final Value<String?> symptomLevels;
   final Value<String?> notes;
   const ReactionLogsCompanion({
     this.id = const Value.absent(),
@@ -1861,6 +1948,8 @@ class ReactionLogsCompanion extends UpdateCompanion<ReactionLog> {
     this.checkinTime = const Value.absent(),
     this.symptoms = const Value.absent(),
     this.severity = const Value.absent(),
+    this.mood = const Value.absent(),
+    this.symptomLevels = const Value.absent(),
     this.notes = const Value.absent(),
   });
   ReactionLogsCompanion.insert({
@@ -1869,6 +1958,8 @@ class ReactionLogsCompanion extends UpdateCompanion<ReactionLog> {
     required DateTime checkinTime,
     required String symptoms,
     required int severity,
+    this.mood = const Value.absent(),
+    this.symptomLevels = const Value.absent(),
     this.notes = const Value.absent(),
   }) : checkinTime = Value(checkinTime),
        symptoms = Value(symptoms),
@@ -1879,6 +1970,8 @@ class ReactionLogsCompanion extends UpdateCompanion<ReactionLog> {
     Expression<DateTime>? checkinTime,
     Expression<String>? symptoms,
     Expression<int>? severity,
+    Expression<int>? mood,
+    Expression<String>? symptomLevels,
     Expression<String>? notes,
   }) {
     return RawValuesInsertable({
@@ -1887,6 +1980,8 @@ class ReactionLogsCompanion extends UpdateCompanion<ReactionLog> {
       if (checkinTime != null) 'checkin_time': checkinTime,
       if (symptoms != null) 'symptoms': symptoms,
       if (severity != null) 'severity': severity,
+      if (mood != null) 'mood': mood,
+      if (symptomLevels != null) 'symptom_levels': symptomLevels,
       if (notes != null) 'notes': notes,
     });
   }
@@ -1897,6 +1992,8 @@ class ReactionLogsCompanion extends UpdateCompanion<ReactionLog> {
     Value<DateTime>? checkinTime,
     Value<String>? symptoms,
     Value<int>? severity,
+    Value<int?>? mood,
+    Value<String?>? symptomLevels,
     Value<String?>? notes,
   }) {
     return ReactionLogsCompanion(
@@ -1905,6 +2002,8 @@ class ReactionLogsCompanion extends UpdateCompanion<ReactionLog> {
       checkinTime: checkinTime ?? this.checkinTime,
       symptoms: symptoms ?? this.symptoms,
       severity: severity ?? this.severity,
+      mood: mood ?? this.mood,
+      symptomLevels: symptomLevels ?? this.symptomLevels,
       notes: notes ?? this.notes,
     );
   }
@@ -1927,6 +2026,12 @@ class ReactionLogsCompanion extends UpdateCompanion<ReactionLog> {
     if (severity.present) {
       map['severity'] = Variable<int>(severity.value);
     }
+    if (mood.present) {
+      map['mood'] = Variable<int>(mood.value);
+    }
+    if (symptomLevels.present) {
+      map['symptom_levels'] = Variable<String>(symptomLevels.value);
+    }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
@@ -1941,6 +2046,8 @@ class ReactionLogsCompanion extends UpdateCompanion<ReactionLog> {
           ..write('checkinTime: $checkinTime, ')
           ..write('symptoms: $symptoms, ')
           ..write('severity: $severity, ')
+          ..write('mood: $mood, ')
+          ..write('symptomLevels: $symptomLevels, ')
           ..write('notes: $notes')
           ..write(')'))
         .toString();
@@ -6306,6 +6413,8 @@ typedef $$ReactionLogsTableCreateCompanionBuilder =
       required DateTime checkinTime,
       required String symptoms,
       required int severity,
+      Value<int?> mood,
+      Value<String?> symptomLevels,
       Value<String?> notes,
     });
 typedef $$ReactionLogsTableUpdateCompanionBuilder =
@@ -6315,6 +6424,8 @@ typedef $$ReactionLogsTableUpdateCompanionBuilder =
       Value<DateTime> checkinTime,
       Value<String> symptoms,
       Value<int> severity,
+      Value<int?> mood,
+      Value<String?> symptomLevels,
       Value<String?> notes,
     });
 
@@ -6349,6 +6460,16 @@ class $$ReactionLogsTableFilterComposer
 
   ColumnFilters<int> get severity => $composableBuilder(
     column: $table.severity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get mood => $composableBuilder(
+    column: $table.mood,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get symptomLevels => $composableBuilder(
+    column: $table.symptomLevels,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6392,6 +6513,16 @@ class $$ReactionLogsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get mood => $composableBuilder(
+    column: $table.mood,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get symptomLevels => $composableBuilder(
+    column: $table.symptomLevels,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get notes => $composableBuilder(
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
@@ -6423,6 +6554,14 @@ class $$ReactionLogsTableAnnotationComposer
 
   GeneratedColumn<int> get severity =>
       $composableBuilder(column: $table.severity, builder: (column) => column);
+
+  GeneratedColumn<int> get mood =>
+      $composableBuilder(column: $table.mood, builder: (column) => column);
+
+  GeneratedColumn<String> get symptomLevels => $composableBuilder(
+    column: $table.symptomLevels,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
@@ -6464,6 +6603,8 @@ class $$ReactionLogsTableTableManager
                 Value<DateTime> checkinTime = const Value.absent(),
                 Value<String> symptoms = const Value.absent(),
                 Value<int> severity = const Value.absent(),
+                Value<int?> mood = const Value.absent(),
+                Value<String?> symptomLevels = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
               }) => ReactionLogsCompanion(
                 id: id,
@@ -6471,6 +6612,8 @@ class $$ReactionLogsTableTableManager
                 checkinTime: checkinTime,
                 symptoms: symptoms,
                 severity: severity,
+                mood: mood,
+                symptomLevels: symptomLevels,
                 notes: notes,
               ),
           createCompanionCallback:
@@ -6480,6 +6623,8 @@ class $$ReactionLogsTableTableManager
                 required DateTime checkinTime,
                 required String symptoms,
                 required int severity,
+                Value<int?> mood = const Value.absent(),
+                Value<String?> symptomLevels = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
               }) => ReactionLogsCompanion.insert(
                 id: id,
@@ -6487,6 +6632,8 @@ class $$ReactionLogsTableTableManager
                 checkinTime: checkinTime,
                 symptoms: symptoms,
                 severity: severity,
+                mood: mood,
+                symptomLevels: symptomLevels,
                 notes: notes,
               ),
           withReferenceMapper: (p0) => p0

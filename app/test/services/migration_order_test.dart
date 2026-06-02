@@ -17,11 +17,11 @@ void main() {
   // tests.  This file covers what we CAN verify at pure-Dart level.
 
   group('[REGRESSION] AppDatabase schema version', () {
-    test('schemaVersion is 7 after v7 saved_items migration', () {
+    test('schemaVersion is 10 after v10 reaction_logs.symptom_levels migration', () {
       // AppDatabase is a singleton — we can't instantiate it in tests without
       // native sqlite3.  We verify the declared schemaVersion constant instead.
       // If this breaks, the DB won't open at all on first launch.
-      expect(AppDatabase.currentSchemaVersion, 7);
+      expect(AppDatabase.currentSchemaVersion, 10);
     });
   });
 
