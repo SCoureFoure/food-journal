@@ -48,6 +48,24 @@ constraints:
   - Do not implement until user approves
 ```
 
+### SPEC
+
+```contract
+inputs:
+  feature: a requirement (spec-in) OR an existing workflow / exploration finding (explore-out)
+
+produces:
+  spec_file: specs/<feature>.spec.md — requirement, inherited constraints,
+             pinned decisions, acceptance criteria (Given/When/Then), anchors
+  open_decisions: forks the spec forces ("is it supposed to do that?") — ruled before encoding
+
+constraints:
+  - Run via the /spec skill (the full loop) — see .claude/skills/spec/SKILL.md
+  - Every non-trivial feature deposits {spec, test}; the spec pile is an output, not a precondition
+  - New behavior on an existing screen still gets its own AC / spec amendment — never bundle silently
+  - Acceptance criteria map 1:1 to tests at the cheapest layer (widget+fake > integration > e2e)
+```
+
 ### DEVELOP
 
 ```contract
@@ -90,9 +108,15 @@ constraints:
 | ---- | ---- | ---- |
 | Intake | EXPLAIN | Scope identified |
 | Plan | PLAN | User approves |
-| Develop | DEVELOP | Code matches plan |
-| Test | TEST | Tests pass |
+| Spec | SPEC | Acceptance criteria written to `specs/<feature>.spec.md` |
+| Develop | DEVELOP | Code matches plan + spec |
+| Test | TEST | Tests pass (one per acceptance criterion) |
 | Iterate | DEVELOP/TEST | All gates green |
+| Deposit | — | `{spec, test}` committed; anchors trail-blazed + registered in explore SKILL.md |
+
+Two entry paths, one output: **spec-in** (requirement handed in) and **explore-out**
+(behavior discovered while probing/fixing) both converge on `{spec, test}`. The `/spec`
+skill runs this loop.
 
 ---
 
@@ -134,18 +158,30 @@ See `docs/FEATURES.md` for full feature spec.
 - Test on Android phone via USB: enable Developer Options → USB Debugging → plug in → `start.bat` auto-detects
 - Hot reload: `r` | Hot restart: `R` | Quit: `q` (in running flutter session)
 
-## Semantics anchors (explore rig requirement)
+## Semantics anchors — trail-blazing (explore rig requirement)
 
-Every new interactive widget MUST get a `Semantics(identifier: '...')` immediately when built:
+Anchors are **footholds for the next explorer** (agent, human, or regression test).
+Laying them is a standing **side objective of every exploration** — when you reach a
+screen, you leave it more reachable than you found it. Anchors are also
+accessibility-positive (screen readers use the same semantics), not test-only debt.
+
+Every new interactive widget MUST get a `Semantics(identifier: '...')` when built:
 
 - Screen roots: `Semantics(identifier: 'screen-name')`
 - Buttons / FABs: wrap with `Semantics(identifier: 'btn-action')`
 - List tiles / cards: wrap with `Semantics(identifier: 'item-<id>')`
 - ExpansionTile headers: wrap the `title:` param specifically with `Semantics(identifier: 'item-header-<id>')` so `Tap-Element` hits the header even when expanded
+- Prefer anchors on SHARED widgets — one change blazes trail for every screen using them
 
-Add the anchor to the Known anchors table in `.claude/skills/explore/SKILL.md` in the same commit.
+Register every anchor in the Known anchors table in `.claude/skills/explore/SKILL.md`
+in the same commit. That table is the map.
 
-The explore rig taps ONLY by resource-id via `Tap-Element` — never raw coordinates. Step 4 of the explore skill shows the correct inline PowerShell pattern.
+**✱ doctrine.** Some ids are absorbed by their Material widget (FAB, Slider) and do
+NOT surface through UIAutomator. The rule is not "every id is tappable by ADB" — it is
+**"every id is declared + its reach is documented."** Prefer tapping by resource-id;
+where a widget absorbs its id, mark it ✱ in the table and note the fallback (bounds /
+`content-desc` / SeekBar). Dart `integration_test` reads ids in-process and is
+unaffected — two consumers, one registry. See `/spec` skill for the full loop.
 
 ## Known package constraints
 

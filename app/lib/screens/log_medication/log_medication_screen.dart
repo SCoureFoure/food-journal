@@ -18,8 +18,19 @@ import '../../widgets/log_photo_section.dart';
 
 class LogMedicationScreen extends StatefulWidget {
   final Medication? existingMed;
+  final StorageService? storageOverride;
+  final AiService? aiOverride;
+  final NotificationService? notificationsOverride;
+  final SettingsService? settingsOverride;
 
-  const LogMedicationScreen({super.key, this.existingMed});
+  const LogMedicationScreen({
+    super.key,
+    this.existingMed,
+    this.storageOverride,
+    this.aiOverride,
+    this.notificationsOverride,
+    this.settingsOverride,
+  });
 
   @override
   State<LogMedicationScreen> createState() => _LogMedicationScreenState();
@@ -32,10 +43,11 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
   final _notesCtrl = TextEditingController();
   final _checkinDelayCtrl = TextEditingController(text: '90');
 
-  final _aiService = AiService.fromEnv();
-  final _storage = StorageService();
-  final _notifications = NotificationService();
-  final _settings = SettingsService();
+  late final AiService _aiService = widget.aiOverride ?? AiService.fromEnv();
+  late final StorageService _storage = widget.storageOverride ?? StorageService();
+  late final NotificationService _notifications =
+      widget.notificationsOverride ?? NotificationService();
+  late final SettingsService _settings = widget.settingsOverride ?? SettingsService();
 
   bool _aiEnabled = true;
   bool _isAutofilling = false;
@@ -183,11 +195,16 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
         createdAt: widget.existingMed?.createdAt ?? now,
       );
 
+      final entryTime = DateTime(_date.year, _date.month, _date.day, _time.hour, _time.minute);
       if (_isEditing) {
+        final medId = widget.existingMed!.id!;
         await _storage.updateMedication(med);
+        // Reschedule: edits to time/delay must move the existing check-in,
+        // not leave it firing at the original time. Cancel then re-arm.
+        await _notifications.cancelCheckin(medId);
+        await _notifications.scheduleCheckin(medId, name, entryTime, delayMinutes: delay);
       } else {
         final medId = await _storage.saveMedication(med);
-        final entryTime = DateTime(_date.year, _date.month, _date.day, _time.hour, _time.minute);
         await _notifications.scheduleCheckin(medId, name, entryTime, delayMinutes: delay);
       }
 
@@ -204,7 +221,9 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
+    return Semantics(
+      identifier: 'log-medication-screen',
+      child: Scaffold(
       appBar: AppBar(title: Text(_isEditing ? 'Edit Medication' : 'Log Medication')),
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
@@ -221,10 +240,13 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
               onDateChanged: (d) => setState(() => _date = d),
               onTimeChanged: (t) => setState(() => _time = t),
               trailing: _isEditing
-                  ? GestureDetector(
-                      onTap: _isSaving ? null : _confirmDelete,
-                      child: Icon(Icons.delete_outline,
-                          size: 22, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ? Semantics(
+                      identifier: 'btn-delete-medication',
+                      child: GestureDetector(
+                        onTap: _isSaving ? null : _confirmDelete,
+                        child: Icon(Icons.delete_outline,
+                            size: 22, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      ),
                     )
                   : null,
             ),
@@ -256,6 +278,7 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
               isAutofilling: _isAutofilling,
               onAutofill: _autofill,
               hintText: 'Describe the medication or scan the label…',
+              autofillSemanticsId: 'btn-autofill-medication',
             ),
             const SizedBox(height: 16),
             Row(
@@ -263,54 +286,69 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
               children: [
                 SizedBox(
                   width: 100,
-                  child: TextField(
-                    controller: _doseCtrl,
-                    enabled: !_isSaving,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(
-                      labelText: 'Dose',
-                      border: OutlineInputBorder(),
-                      isDense: true,
+                  child: Semantics(
+                    identifier: 'log-med-dose',
+                    child: TextField(
+                      controller: _doseCtrl,
+                      enabled: !_isSaving,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: const InputDecoration(
+                        labelText: 'Dose',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: LabeledDropdown<String>(
-                    label: 'Unit',
-                    value: _selectedUnit,
-                    items: const [null, ...kMedUnits],
-                    itemLabel: (v) => v ?? '—',
-                    enabled: !_isSaving,
-                    onChanged: (v) => setState(() => _selectedUnit = v),
+                  child: Semantics(
+                    identifier: 'log-med-unit',
+                    child: LabeledDropdown<String>(
+                      label: 'Unit',
+                      value: _selectedUnit,
+                      items: const [null, ...kMedUnits],
+                      itemLabel: (v) => v ?? '—',
+                      enabled: !_isSaving,
+                      onChanged: (v) => setState(() => _selectedUnit = v),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: LabeledDropdown<String>(
-                    label: 'Route',
-                    value: _selectedRoute,
-                    items: const [null, ...kMedRoutes],
-                    itemLabel: (v) => v ?? '—',
-                    enabled: !_isSaving,
-                    onChanged: (v) => setState(() => _selectedRoute = v),
+                  child: Semantics(
+                    identifier: 'log-med-route',
+                    child: LabeledDropdown<String>(
+                      label: 'Route',
+                      value: _selectedRoute,
+                      items: const [null, ...kMedRoutes],
+                      itemLabel: (v) => v ?? '—',
+                      enabled: !_isSaving,
+                      onChanged: (v) => setState(() => _selectedRoute = v),
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            TextField(
-              controller: _notesCtrl,
-              enabled: !_isSaving,
-              maxLines: 2,
-              decoration: const InputDecoration(
-                labelText: 'Notes',
-                hintText: 'optional',
-                border: OutlineInputBorder(),
+            Semantics(
+              identifier: 'log-med-notes',
+              child: TextField(
+                controller: _notesCtrl,
+                enabled: !_isSaving,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'Notes',
+                  hintText: 'optional',
+                  border: OutlineInputBorder(),
+                ),
               ),
             ),
             const SizedBox(height: 16),
-            CheckinDelayField(controller: _checkinDelayCtrl, enabled: !_isSaving),
+            Semantics(
+              identifier: 'log-med-checkin-delay',
+              child: CheckinDelayField(controller: _checkinDelayCtrl, enabled: !_isSaving),
+            ),
             const SizedBox(height: 16),
             if (_errorMessage != null) ...[
               ErrorBanner(message: _errorMessage!),
@@ -327,6 +365,7 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
         ),
       ),
       ),
+    ),
     );
   }
 }

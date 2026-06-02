@@ -6,6 +6,7 @@ class LogDescriptionSection extends StatelessWidget {
   final bool isAutofilling;
   final VoidCallback? onAutofill;
   final String hintText;
+  final String autofillSemanticsId;
 
   const LogDescriptionSection({
     super.key,
@@ -14,6 +15,7 @@ class LogDescriptionSection extends StatelessWidget {
     required this.isAutofilling,
     this.onAutofill,
     this.hintText = 'Describe…',
+    this.autofillSemanticsId = 'btn-autofill',
   });
 
   @override
@@ -35,7 +37,9 @@ class LogDescriptionSection extends StatelessWidget {
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerRight,
-            child: OutlinedButton.icon(
+            child: Semantics(
+              identifier: autofillSemanticsId,
+              child: OutlinedButton.icon(
               onPressed: isAutofilling ? null : onAutofill,
               icon: isAutofilling
                   ? SizedBox(
@@ -52,6 +56,7 @@ class LogDescriptionSection extends StatelessWidget {
                 foregroundColor: theme.colorScheme.primary,
                 side: BorderSide(color: theme.colorScheme.primary.withAlpha(120)),
               ),
+            ),
             ),
           ),
         ],

@@ -110,6 +110,16 @@ Then wait for the next screen's anchor before screenshotting.
 | Create item  | `btn-create-item-add-blank`     | Add a blank component card                     |
 | Create item  | `saved-item-search-field`       | Search past items to add                       |
 | Create item  | `btn-save-saved-item`           | Save the composite item                        |
+| Medication   | `log-medication-screen`         | Log/Edit medication screen root                |
+| Medication   | `log-med-name`                  | Medication name field                          |
+| Medication   | `btn-autofill-medication`       | Autofill-with-AI button (shared LogDescriptionSection) |
+| Medication   | `log-med-dose`                  | Dose field                                     |
+| Medication   | `log-med-unit`                  | Unit dropdown                                  |
+| Medication   | `log-med-route`                 | Route dropdown                                 |
+| Medication   | `log-med-notes`                 | Notes field                                    |
+| Medication   | `log-med-checkin-delay`         | Check-in delay field                           |
+| Medication   | `btn-delete-medication`         | Delete (edit mode)                             |
+| Medication   | `btn-save-medication`           | Save / Save Changes                            |
 
 Symptom chips have no anchor — tap by `content-desc="<SymptomName>"`.
 
@@ -134,3 +144,21 @@ When you build a new screen or navigate somewhere new:
 - **Next step** — concrete action to investigate or fix
 
 Do not ask the user for output at any step. Complete the full loop and report.
+
+## Step 6 — Trail-blaze (side objective — always)
+
+Exploration's deliverable is **{findings + anchors + registry}**, not just findings.
+Leave every screen you reached more reachable than you found it:
+
+1. Any interactive widget you had to tap by bounds / `content-desc` (no id surfaced)
+   → add a `Semantics(identifier: '...')` in Dart, or document why it can't surface.
+2. Screen root missing an anchor → add `Semantics(identifier: 'screen-name')`.
+3. Prefer anchors on SHARED widgets — one change blazes trail for every screen.
+4. Register each in the Known anchors table above (same commit).
+5. ✱ cases (FAB/Slider absorb the id under UIAutomator): mark ✱ + note the fallback
+   (bounds / `content-desc` / SeekBar). The id still works for Dart `integration_test`
+   in-process — declared + reach documented is the bar, not ADB-tappable.
+
+This rig is the **discovery arm** of the `/spec` loop: reverse-engineering a workflow
+into `specs/<feature>.spec.md` uses these journeys to confirm behavior and surface the
+"is it supposed to do that?" decisions. See `.claude/skills/spec/SKILL.md`.
