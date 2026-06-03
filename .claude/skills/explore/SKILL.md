@@ -81,60 +81,15 @@ Then wait for the next screen's anchor before screenshotting.
 
 ## Known anchors (resource-id)
 
-| Screen       | Anchor id                       | Meaning                                        |
-|--------------|---------------------------------|------------------------------------------------|
-| Home         | `btn-log-entry`                 | FAB — toggles speed-dial. ✱ absorbed; tap via bounds |
-| Home         | `btn-fab-<slug>`                | Speed-dial option (feeling/medication/weighin/water/food). ✱ absorbed |
-| Home         | `home-empty-state`              | No meals — home screen ready                   |
-| Home         | `home-meal-list`                | Has meals — home screen ready                  |
-| Home         | `btn-export`                    | Export icon in app bar                         |
-| Home         | `home-loading`                  | Still loading                                  |
-| Home         | `home-error`                    | Error state                                    |
-| Home         | `week-section-YYYY-MM-DD`       | Week summary header + its day sections         |
-| Home         | `date-section-YYYY-MM-DD`       | Collapsible date group card                    |
-| Home         | `meal-tile-<id>`                | Collapsible meal tile (whole tile)             |
-| Home         | `meal-tile-header-<id>`         | Meal tile header only — use this to tap toggle |
-| Log Meal     | `log-meal-input`                | ⚠ not yet added to widget                      |
-| Export       | `export-screen`                 | Export screen root                             |
-| Export       | `btn-date-from`                 | From date picker tile                          |
-| Export       | `btn-date-to`                   | To date picker tile                            |
-| Export       | `btn-export-json`               | Export as JSON button                          |
-| Check-in     | `checkin-screen`                | Feeling check-in screen root                   |
-| Check-in     | `mood-selector`                 | Row of 5 mood faces                            |
-| Check-in     | `mood-<name>`                   | Mood face (great/good/okay/low/awful)          |
-| Check-in     | `symptom-intensity-sheet`       | Notebook-paper panel of per-symptom sliders    |
-| Check-in     | `symptom-slider-<name>`         | Per-symptom intensity slider. ✱ absorbed; surfaces as SeekBar w/ content-desc "<pct>%, <label>" |
-| Create item  | `saved-item-name-field`         | Saved-item name field                          |
-| Create item  | `saved-item-ai-field`           | AI description field (text → parse)            |
-| Create item  | `btn-parse-saved-item-ai`       | Parse-with-AI button                           |
-| Create item  | `btn-create-item-add-blank`     | Add a blank component card                     |
-| Create item  | `saved-item-search-field`       | Search past items to add                       |
-| Create item  | `btn-save-saved-item`           | Save the composite item                        |
-| Medication   | `log-medication-screen`         | Log/Edit medication screen root                |
-| Medication   | `log-med-name`                  | Medication name field                          |
-| Medication   | `btn-autofill-medication`       | Autofill-with-AI button (shared LogDescriptionSection) |
-| Medication   | `log-med-dose`                  | Dose field                                     |
-| Medication   | `log-med-unit`                  | Unit dropdown                                  |
-| Medication   | `log-med-route`                 | Route dropdown                                 |
-| Medication   | `log-med-notes`                 | Notes field                                    |
-| Medication   | `log-med-checkin-delay`         | Check-in delay field                           |
-| Medication   | `btn-delete-medication`         | Delete (edit mode)                             |
-| Medication   | `btn-save-medication`           | Save / Save Changes                            |
+The anchor registry lives in **[`specs/anchors.md`](../../../specs/anchors.md)** — the
+single source of truth, shared by this rig (ADB/UIAutomator) and Dart
+`integration_test`. It holds the full Screen→id→meaning table, the ⚠/✱ legend, and
+the "Adding anchors to new screens" steps.
 
-Symptom chips have no anchor — tap by `content-desc="<SymptomName>"`.
-
-⚠ = anchor defined in script scenario but not yet added to Flutter widget. Add
-`Semantics(identifier: 'id')` to the relevant widget before relying on it.
-✱ = `Semantics(identifier:)` is set but the Material widget (FAB/Slider) merges its
-own semantics over it, so the id does NOT surface as a resource-id. Tap via ui.xml
-bounds (clickable/SeekBar node) or `content-desc` instead.
-
-## Adding anchors to new screens
-
-When you build a new screen or navigate somewhere new:
-1. Wrap the screen's root or key interactive widget with `Semantics(identifier: 'screen-name')`.
-2. Add the anchor to the table above.
-3. Add a scenario function in `test_explore.ps1` if it needs multi-step navigation.
+Flutter `Semantics(identifier: 'id')` → `resource-id="id"` under UIAutomator. Tap by
+resource-id; ✱-marked ids are absorbed by their Material widget — tap via ui.xml
+bounds / `content-desc` / SeekBar (see the legend). Register every new anchor there in
+the same commit that adds it.
 
 ## Step 5 — Analyze and report
 
@@ -154,7 +109,7 @@ Leave every screen you reached more reachable than you found it:
    → add a `Semantics(identifier: '...')` in Dart, or document why it can't surface.
 2. Screen root missing an anchor → add `Semantics(identifier: 'screen-name')`.
 3. Prefer anchors on SHARED widgets — one change blazes trail for every screen.
-4. Register each in the Known anchors table above (same commit).
+4. Register each in the anchor registry — [`specs/anchors.md`](../../../specs/anchors.md) (same commit).
 5. ✱ cases (FAB/Slider absorb the id under UIAutomator): mark ✱ + note the fallback
    (bounds / `content-desc` / SeekBar). The id still works for Dart `integration_test`
    in-process — declared + reach documented is the bar, not ADB-tappable.

@@ -20,8 +20,11 @@ Run the loop with the **`/spec`** skill (`.claude/skills/spec/SKILL.md`):
   (widget+fake > integration > e2e).
 - New behavior on an existing screen gets its own AC / spec amendment — never
   bundle silently. The spec is where "same feature or new one?" is answered.
-- Anchors referenced by a spec are trail-blazed in Dart + registered in the
-  explore skill's Known anchors table.
+- Anchors: the registry [`anchors.md`](anchors.md) is **canonical** — one flat
+  lookup for the explore rig + Dart tests, and the only home for shared-widget
+  (cross-screen) anchors. Each spec's `## Anchors` section is a **view**: the ids
+  that feature touches, linking back. Trail-blaze in Dart + add the canonical row
+  to the registry, same commit.
 
 ## Template
 
@@ -46,7 +49,9 @@ Run the loop with the **`/spec`** skill (`.claude/skills/spec/SKILL.md`):
 3. ...
 
 ## Anchors (explore rig)
-- `anchor-id` — meaning   (✱ if absorbed; note fallback)
+<!-- A view: ids this feature touches. Canonical row (screen·meaning·✱/fallback)
+     lives in specs/anchors.md. -->
+- `anchor-id` — what it's for in this feature
 
 ## Verifies-with
 - Widget/integration tests: <path>
@@ -59,3 +64,4 @@ Run the loop with the **`/spec`** skill (`.claude/skills/spec/SKILL.md`):
 |------|---------|--------|
 | [create_saved_item_ai_parse](create_saved_item_ai_parse.spec.md) | AI parse + leftovers context in Create Saved Item | active |
 | [log_medication](log_medication.spec.md) | Log/autofill/edit/delete medication + check-in scheduling | active |
+| [log_meal_ai_parse](log_meal_ai_parse.spec.md) | AI autofill on Log Meal — parse, replace, title-fill, context injection, AI-off fallback | active |

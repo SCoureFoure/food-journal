@@ -59,7 +59,7 @@ Both converge on `{spec in repo, regression test in suite}`.
    - Screen roots get `Semantics(identifier: 'screen-name')`.
    - Prefer anchors on SHARED widgets — one change blazes trail for every screen
      that uses them.
-   - Register each anchor in the explore skill's "Known anchors" table (the map).
+   - Register each anchor in the anchor registry `specs/anchors.md` (the map).
    - ✱ doctrine: some ids are absorbed by their Material widget (FAB, Slider) and
      do NOT surface through UIAutomator. The rule is NOT "every id is tappable by
      ADB" — it is "every id is declared + its reach is documented." Mark absorbed
@@ -97,7 +97,8 @@ Write `specs/<feature>.spec.md`:
 3. ... (one per distinct behavior; new behavior = new AC, even on the same screen)
 
 ## Anchors (explore rig)
-- `anchor-id` — meaning   (✱ if absorbed; note fallback)
+<!-- A view: ids this feature touches. Canonical row lives in specs/anchors.md. -->
+- `anchor-id` — what it's for in this feature
 
 ## Verifies-with
 - Widget/integration tests: <path>

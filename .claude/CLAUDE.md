@@ -173,8 +173,8 @@ Every new interactive widget MUST get a `Semantics(identifier: '...')` when buil
 - ExpansionTile headers: wrap the `title:` param specifically with `Semantics(identifier: 'item-header-<id>')` so `Tap-Element` hits the header even when expanded
 - Prefer anchors on SHARED widgets — one change blazes trail for every screen using them
 
-Register every anchor in the Known anchors table in `.claude/skills/explore/SKILL.md`
-in the same commit. That table is the map.
+Register every anchor in the anchor registry `specs/anchors.md` in the same commit.
+That table is the map (the explore skill links to it).
 
 **✱ doctrine.** Some ids are absorbed by their Material widget (FAB, Slider) and do
 NOT surface through UIAutomator. The rule is not "every id is tappable by ADB" — it is

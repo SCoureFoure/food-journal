@@ -25,7 +25,23 @@ import '../../widgets/log_photo_section.dart';
 class LogMealScreen extends StatefulWidget {
   final MealEntry? existingMeal;
 
-  const LogMealScreen({super.key, this.existingMeal});
+  // Injection seams — production passes nothing; tests inject fakes so the
+  // AI parse flow is exercisable without network or native SQLite.
+  final StorageService? storageOverride;
+  final AiService? aiOverride;
+  final MealMemoryService? memoryOverride;
+  final NotificationService? notificationsOverride;
+  final SettingsService? settingsOverride;
+
+  const LogMealScreen({
+    super.key,
+    this.existingMeal,
+    this.storageOverride,
+    this.aiOverride,
+    this.memoryOverride,
+    this.notificationsOverride,
+    this.settingsOverride,
+  });
 
   @override
   State<LogMealScreen> createState() => _LogMealScreenState();
@@ -34,11 +50,11 @@ class LogMealScreen extends StatefulWidget {
 class _LogMealScreenState extends State<LogMealScreen> {
   final _titleCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
-  final _aiService = AiService.fromEnv();
-  final _storage = StorageService();
-  final _memory = MealMemoryService();
-  final _notifications = NotificationService();
-  final _settings = SettingsService();
+  late final AiService _aiService;
+  late final StorageService _storage;
+  late final MealMemoryService _memory;
+  late final NotificationService _notifications;
+  late final SettingsService _settings;
 
   bool _aiEnabled = true;
   bool _isAutofilling = false;
@@ -64,6 +80,11 @@ class _LogMealScreenState extends State<LogMealScreen> {
   @override
   void initState() {
     super.initState();
+    _aiService = widget.aiOverride ?? AiService.fromEnv();
+    _storage = widget.storageOverride ?? StorageService();
+    _memory = widget.memoryOverride ?? MealMemoryService();
+    _notifications = widget.notificationsOverride ?? NotificationService();
+    _settings = widget.settingsOverride ?? SettingsService();
     _loadSettings();
     if (_isEditing) _loadExisting();
     _descCtrl.addListener(_onDescChanged);
@@ -465,6 +486,8 @@ class _LogMealScreenState extends State<LogMealScreen> {
                     isAutofilling: _isAutofilling,
                     onAutofill: _autofill,
                     hintText: 'Describe your meal…',
+                    inputSemanticsId: 'log-meal-input',
+                    autofillSemanticsId: 'btn-autofill-meal',
                   ),
                   const SizedBox(height: 20),
                   if (!_aiEnabled && _suggestions.isNotEmpty && !_suggestionDismissed)
