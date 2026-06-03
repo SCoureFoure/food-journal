@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../models/food_item.dart';
+import '../../models/food_suspicion.dart';
 import '../../models/reaction_log.dart';
 import '../../services/storage_service.dart';
 import '../../utils/date_time_utils.dart';
+import '../../widgets/blame_sheet.dart';
 import '../../widgets/checkin/notebook_symptom_sliders.dart';
 import '../../widgets/error_display.dart';
 import '../../widgets/loading_button.dart';
@@ -27,6 +29,8 @@ class _CheckinScreenState extends State<CheckinScreen> {
   final _notesController = TextEditingController();
   late DateTime _checkinDate;
   late TimeOfDay _checkinTime;
+  // Items the user has manually blamed for this check-in's symptoms.
+  List<BlameCandidate> _blameSelections = [];
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -46,6 +50,7 @@ class _CheckinScreenState extends State<CheckinScreen> {
       _notesController.text = log.notes ?? '';
       _checkinDate = DateTime(log.checkinTime.year, log.checkinTime.month, log.checkinTime.day);
       _checkinTime = TimeOfDay.fromDateTime(log.checkinTime);
+      _preloadBlameSelections(log.id!);
     } else {
       _symptomLevels = {};
       _checkinDate = DateTimeUtils.today();
@@ -171,6 +176,17 @@ class _CheckinScreenState extends State<CheckinScreen> {
                       onChanged: (name, level) =>
                           setState(() => _symptomLevels[name] = level),
                     ),
+                    const SizedBox(height: 16),
+                    Semantics(
+                      identifier: 'btn-blame-foods',
+                      child: OutlinedButton.icon(
+                        onPressed: _openBlameSheet,
+                        icon: const Icon(Icons.link, size: 18),
+                        label: Text(_blameSelections.isEmpty
+                            ? 'Blame a recent food or med'
+                            : 'Blaming ${_blameSelections.length} item${_blameSelections.length == 1 ? '' : 's'}'),
+                      ),
+                    ),
                   ],
                   const SizedBox(height: 16),
                   TextField(
@@ -227,6 +243,46 @@ class _CheckinScreenState extends State<CheckinScreen> {
     Navigator.of(context).pop();
   }
 
+  /// The check-in's effective timestamp: composed from the editable date/time
+  /// row when editing, else "now" for a fresh standalone check-in.
+  DateTime get _composedCheckinTime => _isEditing
+      ? DateTime(_checkinDate.year, _checkinDate.month, _checkinDate.day,
+          _checkinTime.hour, _checkinTime.minute)
+      : DateTime.now();
+
+  /// Re-hydrate the manual blame selections for an existing log so the blame
+  /// modal opens pre-checked. Best-effort — failure leaves selections empty.
+  Future<void> _preloadBlameSelections(int logId) async {
+    try {
+      final keys = await _storage.getManualBlameKeysForLog(logId);
+      if (keys.isEmpty) return;
+      final candidates = await _storage.getBlameCandidates(
+        anchor: _composedCheckinTime,
+        window: kManualBlameWindow,
+      );
+      if (!mounted) return;
+      setState(() {
+        _blameSelections =
+            candidates.where((c) => keys.contains(c.key)).toList();
+      });
+    } catch (_) {/* advisory — never blocks the screen */}
+  }
+
+  Future<void> _openBlameSheet() async {
+    final result = await showModalBottomSheet<List<BlameCandidate>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => BlameSheet(
+        anchor: _composedCheckinTime,
+        initiallySelectedKeys: _blameSelections.map((c) => c.key).toSet(),
+        storageOverride: widget.storageOverride,
+      ),
+    );
+    if (result != null && mounted) {
+      setState(() => _blameSelections = result);
+    }
+  }
+
   Future<void> _save() async {
     setState(() {
       _errorMessage = null;
@@ -236,24 +292,25 @@ class _CheckinScreenState extends State<CheckinScreen> {
       final symptoms = _symptomLevels.keys.toList();
       final severity = ReactionLog.deriveSeverity(_symptomLevels);
       final notes = _notesController.text.trim().isEmpty ? null : _notesController.text.trim();
+      final checkinTime = _composedCheckinTime;
 
+      int reactionLogId;
       if (_isEditing) {
-        final updated = ReactionLog(
-          id: widget.existingLog!.id,
+        reactionLogId = widget.existingLog!.id!;
+        await _storage.updateReactionLog(ReactionLog(
+          id: reactionLogId,
           mealId: widget.existingLog!.mealId,
-          checkinTime: DateTime(_checkinDate.year, _checkinDate.month, _checkinDate.day,
-              _checkinTime.hour, _checkinTime.minute),
+          checkinTime: checkinTime,
           symptoms: symptoms,
           symptomLevels: Map.of(_symptomLevels),
           severity: severity,
           mood: _mood,
           notes: notes,
-        );
-        await _storage.updateReactionLog(updated);
+        ));
       } else {
-        await _storage.saveReactionLog(ReactionLog(
+        reactionLogId = await _storage.saveReactionLog(ReactionLog(
           mealId: widget.mealId,
-          checkinTime: DateTime.now(),
+          checkinTime: checkinTime,
           symptoms: symptoms,
           symptomLevels: Map.of(_symptomLevels),
           severity: severity,
@@ -271,6 +328,16 @@ class _CheckinScreenState extends State<CheckinScreen> {
           );
         }
       }
+
+      // Blame ledger is advisory — regenerate it but never let it fail the save.
+      try {
+        await _storage.applyBlame(
+          reactionLogId: reactionLogId,
+          checkinTime: checkinTime,
+          symptomLevels: Map.of(_symptomLevels),
+          manualSelections: _blameSelections,
+        );
+      } catch (_) {/* advisory */}
 
       if (!mounted) return;
       Navigator.pop(context);

@@ -61,6 +61,19 @@ class FoodMemories extends Table {
   BoolColumn get favorited => boolean().withDefault(const Constant(false))();
 }
 
+class FoodSuspicions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get reactionLogId =>
+      integer().references(ReactionLogs, #id, onDelete: KeyAction.cascade)();
+  TextColumn get symptom => text()();
+  TextColumn get targetType => text()(); // 'food' | 'medication'
+  IntColumn get targetId => integer()(); // food_items.id | medications.id
+  TextColumn get targetName => text()(); // denormalized, lowercased for aggregation
+  RealColumn get baseWeight => real()(); // ReactionLevel index at log time
+  TextColumn get source => text()(); // 'manual' | 'auto'
+  DateTimeColumn get createdAt => dateTime()(); // decay input
+}
+
 class Medications extends Table {
   IntColumn get id => integer().autoIncrement()();
   DateTimeColumn get date => dateTime()();
@@ -119,7 +132,7 @@ class SavedItems extends Table {
 
 // ─── Database ─────────────────────────────────────────────────────────────────
 
-@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories, Medications, MealFingerprints, WaterLogs, WeightLogs, SavedItems])
+@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories, Medications, MealFingerprints, WaterLogs, WeightLogs, SavedItems, FoodSuspicions])
 class AppDatabase extends _$AppDatabase {
   static final AppDatabase _instance = AppDatabase._internal();
 
@@ -129,11 +142,11 @@ class AppDatabase extends _$AppDatabase {
 
   // Exposed as a static constant so tests can assert the current version
   // without instantiating the singleton (which requires native sqlite3).
-  static const int currentSchemaVersion = 10;
+  static const int currentSchemaVersion = 11;
 
   // The declared migration ceiling versions in the order they appear in
   // onUpgrade.  Must be non-decreasing — tested in migration_order_test.dart.
-  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10];
+  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -253,6 +266,27 @@ class AppDatabase extends _$AppDatabase {
       if (from < 10) {
         await customStatement(
           'ALTER TABLE reaction_logs ADD COLUMN symptom_levels TEXT',
+        );
+      }
+      if (from < 11) {
+        await customStatement('''
+          CREATE TABLE IF NOT EXISTS food_suspicions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            reaction_log_id INTEGER NOT NULL REFERENCES reaction_logs(id) ON DELETE CASCADE,
+            symptom TEXT NOT NULL,
+            target_type TEXT NOT NULL,
+            target_id INTEGER NOT NULL,
+            target_name TEXT NOT NULL,
+            base_weight REAL NOT NULL,
+            source TEXT NOT NULL,
+            created_at INTEGER NOT NULL
+          )
+        ''');
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_suspicion_target ON food_suspicions(target_name, symptom)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_suspicion_log ON food_suspicions(reaction_log_id)',
         );
       }
     },

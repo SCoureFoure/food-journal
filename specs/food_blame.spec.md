@@ -56,8 +56,9 @@ compute flags or surface conclusions — it only writes and aggregates the ledge
   breakfast overnight. Manual 24h is wider so the user can reach an item auto missed.
   Constants: `kAutoBlameWindow = Duration(hours: 16)`,
   `kManualBlameWindow = Duration(hours: 24)`.
-- **Window is timestamp-precise**, anchored on the log's `checkinTime`, half-open
-  `[checkinTime − window, checkinTime]`. Item timestamp = its date + parsed time.
+- **Window is timestamp-precise**, anchored on the log's `checkinTime`, open
+  interval `(checkinTime − window, checkinTime)` — an item exactly at the far edge
+  or at the check-in instant is excluded. Item timestamp = its date + parsed time.
 - **Targets are items, not meals.** `targetType ∈ {food, medication}`,
   `targetId` = `food_items.id` / `medications.id`, plus denormalized `targetName`
   (lowercased for aggregation, matching `food_memories.foodName` convention).
@@ -154,11 +155,15 @@ INDEX idx_suspicion_log    ON (reaction_log_id)        -- edit / cascade lookup
 
 ## Verifies-with
 - Migration (AC1): `app/test/services/migration_*` (v10→v11 integration).
-- Storage logic (AC2–AC5, AC8–AC11): `app/test/services/food_suspicion_test.dart`
-  via in-memory DB / fake storage — seed items+meds at controlled timestamps, save
-  a log, assert rows. Window boundary, fan-out, regenerate, cascade, aggregation.
-- Blame modal + entry-point gating (AC6, AC7, AC12):
-  `app/test/widgets/blame_sheet_test.dart` via `storageOverride` fake.
+- Pure blame logic (AC2–AC5, AC8, AC11): `app/test/models/food_suspicion_test.dart`
+  — window boundary, severity weight, auto/manual fan-out, aggregation. Logic is
+  extracted into pure functions (`food_suspicion.dart`) so it tests without native
+  sqlite3, matching the repo's "defer SQL to on-device integration" split.
+- Migration (AC1): `app/test/services/migration_order_test.dart` (version constant +
+  step). Actual v10→v11 SQL + FK/cascade (AC10) deferred to on-device integration.
+- Blame modal (AC6, AC7) + entry-point gating (AC12):
+  `app/test/widgets/blame_sheet_test.dart` and the `[food_blame]` group in
+  `app/test/widgets/checkin_screen_test.dart` via `storageOverride` fake.
 - e2e: feeling→(symptom)→blame→pick item→save journey via the explore rig once the
   modal anchors land; auto-blame has no UI surface (assert via storage in widget/
   integration layer).

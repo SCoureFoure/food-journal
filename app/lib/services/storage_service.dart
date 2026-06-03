@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 
 import '../models/food_item.dart';
 import '../models/food_memory.dart';
+import '../models/food_suspicion.dart';
 import '../models/ingredient.dart';
 import '../models/meal_entry.dart';
 import '../models/medication.dart';
@@ -12,6 +13,7 @@ import '../models/reaction_log.dart';
 import '../models/saved_item.dart';
 import '../models/water_log.dart';
 import '../models/weight_log.dart';
+import '../utils/date_time_utils.dart';
 import 'database/app_database.dart' as db;
 import 'meal_memory/meal_memory_service.dart';
 
@@ -370,11 +372,189 @@ class StorageService {
       jsonEncode(levels.map((k, v) => MapEntry(k, v.toInt())));
 
   Future<void> deleteReactionLog(int logId) async {
-    await (_db.delete(_db.reactionLogs)..where((t) => t.id.equals(logId))).go();
+    await _db.transaction(() async {
+      // Manual cascade (FK enforcement is not enabled globally) — mirrors
+      // deleteMeal's pattern. Drops this log's blame ledger before the log.
+      await (_db.delete(_db.foodSuspicions)
+            ..where((t) => t.reactionLogId.equals(logId)))
+          .go();
+      await (_db.delete(_db.reactionLogs)..where((t) => t.id.equals(logId))).go();
+    });
   }
 
-  Future<void> saveReactionLog(ReactionLog log) async {
-    await _db.into(_db.reactionLogs).insert(
+  // ── Blame ledger (food_blame spec) ─────────────────────────────────────────
+
+  /// Food items + medications logged within [window] before [anchor], newest
+  /// first. Timestamp-precise: combines each entry's date with its parsed time
+  /// (day-granular range queries are too coarse for a window that crosses
+  /// midnight). Feeds both auto-blame and the manual blame modal.
+  Future<List<BlameCandidate>> getBlameCandidates({
+    required DateTime anchor,
+    required Duration window,
+  }) async {
+    final from = anchor.subtract(window);
+    // Coarse day bounds to fetch candidate rows, then filter precisely below.
+    final dayStart = DateTime(from.year, from.month, from.day);
+    final dayEnd = DateTime(anchor.year, anchor.month, anchor.day + 1);
+
+    DateTime combine(DateTime date, String time) {
+      final t = DateTimeUtils.parseTime(time);
+      return DateTime(date.year, date.month, date.day, t.hour, t.minute);
+    }
+
+    final candidates = <BlameCandidate>[];
+
+    final meals = await (_db.select(_db.meals)
+          ..where((t) =>
+              t.date.isBiggerOrEqualValue(dayStart) &
+              t.date.isSmallerThanValue(dayEnd)))
+        .get();
+    for (final meal in meals) {
+      final ts = combine(meal.date, meal.time);
+      if (!isWithinBlameWindow(timestamp: ts, anchor: anchor, window: window)) {
+        continue;
+      }
+      final items = await (_db.select(_db.foodItems)
+            ..where((t) => t.mealId.equals(meal.id)))
+          .get();
+      for (final item in items) {
+        candidates.add(BlameCandidate(
+          type: SuspicionTargetType.food,
+          targetId: item.id,
+          name: item.name,
+          timestamp: ts,
+          subtitle: item.portion,
+        ));
+      }
+    }
+
+    final meds = await (_db.select(_db.medications)
+          ..where((t) =>
+              t.date.isBiggerOrEqualValue(dayStart) &
+              t.date.isSmallerThanValue(dayEnd)))
+        .get();
+    for (final med in meds) {
+      final ts = combine(med.date, med.time);
+      if (!isWithinBlameWindow(timestamp: ts, anchor: anchor, window: window)) {
+        continue;
+      }
+      final dose = med.dose != null
+          ? '${_trimDouble(med.dose!)}${med.unit ?? ''}'
+          : null;
+      candidates.add(BlameCandidate(
+        type: SuspicionTargetType.medication,
+        targetId: med.id,
+        name: med.name,
+        timestamp: ts,
+        subtitle: dose,
+      ));
+    }
+
+    candidates.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    return candidates;
+  }
+
+  /// Regenerates the blame ledger for one check-in. Wipes all rows for
+  /// [reactionLogId], then rewrites: one `auto` row per in-window candidate ×
+  /// active symptom, plus one `manual` row per [manualSelections] entry ×
+  /// active symptom. Idempotent — safe to call on both save and edit.
+  /// Best-effort: callers should not let a failure here fail the save.
+  Future<void> applyBlame({
+    required int reactionLogId,
+    required DateTime checkinTime,
+    required Map<String, ReactionLevel> symptomLevels,
+    List<BlameCandidate> manualSelections = const [],
+  }) async {
+    final auto =
+        await getBlameCandidates(anchor: checkinTime, window: kAutoBlameWindow);
+    final rows = buildSuspicionRows(
+      reactionLogId: reactionLogId,
+      symptomLevels: symptomLevels,
+      autoCandidates: auto,
+      manualSelections: manualSelections,
+      createdAt: DateTime.now(),
+    );
+    await _db.transaction(() async {
+      await (_db.delete(_db.foodSuspicions)
+            ..where((t) => t.reactionLogId.equals(reactionLogId)))
+          .go();
+      for (final r in rows) {
+        await _db.into(_db.foodSuspicions).insert(
+              db.FoodSuspicionsCompanion.insert(
+                reactionLogId: r.reactionLogId,
+                symptom: r.symptom,
+                targetType: r.targetType.name,
+                targetId: r.targetId,
+                targetName: r.targetName,
+                baseWeight: r.baseWeight,
+                source: r.source.name,
+                createdAt: r.createdAt,
+              ),
+            );
+      }
+    });
+  }
+
+  /// Target+id keys (`type:id`) the user manually blamed on [logId] — used to
+  /// pre-select the blame modal when editing a check-in.
+  Future<Set<String>> getManualBlameKeysForLog(int logId) async {
+    final rows = await (_db.select(_db.foodSuspicions)
+          ..where((t) =>
+              t.reactionLogId.equals(logId) & t.source.equals('manual')))
+        .get();
+    return rows.map((r) => '${r.targetType}:${r.targetId}').toSet();
+  }
+
+  /// All ledger rows for one check-in (newest source-agnostic). Test/inspection.
+  Future<List<FoodSuspicion>> getSuspicionsForLog(int logId) async {
+    final rows = await (_db.select(_db.foodSuspicions)
+          ..where((t) => t.reactionLogId.equals(logId)))
+        .get();
+    return rows.map(_suspicionFromRow).toList();
+  }
+
+  /// Aggregated suspicion per `(targetName, symptom)` across all check-ins,
+  /// highest first. Effective weight = baseWeight × source multiplier ×
+  /// decay(age); decay is the identity (1.0) for now — see food_blame spec.
+  Future<List<SuspicionScore>> getSuspicionScores() async {
+    final rows = await _db.customSelect(
+      '''
+      SELECT target_name, symptom,
+             SUM(base_weight * CASE source WHEN 'manual' THEN $kManualWeightMultiplier ELSE 1.0 END) AS score
+      FROM food_suspicions
+      GROUP BY target_name, symptom
+      ORDER BY score DESC
+      ''',
+      readsFrom: {_db.foodSuspicions},
+    ).get();
+    return rows
+        .map((r) => SuspicionScore(
+              targetName: r.read<String>('target_name'),
+              symptom: r.read<String>('symptom'),
+              score: r.read<double>('score'),
+            ))
+        .toList();
+  }
+
+  static String _trimDouble(double v) =>
+      v == v.roundToDouble() ? v.toInt().toString() : v.toString();
+
+  FoodSuspicion _suspicionFromRow(db.FoodSuspicion row) => FoodSuspicion(
+        id: row.id,
+        reactionLogId: row.reactionLogId,
+        symptom: row.symptom,
+        targetType: SuspicionTargetType.values.byName(row.targetType),
+        targetId: row.targetId,
+        targetName: row.targetName,
+        baseWeight: row.baseWeight,
+        source: SuspicionSource.values.byName(row.source),
+        createdAt: row.createdAt,
+      );
+
+  /// Inserts a new check-in and returns its row id (needed to attach the blame
+  /// ledger — see [applyBlame]).
+  Future<int> saveReactionLog(ReactionLog log) async {
+    return _db.into(_db.reactionLogs).insert(
       db.ReactionLogsCompanion.insert(
         mealId: Value(log.mealId),
         checkinTime: log.checkinTime,

@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:food_journal/models/food_item.dart';
+import 'package:food_journal/models/food_suspicion.dart';
 import 'package:food_journal/models/reaction_log.dart';
 import 'package:food_journal/screens/checkin/checkin_screen.dart';
 import 'package:food_journal/services/storage_service.dart';
@@ -19,9 +20,16 @@ class _FakeStorage extends StorageService {
   final List<ReactionLog> updated = [];
   final List<int> deleted = [];
   final List<(int, String?)> mealSymptoms = [];
+  // Blame ledger seam — record applyBlame calls; seed candidates for the modal.
+  final List<({int logId, List<BlameCandidate> manual})> blameCalls = [];
+  List<BlameCandidate> candidates = [];
+  int _nextId = 1;
 
   @override
-  Future<void> saveReactionLog(ReactionLog log) async => saved.add(log);
+  Future<int> saveReactionLog(ReactionLog log) async {
+    saved.add(log);
+    return _nextId++;
+  }
 
   @override
   Future<void> updateReactionLog(ReactionLog log) async => updated.add(log);
@@ -32,12 +40,36 @@ class _FakeStorage extends StorageService {
   @override
   Future<void> updateMealSymptoms(int mealId, String? symptoms) async =>
       mealSymptoms.add((mealId, symptoms));
+
+  @override
+  Future<List<BlameCandidate>> getBlameCandidates(
+          {required DateTime anchor, required Duration window}) async =>
+      candidates;
+
+  @override
+  Future<Set<String>> getManualBlameKeysForLog(int logId) async => {};
+
+  @override
+  Future<void> applyBlame({
+    required int reactionLogId,
+    required DateTime checkinTime,
+    required Map<String, ReactionLevel> symptomLevels,
+    List<BlameCandidate> manualSelections = const [],
+  }) async =>
+      blameCalls.add((logId: reactionLogId, manual: manualSelections));
 }
 
 // Push CheckinScreen above a placeholder route so its Navigator.pop on save has
 // somewhere to land (popping the only route poisons the test binding).
 Future<void> _pump(WidgetTester tester, _FakeStorage storage,
     {ReactionLog? existingLog}) async {
+  // Tall viewport so the blame button (low in the scroll view) stays on-screen
+  // — off-screen widgets are pruned from semantics and can't be found/tapped.
+  tester.view.physicalSize = const Size(1200, 2400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
   final key = GlobalKey<NavigatorState>();
   await tester.pumpWidget(MaterialApp(navigatorKey: key, home: const Scaffold()));
   key.currentState!.push(MaterialPageRoute(
@@ -227,5 +259,70 @@ void main() {
     await t.tap(find.widgetWithText(TextButton, 'Delete'));
     await t.pumpAndSettle();
     expect(storage.deleted, [7]);
+  });
+
+  // ── AC12 — blame entry-point gating (food_blame spec) ───────────────────────────
+  group('[food_blame] blame button gating', () {
+    testWidgets('AC12 absent with zero symptoms, appears once a symptom is picked',
+        (t) async {
+      final storage = _FakeStorage();
+      await _pump(t, storage);
+
+      expect(find.bySemanticsIdentifier('btn-blame-foods'), findsNothing,
+          reason: 'Nothing to blame for when no symptom is selected');
+
+      await t.tap(find.widgetWithText(FilterChip, 'Bloating'));
+      await t.pump();
+      expect(find.bySemanticsIdentifier('btn-blame-foods'), findsOneWidget);
+    });
+
+    testWidgets('save always calls applyBlame with the new log id (auto-blame)',
+        (t) async {
+      final storage = _FakeStorage();
+      await _pump(t, storage);
+
+      await t.tap(find.widgetWithText(FilterChip, 'Bloating'));
+      await t.pump();
+      await t.tap(find.text('Save'));
+      await t.pumpAndSettle();
+
+      expect(storage.blameCalls, hasLength(1));
+      expect(storage.blameCalls.single.logId, 1); // id returned by saveReactionLog
+      expect(storage.blameCalls.single.manual, isEmpty);
+    });
+
+    testWidgets('manual blame selection flows from modal into applyBlame', (t) async {
+      final storage = _FakeStorage()
+        ..candidates = [
+          BlameCandidate(
+            type: SuspicionTargetType.food,
+            targetId: 42,
+            name: 'Hamburger',
+            timestamp: DateTime(2026, 6, 2, 13),
+          ),
+        ];
+      await _pump(t, storage);
+
+      await t.tap(find.widgetWithText(FilterChip, 'Bloating'));
+      await t.pump();
+
+      await t.tap(find.bySemanticsIdentifier('btn-blame-foods'));
+      await t.pumpAndSettle();
+      // modal open with the seeded candidate
+      expect(find.bySemanticsIdentifier('blame-item-food-42'), findsOneWidget);
+      await t.tap(find.text('Hamburger'));
+      await t.pump();
+      // FilledButton absorbs its Semantics identifier (✱) — tap by label.
+      await t.tap(find.widgetWithText(FilledButton, 'Blame 1 item'));
+      await t.pumpAndSettle();
+
+      // button now reflects the selection
+      expect(find.text('Blaming 1 item'), findsOneWidget);
+
+      await t.tap(find.text('Save'));
+      await t.pumpAndSettle();
+
+      expect(storage.blameCalls.single.manual.map((c) => c.targetId), [42]);
+    });
   });
 }

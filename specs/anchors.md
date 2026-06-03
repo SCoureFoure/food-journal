@@ -56,8 +56,9 @@ touches and links back here; it does not redefine meaning or fallback.
 | Check-in     | `btn-delete-feeling-<id>`       | Inline delete (edit mode, LogDateTimeRow trailing). Tap via `delete_outline` icon bounds; Dart in-process via finder |
 | Check-in     | `btn-blame-foods`               | Opens blame modal (food_blame). Gated: present only when ≥1 symptom selected |
 | Blame        | `blame-sheet`                   | Blame modal root (food_blame) — list of recent food/med suspects |
-| Blame        | `blame-search-field`            | Search field in blame modal                    |
+| Blame        | `blame-search-field`            | Search field in blame modal. ✱ absorbed (TextField) — Dart: `find.byType(TextField)`; ADB: bounds/edit-text |
 | Blame        | `blame-item-<type>-<id>`        | Blamable suspect row (`type` = food\|med, id = item/med id). Tap blames item for current log's symptoms |
+| Blame        | `btn-blame-confirm`             | Confirm/Done button — returns selected suspects. ✱ absorbed (FilledButton) — Dart: `find.widgetWithText(FilledButton, …)`; ADB: content-desc/bounds |
 | Create item  | `saved-item-name-field`         | Saved-item name field                          |
 | Create item  | `saved-item-ai-field`           | AI description field (text → parse)            |
 | Create item  | `btn-parse-saved-item-ai`       | Parse-with-AI button                           |

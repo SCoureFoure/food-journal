@@ -5070,6 +5070,568 @@ class SavedItemsCompanion extends UpdateCompanion<SavedItem> {
   }
 }
 
+class $FoodSuspicionsTable extends FoodSuspicions
+    with TableInfo<$FoodSuspicionsTable, FoodSuspicion> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FoodSuspicionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _reactionLogIdMeta = const VerificationMeta(
+    'reactionLogId',
+  );
+  @override
+  late final GeneratedColumn<int> reactionLogId = GeneratedColumn<int>(
+    'reaction_log_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES reaction_logs (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _symptomMeta = const VerificationMeta(
+    'symptom',
+  );
+  @override
+  late final GeneratedColumn<String> symptom = GeneratedColumn<String>(
+    'symptom',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetTypeMeta = const VerificationMeta(
+    'targetType',
+  );
+  @override
+  late final GeneratedColumn<String> targetType = GeneratedColumn<String>(
+    'target_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetIdMeta = const VerificationMeta(
+    'targetId',
+  );
+  @override
+  late final GeneratedColumn<int> targetId = GeneratedColumn<int>(
+    'target_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetNameMeta = const VerificationMeta(
+    'targetName',
+  );
+  @override
+  late final GeneratedColumn<String> targetName = GeneratedColumn<String>(
+    'target_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _baseWeightMeta = const VerificationMeta(
+    'baseWeight',
+  );
+  @override
+  late final GeneratedColumn<double> baseWeight = GeneratedColumn<double>(
+    'base_weight',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    reactionLogId,
+    symptom,
+    targetType,
+    targetId,
+    targetName,
+    baseWeight,
+    source,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'food_suspicions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FoodSuspicion> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('reaction_log_id')) {
+      context.handle(
+        _reactionLogIdMeta,
+        reactionLogId.isAcceptableOrUnknown(
+          data['reaction_log_id']!,
+          _reactionLogIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_reactionLogIdMeta);
+    }
+    if (data.containsKey('symptom')) {
+      context.handle(
+        _symptomMeta,
+        symptom.isAcceptableOrUnknown(data['symptom']!, _symptomMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_symptomMeta);
+    }
+    if (data.containsKey('target_type')) {
+      context.handle(
+        _targetTypeMeta,
+        targetType.isAcceptableOrUnknown(data['target_type']!, _targetTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetTypeMeta);
+    }
+    if (data.containsKey('target_id')) {
+      context.handle(
+        _targetIdMeta,
+        targetId.isAcceptableOrUnknown(data['target_id']!, _targetIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetIdMeta);
+    }
+    if (data.containsKey('target_name')) {
+      context.handle(
+        _targetNameMeta,
+        targetName.isAcceptableOrUnknown(data['target_name']!, _targetNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetNameMeta);
+    }
+    if (data.containsKey('base_weight')) {
+      context.handle(
+        _baseWeightMeta,
+        baseWeight.isAcceptableOrUnknown(data['base_weight']!, _baseWeightMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_baseWeightMeta);
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FoodSuspicion map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FoodSuspicion(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      reactionLogId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reaction_log_id'],
+      )!,
+      symptom: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}symptom'],
+      )!,
+      targetType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_type'],
+      )!,
+      targetId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}target_id'],
+      )!,
+      targetName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_name'],
+      )!,
+      baseWeight: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}base_weight'],
+      )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FoodSuspicionsTable createAlias(String alias) {
+    return $FoodSuspicionsTable(attachedDatabase, alias);
+  }
+}
+
+class FoodSuspicion extends DataClass implements Insertable<FoodSuspicion> {
+  final int id;
+  final int reactionLogId;
+  final String symptom;
+  final String targetType;
+  final int targetId;
+  final String targetName;
+  final double baseWeight;
+  final String source;
+  final DateTime createdAt;
+  const FoodSuspicion({
+    required this.id,
+    required this.reactionLogId,
+    required this.symptom,
+    required this.targetType,
+    required this.targetId,
+    required this.targetName,
+    required this.baseWeight,
+    required this.source,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['reaction_log_id'] = Variable<int>(reactionLogId);
+    map['symptom'] = Variable<String>(symptom);
+    map['target_type'] = Variable<String>(targetType);
+    map['target_id'] = Variable<int>(targetId);
+    map['target_name'] = Variable<String>(targetName);
+    map['base_weight'] = Variable<double>(baseWeight);
+    map['source'] = Variable<String>(source);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  FoodSuspicionsCompanion toCompanion(bool nullToAbsent) {
+    return FoodSuspicionsCompanion(
+      id: Value(id),
+      reactionLogId: Value(reactionLogId),
+      symptom: Value(symptom),
+      targetType: Value(targetType),
+      targetId: Value(targetId),
+      targetName: Value(targetName),
+      baseWeight: Value(baseWeight),
+      source: Value(source),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory FoodSuspicion.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FoodSuspicion(
+      id: serializer.fromJson<int>(json['id']),
+      reactionLogId: serializer.fromJson<int>(json['reactionLogId']),
+      symptom: serializer.fromJson<String>(json['symptom']),
+      targetType: serializer.fromJson<String>(json['targetType']),
+      targetId: serializer.fromJson<int>(json['targetId']),
+      targetName: serializer.fromJson<String>(json['targetName']),
+      baseWeight: serializer.fromJson<double>(json['baseWeight']),
+      source: serializer.fromJson<String>(json['source']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'reactionLogId': serializer.toJson<int>(reactionLogId),
+      'symptom': serializer.toJson<String>(symptom),
+      'targetType': serializer.toJson<String>(targetType),
+      'targetId': serializer.toJson<int>(targetId),
+      'targetName': serializer.toJson<String>(targetName),
+      'baseWeight': serializer.toJson<double>(baseWeight),
+      'source': serializer.toJson<String>(source),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  FoodSuspicion copyWith({
+    int? id,
+    int? reactionLogId,
+    String? symptom,
+    String? targetType,
+    int? targetId,
+    String? targetName,
+    double? baseWeight,
+    String? source,
+    DateTime? createdAt,
+  }) => FoodSuspicion(
+    id: id ?? this.id,
+    reactionLogId: reactionLogId ?? this.reactionLogId,
+    symptom: symptom ?? this.symptom,
+    targetType: targetType ?? this.targetType,
+    targetId: targetId ?? this.targetId,
+    targetName: targetName ?? this.targetName,
+    baseWeight: baseWeight ?? this.baseWeight,
+    source: source ?? this.source,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  FoodSuspicion copyWithCompanion(FoodSuspicionsCompanion data) {
+    return FoodSuspicion(
+      id: data.id.present ? data.id.value : this.id,
+      reactionLogId: data.reactionLogId.present
+          ? data.reactionLogId.value
+          : this.reactionLogId,
+      symptom: data.symptom.present ? data.symptom.value : this.symptom,
+      targetType: data.targetType.present
+          ? data.targetType.value
+          : this.targetType,
+      targetId: data.targetId.present ? data.targetId.value : this.targetId,
+      targetName: data.targetName.present
+          ? data.targetName.value
+          : this.targetName,
+      baseWeight: data.baseWeight.present
+          ? data.baseWeight.value
+          : this.baseWeight,
+      source: data.source.present ? data.source.value : this.source,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FoodSuspicion(')
+          ..write('id: $id, ')
+          ..write('reactionLogId: $reactionLogId, ')
+          ..write('symptom: $symptom, ')
+          ..write('targetType: $targetType, ')
+          ..write('targetId: $targetId, ')
+          ..write('targetName: $targetName, ')
+          ..write('baseWeight: $baseWeight, ')
+          ..write('source: $source, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    reactionLogId,
+    symptom,
+    targetType,
+    targetId,
+    targetName,
+    baseWeight,
+    source,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FoodSuspicion &&
+          other.id == this.id &&
+          other.reactionLogId == this.reactionLogId &&
+          other.symptom == this.symptom &&
+          other.targetType == this.targetType &&
+          other.targetId == this.targetId &&
+          other.targetName == this.targetName &&
+          other.baseWeight == this.baseWeight &&
+          other.source == this.source &&
+          other.createdAt == this.createdAt);
+}
+
+class FoodSuspicionsCompanion extends UpdateCompanion<FoodSuspicion> {
+  final Value<int> id;
+  final Value<int> reactionLogId;
+  final Value<String> symptom;
+  final Value<String> targetType;
+  final Value<int> targetId;
+  final Value<String> targetName;
+  final Value<double> baseWeight;
+  final Value<String> source;
+  final Value<DateTime> createdAt;
+  const FoodSuspicionsCompanion({
+    this.id = const Value.absent(),
+    this.reactionLogId = const Value.absent(),
+    this.symptom = const Value.absent(),
+    this.targetType = const Value.absent(),
+    this.targetId = const Value.absent(),
+    this.targetName = const Value.absent(),
+    this.baseWeight = const Value.absent(),
+    this.source = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  FoodSuspicionsCompanion.insert({
+    this.id = const Value.absent(),
+    required int reactionLogId,
+    required String symptom,
+    required String targetType,
+    required int targetId,
+    required String targetName,
+    required double baseWeight,
+    required String source,
+    required DateTime createdAt,
+  }) : reactionLogId = Value(reactionLogId),
+       symptom = Value(symptom),
+       targetType = Value(targetType),
+       targetId = Value(targetId),
+       targetName = Value(targetName),
+       baseWeight = Value(baseWeight),
+       source = Value(source),
+       createdAt = Value(createdAt);
+  static Insertable<FoodSuspicion> custom({
+    Expression<int>? id,
+    Expression<int>? reactionLogId,
+    Expression<String>? symptom,
+    Expression<String>? targetType,
+    Expression<int>? targetId,
+    Expression<String>? targetName,
+    Expression<double>? baseWeight,
+    Expression<String>? source,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (reactionLogId != null) 'reaction_log_id': reactionLogId,
+      if (symptom != null) 'symptom': symptom,
+      if (targetType != null) 'target_type': targetType,
+      if (targetId != null) 'target_id': targetId,
+      if (targetName != null) 'target_name': targetName,
+      if (baseWeight != null) 'base_weight': baseWeight,
+      if (source != null) 'source': source,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  FoodSuspicionsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? reactionLogId,
+    Value<String>? symptom,
+    Value<String>? targetType,
+    Value<int>? targetId,
+    Value<String>? targetName,
+    Value<double>? baseWeight,
+    Value<String>? source,
+    Value<DateTime>? createdAt,
+  }) {
+    return FoodSuspicionsCompanion(
+      id: id ?? this.id,
+      reactionLogId: reactionLogId ?? this.reactionLogId,
+      symptom: symptom ?? this.symptom,
+      targetType: targetType ?? this.targetType,
+      targetId: targetId ?? this.targetId,
+      targetName: targetName ?? this.targetName,
+      baseWeight: baseWeight ?? this.baseWeight,
+      source: source ?? this.source,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (reactionLogId.present) {
+      map['reaction_log_id'] = Variable<int>(reactionLogId.value);
+    }
+    if (symptom.present) {
+      map['symptom'] = Variable<String>(symptom.value);
+    }
+    if (targetType.present) {
+      map['target_type'] = Variable<String>(targetType.value);
+    }
+    if (targetId.present) {
+      map['target_id'] = Variable<int>(targetId.value);
+    }
+    if (targetName.present) {
+      map['target_name'] = Variable<String>(targetName.value);
+    }
+    if (baseWeight.present) {
+      map['base_weight'] = Variable<double>(baseWeight.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FoodSuspicionsCompanion(')
+          ..write('id: $id, ')
+          ..write('reactionLogId: $reactionLogId, ')
+          ..write('symptom: $symptom, ')
+          ..write('targetType: $targetType, ')
+          ..write('targetId: $targetId, ')
+          ..write('targetName: $targetName, ')
+          ..write('baseWeight: $baseWeight, ')
+          ..write('source: $source, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5085,6 +5647,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $WaterLogsTable waterLogs = $WaterLogsTable(this);
   late final $WeightLogsTable weightLogs = $WeightLogsTable(this);
   late final $SavedItemsTable savedItems = $SavedItemsTable(this);
+  late final $FoodSuspicionsTable foodSuspicions = $FoodSuspicionsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5100,6 +5663,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     waterLogs,
     weightLogs,
     savedItems,
+    foodSuspicions,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -5109,6 +5673,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('meal_fingerprints', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'reaction_logs',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('food_suspicions', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -6429,6 +7000,32 @@ typedef $$ReactionLogsTableUpdateCompanionBuilder =
       Value<String?> notes,
     });
 
+final class $$ReactionLogsTableReferences
+    extends BaseReferences<_$AppDatabase, $ReactionLogsTable, ReactionLog> {
+  $$ReactionLogsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$FoodSuspicionsTable, List<FoodSuspicion>>
+  _foodSuspicionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.foodSuspicions,
+    aliasName: $_aliasNameGenerator(
+      db.reactionLogs.id,
+      db.foodSuspicions.reactionLogId,
+    ),
+  );
+
+  $$FoodSuspicionsTableProcessedTableManager get foodSuspicionsRefs {
+    final manager = $$FoodSuspicionsTableTableManager(
+      $_db,
+      $_db.foodSuspicions,
+    ).filter((f) => f.reactionLogId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_foodSuspicionsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
 class $$ReactionLogsTableFilterComposer
     extends Composer<_$AppDatabase, $ReactionLogsTable> {
   $$ReactionLogsTableFilterComposer({
@@ -6477,6 +7074,31 @@ class $$ReactionLogsTableFilterComposer
     column: $table.notes,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> foodSuspicionsRefs(
+    Expression<bool> Function($$FoodSuspicionsTableFilterComposer f) f,
+  ) {
+    final $$FoodSuspicionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.foodSuspicions,
+      getReferencedColumn: (t) => t.reactionLogId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FoodSuspicionsTableFilterComposer(
+            $db: $db,
+            $table: $db.foodSuspicions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ReactionLogsTableOrderingComposer
@@ -6565,6 +7187,31 @@ class $$ReactionLogsTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  Expression<T> foodSuspicionsRefs<T extends Object>(
+    Expression<T> Function($$FoodSuspicionsTableAnnotationComposer a) f,
+  ) {
+    final $$FoodSuspicionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.foodSuspicions,
+      getReferencedColumn: (t) => t.reactionLogId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FoodSuspicionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.foodSuspicions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ReactionLogsTableTableManager
@@ -6578,12 +7225,9 @@ class $$ReactionLogsTableTableManager
           $$ReactionLogsTableAnnotationComposer,
           $$ReactionLogsTableCreateCompanionBuilder,
           $$ReactionLogsTableUpdateCompanionBuilder,
-          (
-            ReactionLog,
-            BaseReferences<_$AppDatabase, $ReactionLogsTable, ReactionLog>,
-          ),
+          (ReactionLog, $$ReactionLogsTableReferences),
           ReactionLog,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool foodSuspicionsRefs})
         > {
   $$ReactionLogsTableTableManager(_$AppDatabase db, $ReactionLogsTable table)
     : super(
@@ -6637,9 +7281,47 @@ class $$ReactionLogsTableTableManager
                 notes: notes,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ReactionLogsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({foodSuspicionsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (foodSuspicionsRefs) db.foodSuspicions,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (foodSuspicionsRefs)
+                    await $_getPrefetchedData<
+                      ReactionLog,
+                      $ReactionLogsTable,
+                      FoodSuspicion
+                    >(
+                      currentTable: table,
+                      referencedTable: $$ReactionLogsTableReferences
+                          ._foodSuspicionsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$ReactionLogsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).foodSuspicionsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.reactionLogId == item.id,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -6654,12 +7336,9 @@ typedef $$ReactionLogsTableProcessedTableManager =
       $$ReactionLogsTableAnnotationComposer,
       $$ReactionLogsTableCreateCompanionBuilder,
       $$ReactionLogsTableUpdateCompanionBuilder,
-      (
-        ReactionLog,
-        BaseReferences<_$AppDatabase, $ReactionLogsTable, ReactionLog>,
-      ),
+      (ReactionLog, $$ReactionLogsTableReferences),
       ReactionLog,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool foodSuspicionsRefs})
     >;
 typedef $$FoodMemoriesTableCreateCompanionBuilder =
     FoodMemoriesCompanion Function({
@@ -8296,6 +8975,411 @@ typedef $$SavedItemsTableProcessedTableManager =
       SavedItem,
       PrefetchHooks Function()
     >;
+typedef $$FoodSuspicionsTableCreateCompanionBuilder =
+    FoodSuspicionsCompanion Function({
+      Value<int> id,
+      required int reactionLogId,
+      required String symptom,
+      required String targetType,
+      required int targetId,
+      required String targetName,
+      required double baseWeight,
+      required String source,
+      required DateTime createdAt,
+    });
+typedef $$FoodSuspicionsTableUpdateCompanionBuilder =
+    FoodSuspicionsCompanion Function({
+      Value<int> id,
+      Value<int> reactionLogId,
+      Value<String> symptom,
+      Value<String> targetType,
+      Value<int> targetId,
+      Value<String> targetName,
+      Value<double> baseWeight,
+      Value<String> source,
+      Value<DateTime> createdAt,
+    });
+
+final class $$FoodSuspicionsTableReferences
+    extends BaseReferences<_$AppDatabase, $FoodSuspicionsTable, FoodSuspicion> {
+  $$FoodSuspicionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $ReactionLogsTable _reactionLogIdTable(_$AppDatabase db) =>
+      db.reactionLogs.createAlias(
+        $_aliasNameGenerator(
+          db.foodSuspicions.reactionLogId,
+          db.reactionLogs.id,
+        ),
+      );
+
+  $$ReactionLogsTableProcessedTableManager get reactionLogId {
+    final $_column = $_itemColumn<int>('reaction_log_id')!;
+
+    final manager = $$ReactionLogsTableTableManager(
+      $_db,
+      $_db.reactionLogs,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_reactionLogIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$FoodSuspicionsTableFilterComposer
+    extends Composer<_$AppDatabase, $FoodSuspicionsTable> {
+  $$FoodSuspicionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get symptom => $composableBuilder(
+    column: $table.symptom,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetName => $composableBuilder(
+    column: $table.targetName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get baseWeight => $composableBuilder(
+    column: $table.baseWeight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ReactionLogsTableFilterComposer get reactionLogId {
+    final $$ReactionLogsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.reactionLogId,
+      referencedTable: $db.reactionLogs,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReactionLogsTableFilterComposer(
+            $db: $db,
+            $table: $db.reactionLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FoodSuspicionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FoodSuspicionsTable> {
+  $$FoodSuspicionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get symptom => $composableBuilder(
+    column: $table.symptom,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetName => $composableBuilder(
+    column: $table.targetName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get baseWeight => $composableBuilder(
+    column: $table.baseWeight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ReactionLogsTableOrderingComposer get reactionLogId {
+    final $$ReactionLogsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.reactionLogId,
+      referencedTable: $db.reactionLogs,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReactionLogsTableOrderingComposer(
+            $db: $db,
+            $table: $db.reactionLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FoodSuspicionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FoodSuspicionsTable> {
+  $$FoodSuspicionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get symptom =>
+      $composableBuilder(column: $table.symptom, builder: (column) => column);
+
+  GeneratedColumn<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get targetId =>
+      $composableBuilder(column: $table.targetId, builder: (column) => column);
+
+  GeneratedColumn<String> get targetName => $composableBuilder(
+    column: $table.targetName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get baseWeight => $composableBuilder(
+    column: $table.baseWeight,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$ReactionLogsTableAnnotationComposer get reactionLogId {
+    final $$ReactionLogsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.reactionLogId,
+      referencedTable: $db.reactionLogs,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReactionLogsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.reactionLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FoodSuspicionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FoodSuspicionsTable,
+          FoodSuspicion,
+          $$FoodSuspicionsTableFilterComposer,
+          $$FoodSuspicionsTableOrderingComposer,
+          $$FoodSuspicionsTableAnnotationComposer,
+          $$FoodSuspicionsTableCreateCompanionBuilder,
+          $$FoodSuspicionsTableUpdateCompanionBuilder,
+          (FoodSuspicion, $$FoodSuspicionsTableReferences),
+          FoodSuspicion,
+          PrefetchHooks Function({bool reactionLogId})
+        > {
+  $$FoodSuspicionsTableTableManager(
+    _$AppDatabase db,
+    $FoodSuspicionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FoodSuspicionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FoodSuspicionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FoodSuspicionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> reactionLogId = const Value.absent(),
+                Value<String> symptom = const Value.absent(),
+                Value<String> targetType = const Value.absent(),
+                Value<int> targetId = const Value.absent(),
+                Value<String> targetName = const Value.absent(),
+                Value<double> baseWeight = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => FoodSuspicionsCompanion(
+                id: id,
+                reactionLogId: reactionLogId,
+                symptom: symptom,
+                targetType: targetType,
+                targetId: targetId,
+                targetName: targetName,
+                baseWeight: baseWeight,
+                source: source,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int reactionLogId,
+                required String symptom,
+                required String targetType,
+                required int targetId,
+                required String targetName,
+                required double baseWeight,
+                required String source,
+                required DateTime createdAt,
+              }) => FoodSuspicionsCompanion.insert(
+                id: id,
+                reactionLogId: reactionLogId,
+                symptom: symptom,
+                targetType: targetType,
+                targetId: targetId,
+                targetName: targetName,
+                baseWeight: baseWeight,
+                source: source,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$FoodSuspicionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({reactionLogId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (reactionLogId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.reactionLogId,
+                                referencedTable: $$FoodSuspicionsTableReferences
+                                    ._reactionLogIdTable(db),
+                                referencedColumn:
+                                    $$FoodSuspicionsTableReferences
+                                        ._reactionLogIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$FoodSuspicionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FoodSuspicionsTable,
+      FoodSuspicion,
+      $$FoodSuspicionsTableFilterComposer,
+      $$FoodSuspicionsTableOrderingComposer,
+      $$FoodSuspicionsTableAnnotationComposer,
+      $$FoodSuspicionsTableCreateCompanionBuilder,
+      $$FoodSuspicionsTableUpdateCompanionBuilder,
+      (FoodSuspicion, $$FoodSuspicionsTableReferences),
+      FoodSuspicion,
+      PrefetchHooks Function({bool reactionLogId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -8320,4 +9404,6 @@ class $AppDatabaseManager {
       $$WeightLogsTableTableManager(_db, _db.weightLogs);
   $$SavedItemsTableTableManager get savedItems =>
       $$SavedItemsTableTableManager(_db, _db.savedItems);
+  $$FoodSuspicionsTableTableManager get foodSuspicions =>
+      $$FoodSuspicionsTableTableManager(_db, _db.foodSuspicions);
 }

@@ -201,7 +201,11 @@ void main() {
   // ── INV: synonym phrasing ──────────────────────────────────────────────────
   // INV: different phrasings of the same food must both return schema-valid results.
   // Phrasing variation (word order, prep-before vs prep-after) must not break parsing.
-
+  //
+  // KNOWN-FLAKY (live worker): hits the real Gemini-backed worker, so a result is
+  // non-deterministic and this group can fail intermittently on schema/min-item
+  // assertions when the model drops an item or shifts shape. Not a regression in
+  // app code — re-run, or gate behind `_skip` when the worker is unavailable.
   group('[INV] parseMeal — synonym phrasing invariance', () {
     setUpAll(() {
       AiAssertions.setContext(
