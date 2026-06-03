@@ -47,22 +47,33 @@ class FeelingTile extends StatelessWidget {
           ),
         ),
         subtitle: Text(subtitle, style: theme.textTheme.bodySmall),
-        trailing: Semantics(
-          identifier: 'btn-edit-feeling-${log.id}',
-          child: GestureDetector(
-            onTap: () async {
-              await Navigator.pushNamed(context, '/edit_checkin', arguments: log);
-              onReload();
-            },
-            child: const Icon(Icons.edit_outlined, size: 24),
-          ),
-        ),
+        // Edit lives in the expanded body (mirrors MealTile's FoodItemCard.onEdit),
+        // not the header trailing — a trailing tap target fights the ExpansionTile
+        // InkWell and never reliably wins the gesture arena. Default chevron stays.
         children: [
           if (log.notes != null && log.notes!.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
               child: Text(log.notes!, style: theme.textTheme.bodySmall),
             ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Semantics(
+                identifier: 'btn-edit-feeling-${log.id}',
+                button: true,
+                child: TextButton.icon(
+                  onPressed: () async {
+                    await Navigator.pushNamed(context, '/edit_checkin', arguments: log);
+                    onReload();
+                  },
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: const Text('Edit'),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

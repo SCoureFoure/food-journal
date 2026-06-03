@@ -65,3 +65,4 @@ Run the loop with the **`/spec`** skill (`.claude/skills/spec/SKILL.md`):
 | [create_saved_item_ai_parse](create_saved_item_ai_parse.spec.md) | AI parse + leftovers context in Create Saved Item | active |
 | [log_medication](log_medication.spec.md) | Log/autofill/edit/delete medication + check-in scheduling | active |
 | [log_meal_ai_parse](log_meal_ai_parse.spec.md) | AI autofill on Log Meal — parse, replace, title-fill, context injection, AI-off fallback | active |
+| [log_feeling](log_feeling.spec.md) | Standalone feeling check-in — create/edit/delete, mood, symptom intensity, accumulation, feed surfacing | active |

@@ -11,15 +11,16 @@ import '../../widgets/log_date_time_row.dart';
 class CheckinScreen extends StatefulWidget {
   final int? mealId;          // null = standalone new check-in
   final ReactionLog? existingLog; // non-null = editing existing standalone log
+  final StorageService? storageOverride; // test seam — fake storage
 
-  const CheckinScreen({super.key, this.mealId, this.existingLog});
+  const CheckinScreen({super.key, this.mealId, this.existingLog, this.storageOverride});
 
   @override
   State<CheckinScreen> createState() => _CheckinScreenState();
 }
 
 class _CheckinScreenState extends State<CheckinScreen> {
-  final _storage = StorageService();
+  late final StorageService _storage = widget.storageOverride ?? StorageService();
   // Insertion-ordered: chip tap adds at Mild, slider adjusts, untap removes.
   late final Map<String, ReactionLevel> _symptomLevels;
   Mood? _mood;
@@ -88,10 +89,13 @@ class _CheckinScreenState extends State<CheckinScreen> {
                       time: _checkinTime,
                       onDateChanged: (d) => setState(() => _checkinDate = d),
                       onTimeChanged: (t) => setState(() => _checkinTime = t),
-                      trailing: GestureDetector(
-                        onTap: _confirmDelete,
-                        child: Icon(Icons.delete_outline, size: 22,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      trailing: Semantics(
+                        identifier: 'btn-delete-feeling-${widget.existingLog!.id}',
+                        child: GestureDetector(
+                          onTap: _confirmDelete,
+                          child: Icon(Icons.delete_outline, size: 22,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),

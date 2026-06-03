@@ -31,6 +31,9 @@ touches and links back here; it does not redefine meaning or fallback.
 | Home         | `date-section-YYYY-MM-DD`       | Collapsible date group card                    |
 | Home         | `meal-tile-<id>`                | Collapsible meal tile (whole tile)             |
 | Home         | `meal-tile-header-<id>`         | Meal tile header only — use this to tap toggle |
+| Home         | `feeling-tile-<id>`             | Collapsible feeling/check-in tile (whole tile) |
+| Home         | `feeling-tile-header-<id>`      | Feeling tile header (title) — tap toggles expansion |
+| Home         | `btn-edit-feeling-<id>`         | Edit button in feeling tile expanded body (TextButton). Reach: expand tile (`feeling-tile-<id>`), then tap — surfaces as `content-desc="Edit"` (TextButton label merges over the id). Moved out of header `trailing` to escape ExpansionTile InkWell contention |
 | Log Meal     | `log-meal-screen`               | Screen root                                    |
 | Log Meal     | `log-meal-title`                | Title field                                    |
 | Log Meal     | `log-meal-input`                | Description field (shared `LogDescriptionSection`, `inputSemanticsId`) |
@@ -50,6 +53,7 @@ touches and links back here; it does not redefine meaning or fallback.
 | Check-in     | `mood-<name>`                   | Mood face (great/good/okay/low/awful)          |
 | Check-in     | `symptom-intensity-sheet`       | Notebook-paper panel of per-symptom sliders    |
 | Check-in     | `symptom-slider-<name>`         | Per-symptom intensity slider. ✱ absorbed; surfaces as SeekBar w/ content-desc "<pct>%, <label>" |
+| Check-in     | `btn-delete-feeling-<id>`       | Inline delete (edit mode, LogDateTimeRow trailing). Tap via `delete_outline` icon bounds; Dart in-process via finder |
 | Create item  | `saved-item-name-field`         | Saved-item name field                          |
 | Create item  | `saved-item-ai-field`           | AI description field (text → parse)            |
 | Create item  | `btn-parse-saved-item-ai`       | Parse-with-AI button                           |
