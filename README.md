@@ -23,7 +23,7 @@ Mobile-first journal for tracking meals, macros, ingredients, medications, water
 
 ### AI & meal intelligence
 
-- **AI parsing** — Cloudflare Worker + Gemini (primary); direct Claude API fallback. Handles both meal and medication input.
+- **AI parsing** — Cloudflare Worker + Gemini. Handles both meal and medication input. The app talks only to the Worker; the Gemini key lives server-side.
 - **Meal memory engine** — detects temporal references ("leftovers from last night", "the usual") and injects relevant past-meal context into the prompt so AI can pre-fill without you repeating yourself
 - **AI toggle** — disable AI in Settings; all entry screens fall back to manual form instantly
 
@@ -81,9 +81,8 @@ Standalone Feeling logs (`FAB → Feeling`) save a `ReactionLog` with no linked 
 | Layer | Technology | Notes |
 | ------- | ----------- | ----- |
 | UI | Flutter (Dart) | Android primary, iOS same codebase |
-| AI — primary | Cloudflare Worker + Gemini | `MEAL_PARSER_URL` in `.env`; handles `parse_meal` and `parse_medication` tasks |
-| AI — fallback | Claude API (`claude-sonnet-4-6`) | Direct REST; `ANTHROPIC_API_KEY` in root `.env` (not `app/.env`); integration tests only |
-| Storage | drift (SQLite) | Local only; schema v7 is a stable contract |
+| AI | Cloudflare Worker + Gemini | `MEAL_PARSER_URL` in `.env`; handles `parse_meal` and `parse_medication` tasks; auto-retries once on 503 |
+| Storage | drift (SQLite) | Local only; schema v10 is a stable contract |
 | Settings | shared_preferences | AI toggle (`ai_enabled`); persists across launches |
 | Notifications | flutter_local_notifications | Post-entry check-in, ~90 min configurable delay |
 | Camera | image_picker | Camera primary, gallery fallback |
@@ -93,7 +92,7 @@ Standalone Feeling logs (`FAB → Feeling`) save a `ReactionLog` with no linked 
 
 **AI-optional** — every AI-powered flow has a complete manual fallback. AI pre-fills; it never blocks. If the API is unavailable, the key is missing, or the user has toggled AI off in Settings — the manual entry form shows directly.
 
-**Schema as contract** — the SQLite schema (v4) is a stable API. No column rename or removal without a drift migration and a corresponding integration test. AI-parsed JSON is validated before any DB write.
+**Schema as contract** — the SQLite schema (v10) is a stable API. No column rename or removal without a drift migration and a corresponding integration test. AI-parsed JSON is validated before any DB write.
 
 **Services as tool interface** — service methods are designed to be exposable as Claude tool-use functions (clear typed inputs/outputs, single responsibility). Forward-compatible for an agentic AI layer calling services as tools.
 
@@ -101,10 +100,8 @@ Standalone Feeling logs (`FAB → Feeling`) save a `ReactionLog` with no linked 
 
 ### AI service layer — `app/lib/services/`
 
-Two implementations behind a common `AiService` interface:
-
-- [`ai_service.dart`](app/lib/services/ai_service.dart) — direct Claude API (`claude-sonnet-4-6`); defines `MealParseResult` and `MedicationParseResult` types
-- [`worker_ai_service.dart`](app/lib/services/worker_ai_service.dart) — Cloudflare Worker + Gemini; primary production path; handles `mealContext` injection for temporal references; auto-retries on 503
+- [`ai_service.dart`](app/lib/services/ai_service.dart) — the `AiService` interface; defines `MealParseResult` / `MedicationParseResult` types and the `AiService.fromEnv()` factory
+- [`worker_ai_service.dart`](app/lib/services/worker_ai_service.dart) — sole implementation: Cloudflare Worker + Gemini; handles `mealContext` injection for temporal references; auto-retries once on 503
 
 ### Meal memory engine — `app/lib/services/meal_memory/`
 
@@ -154,12 +151,12 @@ app/
 │   ├── main.dart
 │   ├── models/                       # Dart data classes
 │   ├── services/
-│   │   ├── ai_service.dart           # AiService interface + Claude direct impl
-│   │   ├── worker_ai_service.dart    # Cloudflare Worker / Gemini impl
+│   │   ├── ai_service.dart           # AiService interface + result types + factory
+│   │   ├── worker_ai_service.dart    # Cloudflare Worker / Gemini impl (sole)
 │   │   ├── storage_service.dart      # drift DB abstraction
 │   │   ├── notification_service.dart
 │   │   ├── export_service.dart       # CSV + grocery list
-│   │   ├── import_service.dart       # CSV import
+│   │   ├── import_service.dart       # JSON import (dupe-detect + merge)
 │   │   ├── settings_service.dart
 │   │   ├── seed_service.dart         # dev seed data
 │   │   ├── database/                 # drift schema + generated code
@@ -217,11 +214,10 @@ The Worker holds its own Gemini key server-side. The app only needs the endpoint
 Used by integration tests via `test_env.dart` (`Platform.environment` first, then this file as fallback). Never touches the app binary.
 
 ```env
-ANTHROPIC_API_KEY=sk-ant-...      # integration tests only — never put this in app/.env
-MEAL_PARSER_URL=https://...       # duplicated for test scripts
+MEAL_PARSER_URL=https://...       # Worker endpoint — integration tests POST here
+TEST_AUTH_TOKEN=...               # Worker auth in tests
 GEMINI_API_KEY_PAID=...           # Worker backend (server-side)
 CLOUDFLARE_API_TOKEN=...          # Worker deployment
-TEST_AUTH_TOKEN=...               # Worker auth in tests
 ```
 
 ## Setup

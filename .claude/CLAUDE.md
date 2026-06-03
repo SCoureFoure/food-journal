@@ -126,7 +126,7 @@ skill runs this loop.
 - **Schema = contract**: SQLite schema is a stable API. No breaking changes without a drift migration + integration test. AI-parsed JSON validated before DB write.
 - **Services as tool interface**: service methods designed to be exposable as Claude tool-use (function calling). Clear typed inputs/outputs, single responsibility. Forward-compatible for AI calling services as tools.
 - **Entry types**: journal tracks `meal` | `medication` | `body_output`. All appear in same chronological feed. Each has its own table; all share date/time/notes/created_at.
-- **AI input parsing**: Claude API (`claude-sonnet-4-6`) — text + image → structured JSON (meals + medications)
+- **AI input parsing**: Cloudflare Worker + Gemini (`MEAL_PARSER_URL`) — text + image → structured JSON (meals + medications). App talks only to the Worker; no direct LLM key in the app binary
 - **Local storage**: SQLite via `drift` — meals, food_items, ingredients, reactions, food_memory, medications, body_outputs
 - **Notifications**: `flutter_local_notifications` — check-in scheduled on save of any entry that warrants follow-up (configurable delay, default 90 min); permission prompt on first save if not yet granted
 - **Camera**: `image_picker` with `ImageSource.camera` as primary; gallery as secondary option on photo attach
