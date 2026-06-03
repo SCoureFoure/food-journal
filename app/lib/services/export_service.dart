@@ -9,17 +9,26 @@ import '../models/ingredient.dart';
 import '../models/meal_entry.dart';
 import '../models/medication.dart';
 import '../models/reaction_log.dart';
+import '../models/saved_item.dart';
+import '../models/water_log.dart';
+import '../models/weight_log.dart';
 import 'storage_service.dart';
 
 class ExportTypes {
   final bool meals;
   final bool medications;
   final bool foodMemories;
+  final bool waterLogs;
+  final bool weightLogs;
+  final bool savedItems;
 
   const ExportTypes({
     this.meals = true,
     this.medications = true,
     this.foodMemories = true,
+    this.waterLogs = true,
+    this.weightLogs = true,
+    this.savedItems = true,
   });
 }
 
@@ -52,7 +61,7 @@ class ExportService {
 
     final reactionLogs = await _storage.getReactionLogsForMeal(mealId);
     final payload = {
-      'version': 2,
+      'version': 3,
       'exported_at': DateTime.now().toIso8601String(),
       'meals': [mealToJson(meal, itemsList, reactionLogs)],
       'medications': <Map<String, dynamic>>[],
@@ -106,8 +115,32 @@ class ExportService {
       }
     }
 
+    final waterLogsList = <Map<String, dynamic>>[];
+    if (types.waterLogs) {
+      final logs = await _storage.getAllWaterLogs();
+      for (final w in logs) {
+        if (_inRange(w.date, from, to)) waterLogsList.add(waterLogToJson(w));
+      }
+    }
+
+    final weightLogsList = <Map<String, dynamic>>[];
+    if (types.weightLogs) {
+      final logs = await _storage.getAllWeightLogs();
+      for (final w in logs) {
+        if (_inRange(w.date, from, to)) weightLogsList.add(weightLogToJson(w));
+      }
+    }
+
+    final savedItemsList = <Map<String, dynamic>>[];
+    if (types.savedItems) {
+      final items = await _storage.getAllSavedItems();
+      for (final s in items) {
+        savedItemsList.add(savedItemToJson(s));
+      }
+    }
+
     return {
-      'version': 2,
+      'version': 3,
       'exported_at': DateTime.now().toIso8601String(),
       'date_range': {
         'from': from?.toIso8601String(),
@@ -116,7 +149,21 @@ class ExportService {
       'meals': mealsList,
       'medications': medicationsList,
       'food_memories': foodMemoriesList,
+      'water_logs': waterLogsList,
+      'weight_logs': weightLogsList,
+      'saved_items': savedItemsList,
     };
+  }
+
+  static bool _inRange(DateTime date, DateTime? from, DateTime? to) {
+    final d = DateTime(date.year, date.month, date.day);
+    if (from != null && d.isBefore(DateTime(from.year, from.month, from.day))) {
+      return false;
+    }
+    if (to != null && d.isAfter(DateTime(to.year, to.month, to.day))) {
+      return false;
+    }
+    return true;
   }
 
   static Map<String, dynamic> mealToJson(
@@ -177,6 +224,33 @@ class ExportService {
         'notes': med.notes,
         'created_at': med.createdAt.toIso8601String(),
         'image_data': med.imageData != null ? base64Encode(med.imageData!) : null,
+      };
+
+  static Map<String, dynamic> waterLogToJson(WaterLog log) => {
+        'date': log.date.toIso8601String().split('T').first,
+        'time': log.time,
+        'amount_ml': log.amountMl,
+        'notes': log.notes,
+        'created_at': log.createdAt.toIso8601String(),
+      };
+
+  static Map<String, dynamic> weightLogToJson(WeightLog log) => {
+        'date': log.date.toIso8601String().split('T').first,
+        'time': log.time,
+        'weight_value': log.weightValue,
+        'unit': log.unit,
+        'notes': log.notes,
+        'created_at': log.createdAt.toIso8601String(),
+      };
+
+  static Map<String, dynamic> savedItemToJson(SavedItem item) => {
+        'name': item.name,
+        'calories': item.calories,
+        'protein': item.protein,
+        'carbs': item.carbs,
+        'fat': item.fat,
+        'components': item.components,
+        'created_at': item.createdAt.toIso8601String(),
       };
 
   Future<void> _shareJson(Map<String, dynamic> payload, String namePrefix) async {

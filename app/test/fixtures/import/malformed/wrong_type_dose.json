@@ -1,0 +1,15 @@
+{
+  "version": 3,
+  "meals": [],
+  "medications": [
+    {
+      "date": "2026-06-01",
+      "time": "8:00 AM",
+      "name": "Omeprazole",
+      "dose": "twenty",
+      "unit": "mg",
+      "route": "oral"
+    }
+  ],
+  "food_memories": []
+}

@@ -7,6 +7,9 @@ import '../models/ingredient.dart';
 import '../models/meal_entry.dart';
 import '../models/medication.dart';
 import '../models/reaction_log.dart';
+import '../models/saved_item.dart';
+import '../models/water_log.dart';
+import '../models/weight_log.dart';
 import 'storage_service.dart';
 
 class MealImportRecord {
@@ -34,12 +37,18 @@ class ImportPayload {
   final List<MealImportRecord> meals;
   final List<Medication> medications;
   final List<FoodMemory> foodMemories;
+  final List<WaterLog> waterLogs;
+  final List<WeightLog> weightLogs;
+  final List<SavedItem> savedItems;
 
   const ImportPayload({
     required this.version,
     required this.meals,
     required this.medications,
     required this.foodMemories,
+    this.waterLogs = const [],
+    this.weightLogs = const [],
+    this.savedItems = const [],
   });
 }
 
@@ -47,15 +56,26 @@ class ImportSelection {
   final Set<int> mealIndices;
   final Set<int> medicationIndices;
   final Set<int> foodMemoryIndices;
+  final Set<int> waterIndices;
+  final Set<int> weightIndices;
+  final Set<int> savedItemIndices;
 
   const ImportSelection({
     required this.mealIndices,
     required this.medicationIndices,
     required this.foodMemoryIndices,
+    this.waterIndices = const {},
+    this.weightIndices = const {},
+    this.savedItemIndices = const {},
   });
 
   int get totalCount =>
-      mealIndices.length + medicationIndices.length + foodMemoryIndices.length;
+      mealIndices.length +
+      medicationIndices.length +
+      foodMemoryIndices.length +
+      waterIndices.length +
+      weightIndices.length +
+      savedItemIndices.length;
 }
 
 class ImportService {
@@ -171,11 +191,56 @@ class ImportService {
       );
     }).toList();
 
+    final waterLogs = (json['water_logs'] as List<dynamic>? ?? []).map((w) {
+      final map = w as Map<String, dynamic>;
+      return WaterLog(
+        date: DateTime.parse(map['date'] as String),
+        time: map['time'] as String,
+        amountMl: (map['amount_ml'] as num).toInt(),
+        notes: map['notes'] as String?,
+        createdAt: map['created_at'] != null
+            ? DateTime.parse(map['created_at'] as String)
+            : DateTime.now(),
+      );
+    }).toList();
+
+    final weightLogs = (json['weight_logs'] as List<dynamic>? ?? []).map((w) {
+      final map = w as Map<String, dynamic>;
+      return WeightLog(
+        date: DateTime.parse(map['date'] as String),
+        time: map['time'] as String,
+        weightValue: (map['weight_value'] as num).toDouble(),
+        unit: map['unit'] as String,
+        notes: map['notes'] as String?,
+        createdAt: map['created_at'] != null
+            ? DateTime.parse(map['created_at'] as String)
+            : DateTime.now(),
+      );
+    }).toList();
+
+    final savedItems = (json['saved_items'] as List<dynamic>? ?? []).map((s) {
+      final map = s as Map<String, dynamic>;
+      return SavedItem(
+        name: map['name'] as String,
+        calories: (map['calories'] as num?)?.toInt(),
+        protein: (map['protein'] as num?)?.toInt(),
+        carbs: (map['carbs'] as num?)?.toInt(),
+        fat: (map['fat'] as num?)?.toInt(),
+        components: List<String>.from(map['components'] as List? ?? []),
+        createdAt: map['created_at'] != null
+            ? DateTime.parse(map['created_at'] as String)
+            : DateTime.now(),
+      );
+    }).toList();
+
     return ImportPayload(
       version: version,
       meals: meals,
       medications: medications,
       foodMemories: foodMemories,
+      waterLogs: waterLogs,
+      weightLogs: weightLogs,
+      savedItems: savedItems,
     );
   }
 
@@ -184,7 +249,15 @@ class ImportService {
     return parseJson(content);
   }
 
-  Future<({Set<int> mealDupes, Set<int> medDupes, Set<int> memoryDupes})> detectDupes(
+  Future<
+      ({
+        Set<int> mealDupes,
+        Set<int> medDupes,
+        Set<int> memoryDupes,
+        Set<int> waterDupes,
+        Set<int> weightDupes,
+        Set<int> savedItemDupes,
+      })> detectDupes(
     ImportPayload payload,
   ) async {
     final allMeals = await _storage.getAllMeals();
@@ -205,6 +278,21 @@ class ImportService {
     final allMemories = await _storage.getFoodMemory();
     final existingMemoryNames = allMemories.map((m) => m.foodName.toLowerCase()).toSet();
 
+    final allWater = await _storage.getAllWaterLogs();
+    final existingWaterKeys = allWater.map((w) {
+      final date = w.date.toIso8601String().split('T').first;
+      return '$date|${w.time}|${w.amountMl}';
+    }).toSet();
+
+    final allWeight = await _storage.getAllWeightLogs();
+    final existingWeightKeys = allWeight.map((w) {
+      final date = w.date.toIso8601String().split('T').first;
+      return '$date|${w.time}|${w.weightValue}|${w.unit}';
+    }).toSet();
+
+    final allSaved = await _storage.getAllSavedItems();
+    final existingSavedNames = allSaved.map((s) => s.name.toLowerCase()).toSet();
+
     final mealDupes = <int>{};
     for (var i = 0; i < payload.meals.length; i++) {
       if (existingMealKeys.contains(payload.meals[i].dupeKey)) mealDupes.add(i);
@@ -224,7 +312,37 @@ class ImportService {
       }
     }
 
-    return (mealDupes: mealDupes, medDupes: medDupes, memoryDupes: memoryDupes);
+    final waterDupes = <int>{};
+    for (var i = 0; i < payload.waterLogs.length; i++) {
+      final w = payload.waterLogs[i];
+      final date = w.date.toIso8601String().split('T').first;
+      if (existingWaterKeys.contains('$date|${w.time}|${w.amountMl}')) waterDupes.add(i);
+    }
+
+    final weightDupes = <int>{};
+    for (var i = 0; i < payload.weightLogs.length; i++) {
+      final w = payload.weightLogs[i];
+      final date = w.date.toIso8601String().split('T').first;
+      if (existingWeightKeys.contains('$date|${w.time}|${w.weightValue}|${w.unit}')) {
+        weightDupes.add(i);
+      }
+    }
+
+    final savedItemDupes = <int>{};
+    for (var i = 0; i < payload.savedItems.length; i++) {
+      if (existingSavedNames.contains(payload.savedItems[i].name.toLowerCase())) {
+        savedItemDupes.add(i);
+      }
+    }
+
+    return (
+      mealDupes: mealDupes,
+      medDupes: medDupes,
+      memoryDupes: memoryDupes,
+      waterDupes: waterDupes,
+      weightDupes: weightDupes,
+      savedItemDupes: savedItemDupes,
+    );
   }
 
   Future<int> importSelected(
@@ -253,6 +371,21 @@ class ImportService {
 
     for (final i in selection.foodMemoryIndices) {
       await _storage.insertFoodMemory(payload.foodMemories[i]);
+      count++;
+    }
+
+    for (final i in selection.waterIndices) {
+      await _storage.saveWaterLog(payload.waterLogs[i]);
+      count++;
+    }
+
+    for (final i in selection.weightIndices) {
+      await _storage.saveWeightLog(payload.weightLogs[i]);
+      count++;
+    }
+
+    for (final i in selection.savedItemIndices) {
+      await _storage.saveSavedItem(payload.savedItems[i]);
       count++;
     }
 

@@ -1,0 +1,14 @@
+{
+  "version": 3,
+  "meals": [
+    {
+      "date": "2026-06-01",
+      "meal_type": "breakfast",
+      "food_items": [
+        { "name": "Eggs", "calories": 180, "reaction": "none" }
+      ]
+    }
+  ],
+  "medications": [],
+  "food_memories": []
+}

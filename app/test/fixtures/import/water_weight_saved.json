@@ -1,0 +1,20 @@
+{
+  "version": 3,
+  "exported_at": "2026-06-02T09:00:00.000",
+  "meals": [],
+  "medications": [],
+  "food_memories": [],
+  "water_logs": [
+    { "date": "2026-06-01", "time": "9:00 AM", "amount_ml": 250, "notes": null, "created_at": "2026-06-01T09:00:00.000" },
+    { "date": "2026-06-01", "time": "1:00 PM", "amount_ml": 500, "notes": "with lunch", "created_at": "2026-06-01T13:00:00.000" },
+    { "date": "2026-06-02", "time": "8:30 AM", "amount_ml": 350, "notes": null, "created_at": "2026-06-02T08:30:00.000" }
+  ],
+  "weight_logs": [
+    { "date": "2026-05-26", "time": "7:00 AM", "weight_value": 168.4, "unit": "lbs", "notes": "morning weigh-in", "created_at": "2026-05-26T07:00:00.000" },
+    { "date": "2026-06-02", "time": "7:00 AM", "weight_value": 167.2, "unit": "lbs", "notes": null, "created_at": "2026-06-02T07:00:00.000" }
+  ],
+  "saved_items": [
+    { "name": "Protein shake", "calories": 300, "protein": 40, "carbs": 20, "fat": 5, "components": ["whey protein", "almond milk", "banana"], "created_at": "2026-05-20T10:00:00.000" },
+    { "name": "Overnight oats", "calories": 350, "protein": 14, "carbs": 55, "fat": 9, "components": ["rolled oats", "chia seeds", "milk", "honey"], "created_at": "2026-05-21T10:00:00.000" }
+  ]
+}

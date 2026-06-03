@@ -1,0 +1,14 @@
+{
+  "version": 3,
+  "meals": [
+    {
+      "date": "not-a-real-date",
+      "time": "8:00 AM",
+      "meal_type": "breakfast",
+      "food_items": [],
+      "reaction_logs": []
+    }
+  ],
+  "medications": [],
+  "food_memories": []
+}

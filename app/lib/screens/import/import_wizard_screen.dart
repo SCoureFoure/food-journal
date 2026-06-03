@@ -22,14 +22,23 @@ class _ImportWizardScreenState extends State<ImportWizardScreen> {
   bool _includeMeals = true;
   bool _includeMedications = true;
   bool _includeMemories = true;
+  bool _includeWater = true;
+  bool _includeWeight = true;
+  bool _includeSavedItems = true;
 
   Set<int> _selectedMeals = {};
   Set<int> _selectedMedications = {};
   Set<int> _selectedMemories = {};
+  Set<int> _selectedWater = {};
+  Set<int> _selectedWeight = {};
+  Set<int> _selectedSavedItems = {};
 
   Set<int> _mealDupes = {};
   Set<int> _medDupes = {};
   Set<int> _memoryDupes = {};
+  Set<int> _waterDupes = {};
+  Set<int> _weightDupes = {};
+  Set<int> _savedItemDupes = {};
 
   bool _isImporting = false;
 
@@ -63,6 +72,18 @@ class _ImportWizardScreenState extends State<ImportWizardScreen> {
       for (var i = 0; i < payload.foodMemories.length; i++) {
         if (!dupes.memoryDupes.contains(i)) selectedMemories.add(i);
       }
+      final selectedWater = <int>{};
+      for (var i = 0; i < payload.waterLogs.length; i++) {
+        if (!dupes.waterDupes.contains(i)) selectedWater.add(i);
+      }
+      final selectedWeight = <int>{};
+      for (var i = 0; i < payload.weightLogs.length; i++) {
+        if (!dupes.weightDupes.contains(i)) selectedWeight.add(i);
+      }
+      final selectedSavedItems = <int>{};
+      for (var i = 0; i < payload.savedItems.length; i++) {
+        if (!dupes.savedItemDupes.contains(i)) selectedSavedItems.add(i);
+      }
 
       if (!mounted) return;
       setState(() {
@@ -70,9 +91,15 @@ class _ImportWizardScreenState extends State<ImportWizardScreen> {
         _mealDupes = dupes.mealDupes;
         _medDupes = dupes.medDupes;
         _memoryDupes = dupes.memoryDupes;
+        _waterDupes = dupes.waterDupes;
+        _weightDupes = dupes.weightDupes;
+        _savedItemDupes = dupes.savedItemDupes;
         _selectedMeals = selectedMeals;
         _selectedMedications = selectedMedications;
         _selectedMemories = selectedMemories;
+        _selectedWater = selectedWater;
+        _selectedWeight = selectedWeight;
+        _selectedSavedItems = selectedSavedItems;
         _isLoading = false;
       });
     } catch (e) {
@@ -89,6 +116,9 @@ class _ImportWizardScreenState extends State<ImportWizardScreen> {
     if (_includeMeals) count += _selectedMeals.length;
     if (_includeMedications) count += _selectedMedications.length;
     if (_includeMemories) count += _selectedMemories.length;
+    if (_includeWater) count += _selectedWater.length;
+    if (_includeWeight) count += _selectedWeight.length;
+    if (_includeSavedItems) count += _selectedSavedItems.length;
     return count;
   }
 
@@ -100,6 +130,9 @@ class _ImportWizardScreenState extends State<ImportWizardScreen> {
         mealIndices: _includeMeals ? Set.of(_selectedMeals) : {},
         medicationIndices: _includeMedications ? Set.of(_selectedMedications) : {},
         foodMemoryIndices: _includeMemories ? Set.of(_selectedMemories) : {},
+        waterIndices: _includeWater ? Set.of(_selectedWater) : {},
+        weightIndices: _includeWeight ? Set.of(_selectedWeight) : {},
+        savedItemIndices: _includeSavedItems ? Set.of(_selectedSavedItems) : {},
       );
       final count = await _import.importSelected(payload, selection);
       if (!mounted) return;
@@ -142,7 +175,10 @@ class _ImportWizardScreenState extends State<ImportWizardScreen> {
     final payload = _payload!;
     if (payload.meals.isEmpty &&
         payload.medications.isEmpty &&
-        payload.foodMemories.isEmpty) {
+        payload.foodMemories.isEmpty &&
+        payload.waterLogs.isEmpty &&
+        payload.weightLogs.isEmpty &&
+        payload.savedItems.isEmpty) {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(24),
@@ -236,6 +272,88 @@ class _ImportWizardScreenState extends State<ImportWizardScreen> {
                 onChanged: (v) => setState(() {
                   if (v == true) { _selectedMemories.add(i); }
                   else { _selectedMemories.remove(i); }
+                }),
+              );
+            }),
+          ),
+        if (payload.waterLogs.isNotEmpty)
+          _SectionTile(
+            title: 'Water',
+            count: payload.waterLogs.length,
+            included: _includeWater,
+            onToggle: (v) => setState(() => _includeWater = v),
+            selectedCount: _selectedWater.length,
+            onSelectAll: () => setState(() {
+              _selectedWater = Set.from(List.generate(payload.waterLogs.length, (i) => i));
+            }),
+            onDeselectAll: () => setState(() => _selectedWater = {}),
+            children: List.generate(payload.waterLogs.length, (i) {
+              final w = payload.waterLogs[i];
+              return _ItemRow(
+                key: ValueKey('water-$i'),
+                title:
+                    '${w.date.toIso8601String().split('T').first} · ${w.time} · ${w.amountMl} ml',
+                subtitle: w.notes,
+                isDupe: _waterDupes.contains(i),
+                selected: _selectedWater.contains(i),
+                onChanged: (v) => setState(() {
+                  if (v == true) { _selectedWater.add(i); }
+                  else { _selectedWater.remove(i); }
+                }),
+              );
+            }),
+          ),
+        if (payload.weightLogs.isNotEmpty)
+          _SectionTile(
+            title: 'Weight',
+            count: payload.weightLogs.length,
+            included: _includeWeight,
+            onToggle: (v) => setState(() => _includeWeight = v),
+            selectedCount: _selectedWeight.length,
+            onSelectAll: () => setState(() {
+              _selectedWeight = Set.from(List.generate(payload.weightLogs.length, (i) => i));
+            }),
+            onDeselectAll: () => setState(() => _selectedWeight = {}),
+            children: List.generate(payload.weightLogs.length, (i) {
+              final w = payload.weightLogs[i];
+              return _ItemRow(
+                key: ValueKey('weight-$i'),
+                title:
+                    '${w.date.toIso8601String().split('T').first} · ${w.time} · ${w.weightValue} ${w.unit}',
+                subtitle: w.notes,
+                isDupe: _weightDupes.contains(i),
+                selected: _selectedWeight.contains(i),
+                onChanged: (v) => setState(() {
+                  if (v == true) { _selectedWeight.add(i); }
+                  else { _selectedWeight.remove(i); }
+                }),
+              );
+            }),
+          ),
+        if (payload.savedItems.isNotEmpty)
+          _SectionTile(
+            title: 'Saved Items',
+            count: payload.savedItems.length,
+            included: _includeSavedItems,
+            onToggle: (v) => setState(() => _includeSavedItems = v),
+            selectedCount: _selectedSavedItems.length,
+            onSelectAll: () => setState(() {
+              _selectedSavedItems =
+                  Set.from(List.generate(payload.savedItems.length, (i) => i));
+            }),
+            onDeselectAll: () => setState(() => _selectedSavedItems = {}),
+            children: List.generate(payload.savedItems.length, (i) {
+              final s = payload.savedItems[i];
+              final macros = s.calories != null ? '${s.calories} cal' : null;
+              return _ItemRow(
+                key: ValueKey('saved-$i'),
+                title: s.name,
+                subtitle: macros,
+                isDupe: _savedItemDupes.contains(i),
+                selected: _selectedSavedItems.contains(i),
+                onChanged: (v) => setState(() {
+                  if (v == true) { _selectedSavedItems.add(i); }
+                  else { _selectedSavedItems.remove(i); }
                 }),
               );
             }),

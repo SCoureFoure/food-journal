@@ -1,0 +1,50 @@
+{
+  "version": 3,
+  "exported_at": "2026-06-01T09:00:00.000",
+  "meals": [
+    {
+      "date": "2026-06-01",
+      "time": "8:15 AM",
+      "meal_type": "breakfast",
+      "overall_symptoms": null,
+      "raw_input": "two eggs and toast",
+      "created_at": "2026-06-01T08:15:00.000",
+      "image_data": null,
+      "food_items": [
+        {
+          "name": "Scrambled eggs",
+          "portion": "2 eggs",
+          "prep": "scrambled",
+          "calories": 180,
+          "protein": 12,
+          "carbs": 2,
+          "fat": 14,
+          "reaction": "none",
+          "notes": null,
+          "ingredients": [
+            { "name": "eggs", "quantity": "2", "unit": "whole" },
+            { "name": "butter", "quantity": "1", "unit": "tsp" }
+          ]
+        },
+        {
+          "name": "Toast",
+          "portion": "1 slice",
+          "prep": "toasted",
+          "calories": 90,
+          "protein": 3,
+          "carbs": 17,
+          "fat": 1,
+          "reaction": "none",
+          "notes": null,
+          "ingredients": []
+        }
+      ],
+      "reaction_logs": []
+    }
+  ],
+  "medications": [],
+  "food_memories": [],
+  "water_logs": [],
+  "weight_logs": [],
+  "saved_items": []
+}

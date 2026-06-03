@@ -1,0 +1,9 @@
+{
+  "version": 3,
+  "meals": [],
+  "medications": [],
+  "food_memories": [],
+  "water_logs": [
+    { "date": "2026-06-01", "time": "9:00 AM", "notes": "forgot amount" }
+  ]
+}

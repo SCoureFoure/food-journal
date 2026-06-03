@@ -1,0 +1,29 @@
+{
+  "version": 3,
+  "exported_at": "2026-06-02T09:00:00.000",
+  "meals": [
+    {
+      "date": "2026-06-01",
+      "time": "7:00 PM",
+      "meal_type": "dinner",
+      "overall_symptoms": "cramping",
+      "raw_input": "shrimp stir fry",
+      "created_at": "2026-06-01T19:00:00.000",
+      "image_data": null,
+      "food_items": [
+        { "name": "Shrimp", "portion": "6 oz", "prep": "sauteed", "calories": 180, "protein": 36, "carbs": 2, "fat": 3, "reaction": "moderate", "notes": "suspect shellfish", "ingredients": [] },
+        { "name": "White rice", "portion": "1 cup", "prep": "boiled", "calories": 205, "protein": 4, "carbs": 45, "fat": 0, "reaction": "none", "notes": null, "ingredients": [] }
+      ],
+      "reaction_logs": []
+    }
+  ],
+  "medications": [],
+  "food_memories": [
+    { "food_name": "shrimp", "reaction_pattern": "moderate", "occurrences": 4, "last_seen": "2026-06-01T00:00:00.000", "flagged": true },
+    { "food_name": "sourdough bread", "reaction_pattern": "mild", "occurrences": 3, "last_seen": "2026-05-30T00:00:00.000", "flagged": true },
+    { "food_name": "white rice", "reaction_pattern": "none", "occurrences": 8, "last_seen": "2026-06-01T00:00:00.000", "flagged": false }
+  ],
+  "water_logs": [],
+  "weight_logs": [],
+  "saved_items": []
+}

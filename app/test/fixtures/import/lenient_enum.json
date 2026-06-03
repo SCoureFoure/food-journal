@@ -1,0 +1,32 @@
+{
+  "version": 3,
+  "exported_at": "2026-06-02T09:00:00.000",
+  "_note": "reaction 'purple' and severity 'catastrophic' are not valid enum names. parseJson is lenient: unknown ReactionLevel/Mood names degrade to pending (food item) / pending (reaction log), they do NOT throw. Use to assert graceful degradation, not failure.",
+  "meals": [
+    {
+      "date": "2026-06-01",
+      "time": "8:00 AM",
+      "meal_type": "breakfast",
+      "overall_symptoms": null,
+      "raw_input": "mystery food",
+      "created_at": "2026-06-01T08:00:00.000",
+      "food_items": [
+        { "name": "Mystery food", "portion": "1 serving", "calories": 100, "protein": 5, "carbs": 10, "fat": 3, "reaction": "purple", "notes": null, "ingredients": [] }
+      ],
+      "reaction_logs": [
+        {
+          "checkin_time": "2026-06-01T09:30:00.000",
+          "symptoms": ["Bloating"],
+          "severity": "catastrophic",
+          "mood": "ecstatic",
+          "notes": "all three enum values are invalid"
+        }
+      ]
+    }
+  ],
+  "medications": [],
+  "food_memories": [],
+  "water_logs": [],
+  "weight_logs": [],
+  "saved_items": []
+}

@@ -692,6 +692,24 @@ class StorageService {
     await (_db.delete(_db.savedItems)..where((t) => t.id.equals(id))).go();
   }
 
+  Future<List<SavedItem>> getAllSavedItems() async {
+    final rows = await (_db.select(_db.savedItems)
+          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+        .get();
+    return rows.map((row) {
+      return SavedItem(
+        id: row.id,
+        name: row.name,
+        calories: row.calories,
+        protein: row.protein,
+        carbs: row.carbs,
+        fat: row.fat,
+        components: List<String>.from(jsonDecode(row.componentsJson) as List),
+        createdAt: row.createdAt,
+      );
+    }).toList();
+  }
+
   // ── Misc ─────────────────────────────────────────────────────────────────────
 
   Future<bool> hasMeals() async {

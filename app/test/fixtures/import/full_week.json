@@ -1,0 +1,76 @@
+{
+  "version": 3,
+  "exported_at": "2026-06-02T09:00:00.000",
+  "meals": [
+    {
+      "date": "2026-05-25",
+      "time": "8:00 AM",
+      "meal_type": "breakfast",
+      "overall_symptoms": null,
+      "raw_input": "oatmeal",
+      "created_at": "2026-05-25T08:00:00.000",
+      "image_data": null,
+      "food_items": [
+        { "name": "Oatmeal", "portion": "1 cup", "prep": null, "calories": 160, "protein": 6, "carbs": 28, "fat": 4, "reaction": "none", "notes": null, "ingredients": [] }
+      ],
+      "reaction_logs": []
+    },
+    {
+      "date": "2026-05-27",
+      "time": "1:00 PM",
+      "meal_type": "lunch",
+      "overall_symptoms": null,
+      "raw_input": "chicken salad",
+      "created_at": "2026-05-27T13:00:00.000",
+      "image_data": null,
+      "food_items": [
+        { "name": "Chicken salad", "portion": "1 bowl", "prep": null, "calories": 420, "protein": 35, "carbs": 12, "fat": 24, "reaction": "none", "notes": null, "ingredients": [] }
+      ],
+      "reaction_logs": []
+    },
+    {
+      "date": "2026-05-29",
+      "time": "7:00 PM",
+      "meal_type": "dinner",
+      "overall_symptoms": "mild bloating",
+      "raw_input": "pasta",
+      "created_at": "2026-05-29T19:00:00.000",
+      "image_data": null,
+      "food_items": [
+        { "name": "Spaghetti", "portion": "2 cups", "prep": "boiled", "calories": 480, "protein": 16, "carbs": 90, "fat": 6, "reaction": "mild", "notes": null, "ingredients": [] }
+      ],
+      "reaction_logs": []
+    },
+    {
+      "date": "2026-06-01",
+      "time": "8:30 AM",
+      "meal_type": "breakfast",
+      "overall_symptoms": null,
+      "raw_input": "yogurt",
+      "created_at": "2026-06-01T08:30:00.000",
+      "image_data": null,
+      "food_items": [
+        { "name": "Greek yogurt", "portion": "1 cup", "prep": null, "calories": 130, "protein": 17, "carbs": 9, "fat": 0, "reaction": "none", "notes": null, "ingredients": [] }
+      ],
+      "reaction_logs": []
+    },
+    {
+      "date": "2026-06-02",
+      "time": "12:30 PM",
+      "meal_type": "lunch",
+      "overall_symptoms": null,
+      "raw_input": "burrito",
+      "created_at": "2026-06-02T12:30:00.000",
+      "image_data": null,
+      "food_items": [
+        { "name": "Bean burrito", "portion": "1 whole", "prep": null, "calories": 540, "protein": 18, "carbs": 78, "fat": 16, "reaction": "none", "notes": null, "ingredients": [] }
+      ],
+      "reaction_logs": []
+    }
+  ],
+  "medications": [],
+  "food_memories": [],
+  "water_logs": [],
+  "weight_logs": [],
+  "saved_items": []
+}

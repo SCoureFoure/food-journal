@@ -1,0 +1,60 @@
+{
+  "version": 3,
+  "exported_at": "2026-06-02T09:00:00.000",
+  "meals": [
+    {
+      "date": "2026-06-01",
+      "time": "6:30 PM",
+      "meal_type": "dinner",
+      "overall_symptoms": "severe reaction",
+      "raw_input": "creamy alfredo pasta",
+      "created_at": "2026-06-01T18:30:00.000",
+      "image_data": null,
+      "food_items": [
+        { "name": "Fettuccine alfredo", "portion": "2 cups", "prep": null, "calories": 720, "protein": 20, "carbs": 80, "fat": 36, "reaction": "bad", "notes": "heavy cream — likely lactose", "ingredients": [] }
+      ],
+      "reaction_logs": [
+        {
+          "checkin_time": "2026-06-01T20:00:00.000",
+          "symptoms": ["Bloating", "Stomach pain", "Nausea", "Cramping"],
+          "symptom_levels": {
+            "Bloating": "bad",
+            "Stomach pain": "bad",
+            "Nausea": "moderate",
+            "Cramping": "moderate"
+          },
+          "severity": "bad",
+          "mood": "awful",
+          "notes": "worst in weeks, lasted ~4 hours"
+        }
+      ]
+    },
+    {
+      "date": "2026-06-02",
+      "time": "8:00 AM",
+      "meal_type": "breakfast",
+      "overall_symptoms": null,
+      "raw_input": "plain rice and banana",
+      "created_at": "2026-06-02T08:00:00.000",
+      "image_data": null,
+      "food_items": [
+        { "name": "Plain rice", "portion": "1 cup", "prep": null, "calories": 205, "protein": 4, "carbs": 45, "fat": 0, "reaction": "none", "notes": null, "ingredients": [] }
+      ],
+      "reaction_logs": [
+        {
+          "checkin_time": "2026-06-02T09:30:00.000",
+          "symptoms": [],
+          "symptom_levels": {},
+          "severity": "none",
+          "mood": "okay",
+          "notes": "settled stomach, no issues"
+        }
+      ]
+    }
+  ],
+  "medications": [],
+  "food_memories": [],
+  "water_logs": [],
+  "weight_logs": [],
+  "saved_items": []
+}
