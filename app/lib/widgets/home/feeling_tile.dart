@@ -1,16 +1,54 @@
 import 'package:flutter/material.dart';
 
 import '../../models/reaction_log.dart';
+import '../../services/storage_service.dart';
 
-class FeelingTile extends StatelessWidget {
+class FeelingTile extends StatefulWidget {
   final ReactionLog log;
   final VoidCallback onReload;
+  final StorageService? storageOverride; // test seam — fake storage
 
-  const FeelingTile({super.key, required this.log, required this.onReload});
+  const FeelingTile({
+    super.key,
+    required this.log,
+    required this.onReload,
+    this.storageOverride,
+  });
+
+  @override
+  State<FeelingTile> createState() => _FeelingTileState();
+}
+
+class _FeelingTileState extends State<FeelingTile> {
+  // Lazy — only built when the tile is expanded, so the DB read never fires for
+  // collapsed tiles in the feed.
+  late final StorageService _storage = widget.storageOverride ?? StorageService();
+  List<String>? _blamed; // null = not loaded yet
+  bool _loading = false;
+
+  @override
+  void dispose() {
+    if (widget.storageOverride == null) _storage.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadBlamed() async {
+    if (_blamed != null || _loading || widget.log.id == null) return;
+    _loading = true;
+    try {
+      final names = await _storage.getManualBlamedNamesForLog(widget.log.id!);
+      if (mounted) setState(() => _blamed = names);
+    } catch (_) {
+      if (mounted) setState(() => _blamed = const []);
+    } finally {
+      _loading = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final log = widget.log;
     final timeStr = TimeOfDay.fromDateTime(log.checkinTime).format(context);
     final symptomStr = log.symptoms
         .map((s) {
@@ -35,6 +73,9 @@ class FeelingTile extends StatelessWidget {
         backgroundColor: theme.colorScheme.surfaceContainerHighest,
         shape: const Border(),
         collapsedShape: const Border(),
+        onExpansionChanged: (expanded) {
+          if (expanded) _loadBlamed();
+        },
         leading: Icon(
           faceIcon,
           color: faceColor,
@@ -56,6 +97,7 @@ class FeelingTile extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
               child: Text(log.notes!, style: theme.textTheme.bodySmall),
             ),
+          if (_blamed != null && _blamed!.isNotEmpty) _blamedSection(theme),
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
             child: Align(
@@ -66,7 +108,7 @@ class FeelingTile extends StatelessWidget {
                 child: TextButton.icon(
                   onPressed: () async {
                     await Navigator.pushNamed(context, '/edit_checkin', arguments: log);
-                    onReload();
+                    widget.onReload();
                   },
                   icon: const Icon(Icons.edit_outlined, size: 18),
                   label: const Text('Edit'),
@@ -78,4 +120,47 @@ class FeelingTile extends StatelessWidget {
       ),
     );
   }
+
+  Widget _blamedSection(ThemeData theme) {
+    return Semantics(
+      identifier: 'feeling-blamed-items-${widget.log.id}',
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.link, size: 14, color: theme.colorScheme.outline),
+                const SizedBox(width: 4),
+                Text('Blamed',
+                    style: theme.textTheme.labelSmall
+                        ?.copyWith(color: theme.colorScheme.outline)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                for (final name in _blamed!)
+                  Chip(
+                    label: Text(_titleCase(name)),
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    side: BorderSide(color: theme.colorScheme.outlineVariant),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Stored target names are lowercased for aggregation; prettify for display.
+  static String _titleCase(String s) => s
+      .split(' ')
+      .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
+      .join(' ');
 }

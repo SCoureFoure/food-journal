@@ -59,6 +59,7 @@ touches and links back here; it does not redefine meaning or fallback.
 | Blame        | `blame-search-field`            | Search field in blame modal. ✱ absorbed (TextField) — Dart: `find.byType(TextField)`; ADB: bounds/edit-text |
 | Blame        | `blame-item-<type>-<id>`        | Blamable suspect row (`type` = food\|med, id = item/med id). Tap blames item for current log's symptoms |
 | Blame        | `btn-blame-confirm`             | Confirm/Done button — returns selected suspects. ✱ absorbed (FilledButton) — Dart: `find.widgetWithText(FilledButton, …)`; ADB: content-desc/bounds |
+| Home         | `feeling-blamed-items-<id>`     | "Blamed" section in expanded feeling tile body (food_blame AC13) — manual-blamed item chips, lazy-loaded on expand. Built only when ≥1 manual blame exists |
 | Create item  | `saved-item-name-field`         | Saved-item name field                          |
 | Create item  | `saved-item-ai-field`           | AI description field (text → parse)            |
 | Create item  | `btn-parse-saved-item-ai`       | Parse-with-AI button                           |

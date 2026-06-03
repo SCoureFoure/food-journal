@@ -5,10 +5,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:food_journal/models/food_item.dart';
 import 'package:food_journal/models/reaction_log.dart';
+import 'package:food_journal/services/storage_service.dart';
 import 'package:food_journal/widgets/home/feeling_tile.dart';
 
-Future<void> _pump(WidgetTester t, ReactionLog log) => t.pumpWidget(MaterialApp(
-      home: Scaffold(body: FeelingTile(log: log, onReload: () {})),
+class _FakeStorage extends StorageService {
+  final Map<int, List<String>> blamed;
+  _FakeStorage([this.blamed = const {}]);
+
+  @override
+  Future<List<String>> getManualBlamedNamesForLog(int logId) async =>
+      blamed[logId] ?? const [];
+}
+
+Future<void> _pump(WidgetTester t, ReactionLog log, {_FakeStorage? storage}) =>
+    t.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: FeelingTile(
+          log: log,
+          onReload: () {},
+          storageOverride: storage ?? _FakeStorage(),
+        ),
+      ),
     ));
 
 void main() {
@@ -62,7 +79,9 @@ void main() {
     Object? routedArg;
 
     await t.pumpWidget(MaterialApp(
-      home: Scaffold(body: FeelingTile(log: log, onReload: () {})),
+      home: Scaffold(
+          body: FeelingTile(
+              log: log, onReload: () {}, storageOverride: _FakeStorage())),
       onGenerateRoute: (s) {
         if (s.name == '/edit_checkin') {
           routedArg = s.arguments;
@@ -82,5 +101,40 @@ void main() {
     await t.pumpAndSettle();
 
     expect(routedArg, same(log));
+  });
+
+  // ── AC13 (specs/food_blame.spec.md) — blamed items in the expanded body ─────────
+  group('[food_blame] blamed items section', () {
+    final log = ReactionLog(
+      id: 5,
+      checkinTime: DateTime(2026, 6, 3, 12, 40),
+      symptoms: const ['Nausea'],
+      symptomLevels: const {'Nausea': ReactionLevel.bad},
+      severity: ReactionLevel.bad,
+    );
+
+    testWidgets('AC13 not loaded while collapsed; shows chips once expanded', (t) async {
+      await _pump(t, log, storage: _FakeStorage({5: const ['mushrooms', 'milk']}));
+
+      // collapsed: body (incl. blamed section) not built
+      expect(find.text('Blamed'), findsNothing);
+
+      await t.tap(find.text('How I felt')); // expand → lazy load
+      await t.pumpAndSettle();
+
+      expect(find.text('Blamed'), findsOneWidget);
+      expect(find.widgetWithText(Chip, 'Mushrooms'), findsOneWidget); // title-cased
+      expect(find.widgetWithText(Chip, 'Milk'), findsOneWidget);
+    });
+
+    testWidgets('AC13 no manual blames → no blamed section on expand', (t) async {
+      await _pump(t, log, storage: _FakeStorage(const {})); // none for this log
+
+      await t.tap(find.text('How I felt'));
+      await t.pumpAndSettle();
+
+      expect(find.bySemanticsIdentifier('feeling-blamed-items-5'), findsNothing);
+      expect(find.text('Blamed'), findsNothing);
+    });
   });
 }

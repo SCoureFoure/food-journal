@@ -505,6 +505,23 @@ class StorageService {
     return rows.map((r) => '${r.targetType}:${r.targetId}').toSet();
   }
 
+  /// Distinct item names the user manually blamed on [logId], oldest-first.
+  /// Drives the "Blamed" line in the feeling tile — auto suspicions are excluded
+  /// (they are the discreet background signal, not a user-facing claim).
+  Future<List<String>> getManualBlamedNamesForLog(int logId) async {
+    final rows = await (_db.select(_db.foodSuspicions)
+          ..where((t) =>
+              t.reactionLogId.equals(logId) & t.source.equals('manual'))
+          ..orderBy([(t) => OrderingTerm.asc(t.id)]))
+        .get();
+    final seen = <String>{};
+    final names = <String>[];
+    for (final r in rows) {
+      if (seen.add(r.targetName)) names.add(r.targetName);
+    }
+    return names;
+  }
+
   /// All ledger rows for one check-in (newest source-agnostic). Test/inspection.
   Future<List<FoodSuspicion>> getSuspicionsForLog(int logId) async {
     final rows = await (_db.select(_db.foodSuspicions)

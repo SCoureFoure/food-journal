@@ -142,6 +142,12 @@ INDEX idx_suspicion_log    ON (reaction_log_id)        -- edit / cascade lookup
 12. **AC12 — blame entry point gating.** Given the check-in screen with ≥1 symptom
     selected, then `btn-blame-foods` is present; given zero symptoms, the blame entry
     point is absent/disabled (nothing to blame for).
+13. **AC13 — blamed items surfaced on the feed tile.** Given an expanded feeling tile
+    for a log with manual blames, then a **"Blamed"** section lists the distinct
+    manually-blamed item names (title-cased for display); `auto` suspicions are
+    **excluded** (discreet background signal, not a user-facing claim). The section is
+    absent when the log has no manual blames, and is loaded **lazily on expand** (no
+    DB read for collapsed tiles).
 
 ## Anchors (explore rig)
 <!-- A view: ids this feature touches. Canonical rows live in specs/anchors.md. -->
@@ -151,6 +157,8 @@ INDEX idx_suspicion_log    ON (reaction_log_id)        -- edit / cascade lookup
 - `blame-search-field` — search field in the blame modal — **new**
 - `blame-item-<type>-<id>` — a blamable food/medication row (`type` = food|med) —
   **new**
+- `feeling-blamed-items-<id>` — "Blamed" section in the expanded feeling tile body
+  (manual blames only, title-cased) — **new**
 - `checkin-screen` — host screen root (existing, from log_feeling)
 
 ## Verifies-with
@@ -164,6 +172,10 @@ INDEX idx_suspicion_log    ON (reaction_log_id)        -- edit / cascade lookup
 - Blame modal (AC6, AC7) + entry-point gating (AC12):
   `app/test/widgets/blame_sheet_test.dart` and the `[food_blame]` group in
   `app/test/widgets/checkin_screen_test.dart` via `storageOverride` fake.
+- Blamed-items surfacing (AC13): `[food_blame]` group in
+  `app/test/widgets/feeling_tile_test.dart` — lazy load on expand, manual-only,
+  title-cased chips, absent when none. Backed by
+  `StorageService.getManualBlamedNamesForLog`.
 - e2e: feeling→(symptom)→blame→pick item→save journey via the explore rig once the
   modal anchors land; auto-blame has no UI surface (assert via storage in widget/
   integration layer).
