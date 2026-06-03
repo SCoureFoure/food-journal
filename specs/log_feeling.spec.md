@@ -18,6 +18,8 @@ edited (including their date/time) or deleted.
   (`updateMealSymptoms`, meal-summary overwrite) that the current product does not
   exercise — feelings are not linked to meals yet. That linkage is a separate future
   spec; do not encode the meal path as intended behavior here.
+  **Symptom→item association now specced in `specs/food_blame.spec.md`** (blame
+  ledger: auto + manual suspicion at food-item/medication granularity).
 
 ## Constraints (inherited)
 - **Schema = contract.** A feeling is one `reaction_logs` row: `mealId` NULL,
