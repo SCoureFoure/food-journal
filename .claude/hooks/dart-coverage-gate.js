@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // .claude/hooks/dart-coverage-gate.js
 //
-// PostToolUse hook — fires after Write tool.
-// If a new production Dart file was written, directs Claude to run test-scout
-// before marking the task complete.
+// PostToolUse hook — fires after Write or Edit tool.
+// If a production Dart file was written or modified, directs Claude to run
+// test-scout before marking the task complete.
 //
 // Excluded: *_test.dart, *.g.dart, *.freezed.dart, files under test/
 
@@ -18,6 +18,7 @@ process.stdin.on('end', () => {
   }
 
   const filePath = (data.tool_input && data.tool_input.file_path) || '';
+  const verb = data.tool_name === 'Edit' ? 'modified' : 'written';
 
   const normalize = p => p.replace(/\\/g, '/');
   const fp = normalize(filePath);
@@ -31,7 +32,7 @@ process.stdin.on('end', () => {
   if (isDart && isAppLib && !isTestFile && !isGenerated && !isInTestDir) {
     const short = fp.replace(/.*\/app\/lib\//, 'lib/');
     process.stdout.write(
-      `[coverage-gate] Production Dart file written: ${short}\n` +
+      `[coverage-gate] Production Dart file ${verb}: ${short}\n` +
       `Before marking this task complete, spawn the test-scout agent ` +
       `(subagent_type: "test-scout") to verify ${short} has adequate test coverage.\n`
     );

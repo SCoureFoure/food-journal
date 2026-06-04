@@ -4,7 +4,7 @@
 
 ## Project context
 
-Mobile-first food journal app for tracking meals, macros, ingredients, and GI/health reactions. AI layer (Anthropic Claude API) handles unstructured input (text + photos) → structured data. Local storage only — no cloud DB. Flutter for cross-platform (Android primary, iOS stretch).
+Mobile-first food journal app for tracking meals, macros, ingredients, and GI/health reactions. AI layer (Cloudflare Worker + Gemini — see Key architectural decisions) handles unstructured input (text + photos) → structured data. App holds no LLM key. Local storage only — no cloud DB. Flutter for cross-platform (Android primary, iOS stretch).
 
 ---
 
@@ -96,6 +96,11 @@ produces:
 
 constraints:
   - Run flutter test if tests exist
+  - Tests are behavioral contracts (MFT/INV/DIR/BVA/EQUIV), not example checks
+  - Every test carries metadata (testTheory + contract + implication, or scenario
+    rationale) — the dashboard classifiers depend on it; metadata-less tests are
+    invisible to stakeholders. Protocol lives in the scout agent files.
+  - Adversarial coverage pass = the scout subagents (Validator gate below)
   - Manual verification documented for UI flows
   - If fails, return to DEVELOP
 ```
@@ -117,6 +122,29 @@ constraints:
 Two entry paths, one output: **spec-in** (requirement handed in) and **explore-out**
 (behavior discovered while probing/fixing) both converge on `{spec, test}`. The `/spec`
 skill runs this loop.
+
+---
+
+## Framework arms (what runs the loop)
+
+The modes above are executed by concrete tooling — use it, don't reinvent it.
+
+- **Skills** (`.claude/skills/`) — `/spec` runs SPEC→…→DEPOSIT; `/explore` is its
+  discovery arm (ADB rig: build, navigate, screenshot, UIAutomator, anchors).
+- **Subagents** = the **Validator gate** (adversarial, `acceptEdits`, project memory):
+  - `test-scout` — all layers (flutter/ai/worker/ux); default coverage oracle.
+  - `flutter-scout` — Dart/widget/service coverage + semantic-anchor compliance.
+  - `ai-scout` — meal-memory engine, pattern rules, context injection, prompt quality.
+  Spawn after feature work or when a layer behaves unexpectedly. Each carries the full
+  test-metadata + behavioral-contract protocol — read the agent file before probing.
+- **Hooks** (`.claude/settings.json`) — automatic gates, fail-open:
+  - PostToolUse `Write|Edit` on `app/lib/*.dart` → nudges `test-scout`
+    (`hooks/dart-coverage-gate.js`).
+  - SessionStart → injects last pass-rate / violations per layer
+    (`hooks/test-health.js`).
+- **Reports + dashboard** — `scripts/report_{unit,ai,integration}.ps1` run the suite →
+  write `reports/<layer>/*.json` → append `reports/history.jsonl` → regen
+  `dashboard/data.js`. The `test-health` hook surfaces the latest at session start.
 
 ---
 
