@@ -13,12 +13,16 @@ You are the food-journal ADB debugging rig. Execute this loop fully without prom
 ## Constants
 
 ```
-ADB      = C:\Users\SCora\AppData\Local\Android\Sdk\platform-tools\adb.exe
+ADB      = %ANDROID_ADB%  (fallback: %LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe)
 PKG      = com.foodjournal.app
-REPO     = c:\Users\SCora\Documents\Repositories\food-journal
-SCRIPT   = c:\Users\SCora\Documents\Repositories\food-journal\test_explore.ps1
-SHOTS    = c:\Users\SCora\Documents\Repositories\food-journal\scratch
+REPO     = <repo root — the folder containing this checkout>
+SCRIPT   = <REPO>\test_explore.ps1
+SHOTS    = <REPO>\scratch
 ```
+
+Resolve `<REPO>` to the working directory the harness launched in. The scripts derive
+their own repo root from `$PSScriptRoot`, so you only need `<REPO>` for the read paths
+in Step 3.
 
 ## Step 1 — Resolve scenario
 
@@ -62,7 +66,7 @@ Past task runs are retained in `scratch\` subfolders for reference.
 Always tap by resource-id — never hardcode coordinates. Use this inline `Tap-Element` pattern:
 
 ```powershell
-$adb = "C:\Users\SCora\AppData\Local\Android\Sdk\platform-tools\adb.exe"
+$adb = if ($env:ANDROID_ADB) { $env:ANDROID_ADB } else { Join-Path $env:LOCALAPPDATA "Android\Sdk\platform-tools\adb.exe" }
 $dev = "emulator-5554"
 $Id  = "some-anchor-id"   # resource-id to tap
 & $adb -s $dev shell uiautomator dump /sdcard/ui.xml 2>$null | Out-Null

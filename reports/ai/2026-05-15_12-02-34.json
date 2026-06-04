@@ -65,7 +65,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -90,7 +90,7 @@
                                          "mealType":  "lunch",
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -103,7 +103,7 @@
                       "group":  "new rules smoke tests",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -116,7 +116,7 @@
                       "group":  "buildQuerySpec — dateOffset",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -141,7 +141,7 @@
                                          "mealType":  "lunch",
                                          "matchRecent":  true
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -154,7 +154,7 @@
                       "group":  "_resolveNamedDayOffset (via buildQuerySpec)",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -178,7 +178,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -191,7 +191,7 @@
                       "group":  "isReferential",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -204,7 +204,7 @@
                       "group":  "Context snippet format",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\macro_drift_test.dart"
                   },
                   {
                       "failure":  null,
@@ -217,7 +217,7 @@
                       "group":  "_resolveNamedDayOffset (via buildQuerySpec)",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -242,7 +242,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -268,7 +268,7 @@
                                          "mealType":  "dinner",
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -292,7 +292,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -305,7 +305,7 @@
                       "group":  "Context snippet format",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\macro_drift_test.dart"
                   },
                   {
                       "failure":  null,
@@ -318,7 +318,7 @@
                       "group":  "new rules smoke tests",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -331,7 +331,7 @@
                       "group":  "buildQuerySpec — mealType",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -344,7 +344,7 @@
                       "group":  "Context snippet format",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\macro_drift_test.dart"
                   },
                   {
                       "failure":  null,
@@ -368,7 +368,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -381,7 +381,7 @@
                       "group":  "isReferential",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -394,7 +394,7 @@
                       "group":  "Context snippet format",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\macro_drift_test.dart"
                   },
                   {
                       "failure":  null,
@@ -418,7 +418,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -431,7 +431,7 @@
                       "group":  "isReferential",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -456,7 +456,7 @@
                                          "mealType":  "breakfast",
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -481,7 +481,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -494,7 +494,7 @@
                       "group":  "buildQuerySpec — dateOffset",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -519,7 +519,7 @@
                                          "mealType":  "breakfast",
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -532,7 +532,7 @@
                       "group":  "buildQuerySpec — dateOffset",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -545,7 +545,7 @@
                       "group":  "new rules smoke tests",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -558,7 +558,7 @@
                       "group":  "buildQuerySpec — mealType",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -582,7 +582,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -606,7 +606,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -631,7 +631,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -656,7 +656,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -681,7 +681,7 @@
                                          "mealType":  "lunch",
                                          "matchRecent":  true
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -694,7 +694,7 @@
                       "group":  "isReferential",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -713,7 +713,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -737,7 +737,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -761,7 +761,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -774,7 +774,7 @@
                       "group":  "isReferential",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -799,7 +799,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -812,7 +812,7 @@
                       "group":  "new rules smoke tests",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -837,7 +837,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -850,7 +850,7 @@
                       "group":  "buildContextSnippet format",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -869,7 +869,7 @@
                                          "mealType":  "lunch",
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -882,7 +882,7 @@
                       "group":  "new rules smoke tests",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -895,7 +895,7 @@
                       "group":  "confidence scoring",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -920,7 +920,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -944,7 +944,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -968,7 +968,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -992,7 +992,7 @@
                                          "mealType":  null,
                                          "matchRecent":  true
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1005,7 +1005,7 @@
                       "group":  "Macro tolerance checker",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\macro_drift_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1030,7 +1030,7 @@
                                          "mealType":  "dinner",
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1043,7 +1043,7 @@
                       "group":  "buildQuerySpec — dateOffset",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1056,7 +1056,7 @@
                       "group":  "new rules smoke tests",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1075,7 +1075,7 @@
                                          "mealType":  "dinner",
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1099,7 +1099,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1112,7 +1112,7 @@
                       "group":  "confidence scoring",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1137,7 +1137,7 @@
                                          "mealType":  "dinner",
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1163,7 +1163,7 @@
                                          "mealType":  "dinner",
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1188,7 +1188,7 @@
                                          "mealType":  "dinner",
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1201,7 +1201,7 @@
                       "group":  "new rules smoke tests",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1220,7 +1220,7 @@
                                          "mealType":  null,
                                          "matchRecent":  true
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1233,7 +1233,7 @@
                       "group":  "buildQuerySpec — dateOffset",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1259,7 +1259,7 @@
                                          "mealType":  "dinner",
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1272,7 +1272,7 @@
                       "group":  "new rules smoke tests",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1291,7 +1291,7 @@
                                          "mealType":  "breakfast",
                                          "matchRecent":  true
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1304,7 +1304,7 @@
                       "group":  "Context snippet format",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\macro_drift_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1317,7 +1317,7 @@
                       "group":  "new rules smoke tests",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1330,7 +1330,7 @@
                       "group":  "isReferential",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1343,7 +1343,7 @@
                       "group":  "Macro tolerance checker",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\macro_drift_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1356,7 +1356,7 @@
                       "group":  "isReferential",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1369,7 +1369,7 @@
                       "group":  "new rules smoke tests",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1393,7 +1393,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1418,7 +1418,7 @@
                                          "mealType":  "breakfast",
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1431,7 +1431,7 @@
                       "group":  "Macro tolerance checker",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\macro_drift_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1455,7 +1455,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1474,7 +1474,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1498,7 +1498,7 @@
                                          "mealType":  null,
                                          "matchRecent":  true
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1524,7 +1524,7 @@
                                          "mealType":  "lunch",
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1537,7 +1537,7 @@
                       "group":  "buildQuerySpec — mealType",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1550,7 +1550,7 @@
                       "group":  "_resolveNamedDayOffset (via buildQuerySpec)",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1575,7 +1575,7 @@
                                          "mealType":  "dinner",
                                          "matchRecent":  true
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1600,7 +1600,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1613,7 +1613,7 @@
                       "group":  "isReferential",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1626,7 +1626,7 @@
                       "group":  "_resolveNamedDayOffset (via buildQuerySpec)",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1650,7 +1650,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1674,7 +1674,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1699,7 +1699,7 @@
                                          "mealType":  "breakfast",
                                          "matchRecent":  true
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1723,7 +1723,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1736,7 +1736,7 @@
                       "group":  "buildQuerySpec — dateOffset",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1761,7 +1761,7 @@
                                          "mealType":  "breakfast",
                                          "matchRecent":  true
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1774,7 +1774,7 @@
                       "group":  "buildQuerySpec — dateOffset",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1787,7 +1787,7 @@
                       "group":  "Context snippet format",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\macro_drift_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\macro_drift_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1800,7 +1800,7 @@
                       "group":  "isReferential",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1824,7 +1824,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1837,7 +1837,7 @@
                       "group":  "confidence scoring",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\reference_engine_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\reference_engine_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1861,7 +1861,7 @@
                                          "mealType":  null,
                                          "matchRecent":  false
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1885,7 +1885,7 @@
                                          "mealType":  null,
                                          "matchRecent":  true
                                      },
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\meal_memory\\scenarios_test.dart"
+                      "file":  "<repo>\\app\\test\\meal_memory\\scenarios_test.dart"
                   }
               ]
 }

@@ -7,3 +7,19 @@
 
 # AI scratch space — logs, screenshots, analysis artifacts
 scratch/
+
+# Cloudflare wrangler local cache (account id, deploy state) — machine-specific
+.wrangler/
+**/.wrangler/
+
+# Python bytecode cache (embeds absolute build paths)
+**/__pycache__/
+*.pyc
+
+# Raw per-layer test reports — local only. The committed dashboard reads from the
+# aggregated reports/history.jsonl + dashboard/data.js, both sanitized at source
+# by scripts/report_*.ps1 (relative paths, redacted apiTarget).
+reports/ai/
+reports/unit/
+reports/integration/
+reports/e2e/

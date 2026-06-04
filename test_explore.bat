@@ -2,7 +2,7 @@
 setlocal
 
 :: ── config ──────────────────────────────────────────────────────────────────
-set ADB=C:\Users\SCora\AppData\Local\Android\Sdk\platform-tools\adb.exe
+if defined ANDROID_ADB (set ADB=%ANDROID_ADB%) else (set ADB=%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe)
 set PKG=com.foodjournal.app
 set ACTIVITY=.MainActivity
 set SCREENSHOTS_DIR=%~dp0screenshots

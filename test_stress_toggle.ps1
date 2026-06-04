@@ -4,7 +4,7 @@ param(
     [switch]$Build
 )
 
-$ADB      = "C:\Users\SCora\AppData\Local\Android\Sdk\platform-tools\adb.exe"
+$ADB      = if ($env:ANDROID_ADB) { $env:ANDROID_ADB } else { Join-Path $env:LOCALAPPDATA "Android\Sdk\platform-tools\adb.exe" }
 $PKG      = "com.foodjournal.app"
 $ACTIVITY = ".MainActivity"
 $REPO     = $PSScriptRoot

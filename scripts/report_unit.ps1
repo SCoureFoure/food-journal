@@ -12,6 +12,18 @@ $OUT_FILE  = Join-Path $RPTS_UNIT "$TIMESTAMP.json"
 New-Item -ItemType Directory -Force -Path $RPTS_UNIT | Out-Null
 New-Item -ItemType Directory -Force -Path (Split-Path $HISTORY) | Out-Null
 
+# ── Sanitizer ──────────────────────────────────────────────────────────────────
+# Reports are committed — strip the absolute repo path (embeds local username)
+# to a relative path before persisting file paths / stack traces.
+$REPO_FWD = $REPO -replace '\\', '/'
+function Hide-Repo([string]$s) {
+    if (-not $s) { return $s }
+    foreach ($p in @("$REPO\", $REPO, "$REPO_FWD/", $REPO_FWD)) {
+        $s = $s -replace [regex]::Escape($p), ''
+    }
+    return $s
+}
+
 # Unit tests: models, services (non-AI), widgets, top-level files
 # Excludes meal_memory/ (ai layer) and integration/ (integration layer)
 $testPaths = @(
@@ -61,7 +73,7 @@ foreach ($line in $rawLines) {
                 if ($groups.ContainsKey($gid)) { $groupName = $groups[$gid] }
             }
             $filePath = ""
-            if ($t.url) { $filePath = ($t.url -replace '^file:///', '') -replace '/', '\' }
+            if ($t.url) { $filePath = Hide-Repo ((($t.url -replace '^file:///', '') -replace '/', '\')) }
             $tests["$($t.id)"] = @{
                 id         = "$($t.id)"
                 name       = [string]$t.name
@@ -85,7 +97,7 @@ foreach ($line in $rawLines) {
         "error" {
             $tid = "$($ev.testID)"
             if ($tests.ContainsKey($tid)) {
-                $tests[$tid].error = @{ message = [string]$ev.error; stack = [string]$ev.stackTrace }
+                $tests[$tid].error = @{ message = Hide-Repo ([string]$ev.error); stack = Hide-Repo ([string]$ev.stackTrace) }
             }
         }
         "print" {

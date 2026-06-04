@@ -12,6 +12,24 @@ $OUT_FILE  = Join-Path $RPTS_INT "$TIMESTAMP.json"
 New-Item -ItemType Directory -Force -Path $RPTS_INT | Out-Null
 New-Item -ItemType Directory -Force -Path (Split-Path $HISTORY) | Out-Null
 
+# ── Sanitizers ─────────────────────────────────────────────────────────────────
+# Reports are committed — strip the absolute repo path (which embeds the local
+# username) to a relative path, and redact the workers.dev account subdomain.
+$REPO_FWD = $REPO -replace '\\', '/'
+function Hide-Repo([string]$s) {
+    if (-not $s) { return $s }
+    foreach ($p in @("$REPO\", $REPO, "$REPO_FWD/", $REPO_FWD)) {
+        $s = $s -replace [regex]::Escape($p), ''
+    }
+    return $s
+}
+function Protect-Target([string]$url) {
+    if ($url -match '^(https?://)([^./]+)\.[^./]+\.workers\.dev(.*)$') {
+        return "$($Matches[1])$($Matches[2]).<redacted>.workers.dev$($Matches[3])"
+    }
+    return $url
+}
+
 $workerIndex = Join-Path $REPO "worker\src\index.js"
 $AI_MODEL = if (Test-Path $workerIndex) {
     $line = Get-Content $workerIndex | Select-String "models/" | Select-Object -First 1
@@ -73,7 +91,7 @@ foreach ($line in $rawLines) {
                 if ($groups.ContainsKey($gid)) { $groupName = $groups[$gid] }
             }
             $filePath = ""
-            if ($t.url) { $filePath = ($t.url -replace '^file:///', '') -replace '/', '\' }
+            if ($t.url) { $filePath = Hide-Repo ((($t.url -replace '^file:///', '') -replace '/', '\')) }
             $tests["$($t.id)"] = @{
                 id         = "$($t.id)"
                 name       = [string]$t.name
@@ -97,7 +115,7 @@ foreach ($line in $rawLines) {
         "error" {
             $tid = "$($ev.testID)"
             if ($tests.ContainsKey($tid)) {
-                $tests[$tid].error = @{ message = [string]$ev.error; stack = [string]$ev.stackTrace }
+                $tests[$tid].error = @{ message = Hide-Repo ([string]$ev.error); stack = Hide-Repo ([string]$ev.stackTrace) }
             }
         }
         "print" {
@@ -214,7 +232,7 @@ $report = [ordered]@{
         runner    = "flutter-test"
         model     = $AI_MODEL
         liveFire  = $true
-        apiTarget = $API_TARGET
+        apiTarget = Protect-Target $API_TARGET
         exitCode  = $EXIT_CODE
         label     = $Label
     }
@@ -241,7 +259,7 @@ $histEntry = [ordered]@{
     durationMs = $report.meta.durationMs
     passRate   = $rate
     liveFire   = $true
-    apiTarget  = $API_TARGET
+    apiTarget  = Protect-Target $API_TARGET
     model      = $AI_MODEL
     summary    = $report.summary
     generativeMetrics = $genMetrics

@@ -12,6 +12,18 @@ $OUT_FILE  = Join-Path $RPTS_AI "$TIMESTAMP.json"
 New-Item -ItemType Directory -Force -Path $RPTS_AI | Out-Null
 New-Item -ItemType Directory -Force -Path (Split-Path $HISTORY) | Out-Null
 
+# ── Sanitizer ──────────────────────────────────────────────────────────────────
+# Reports are committed — strip the absolute repo path (embeds local username)
+# to a relative path before persisting file paths / stack traces.
+$REPO_FWD = $REPO -replace '\\', '/'
+function Hide-Repo([string]$s) {
+    if (-not $s) { return $s }
+    foreach ($p in @("$REPO\", $REPO, "$REPO_FWD/", $REPO_FWD)) {
+        $s = $s -replace [regex]::Escape($p), ''
+    }
+    return $s
+}
+
 $workerIndex = Join-Path $REPO "worker\src\index.js"
 $AI_MODEL = if (Test-Path $workerIndex) {
     $line = Get-Content $workerIndex | Select-String "models/" | Select-Object -First 1
@@ -68,7 +80,7 @@ foreach ($line in $rawLines) {
                 if ($groups.ContainsKey($gid)) { $groupName = $groups[$gid] }
             }
             $filePath = ""
-            if ($t.url) { $filePath = ($t.url -replace '^file:///', '') -replace '/', '\' }
+            if ($t.url) { $filePath = Hide-Repo ((($t.url -replace '^file:///', '') -replace '/', '\')) }
             $tests["$($t.id)"] = @{
                 id         = "$($t.id)"
                 name       = [string]$t.name
@@ -93,8 +105,8 @@ foreach ($line in $rawLines) {
             $tid = "$($ev.testID)"
             if ($tests.ContainsKey($tid)) {
                 $tests[$tid].error = @{
-                    message = [string]$ev.error
-                    stack   = [string]$ev.stackTrace
+                    message = Hide-Repo ([string]$ev.error)
+                    stack   = Hide-Repo ([string]$ev.stackTrace)
                 }
             }
         }

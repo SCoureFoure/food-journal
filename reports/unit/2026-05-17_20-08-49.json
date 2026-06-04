@@ -105,7 +105,7 @@
                       "group":  "[BVA] ImportSelection.totalCount ΓÇö boundary",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                      "file":  "<repo>\\app\\test\\services\\import_selection_test.dart"
                   },
                   {
                       "failure":  null,
@@ -153,7 +153,7 @@
                       "group":  "[MFT] ImportService.parseJson",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                      "file":  "<repo>\\app\\test\\export_import_test.dart"
                   },
                   {
                       "failure":  null,
@@ -169,7 +169,7 @@
                       "group":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\food_item_draft_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\food_item_draft_test.dart"
                   },
                   {
                       "failure":  null,
@@ -201,7 +201,7 @@
                       "group":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\food_item_draft_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\food_item_draft_test.dart"
                   },
                   {
                       "failure":  null,
@@ -233,7 +233,7 @@
                       "group":  "[BVA] WorkerAiService ΓÇö empty URL guard",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\worker_ai_service_test.dart"
+                      "file":  "<repo>\\app\\test\\services\\worker_ai_service_test.dart"
                   },
                   {
                       "failure":  null,
@@ -281,7 +281,7 @@
                       "group":  "[BVA] ReactionLevel ΓÇö fromLabel boundary",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\reaction_level_test.dart"
                   },
                   {
                       "failure":  null,
@@ -313,7 +313,7 @@
                       "group":  "[MFT] ImportService.parseJson",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                      "file":  "<repo>\\app\\test\\export_import_test.dart"
                   },
                   {
                       "failure":  null,
@@ -345,7 +345,7 @@
                       "group":  "[MFT] ImportService.parseJson",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                      "file":  "<repo>\\app\\test\\export_import_test.dart"
                   },
                   {
                       "failure":  null,
@@ -393,7 +393,7 @@
                       "group":  "[MFT] ExportService static helpers",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                      "file":  "<repo>\\app\\test\\export_import_test.dart"
                   },
                   {
                       "failure":  null,
@@ -441,7 +441,7 @@
                       "group":  "[MFT] ImportSelection.totalCount",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                      "file":  "<repo>\\app\\test\\services\\import_selection_test.dart"
                   },
                   {
                       "failure":  null,
@@ -457,7 +457,7 @@
                       "group":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\food_item_draft_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\food_item_draft_test.dart"
                   },
                   {
                       "failure":  null,
@@ -473,7 +473,7 @@
                       "group":  "[MFT] ReactionLevel ΓÇö label",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\reaction_level_test.dart"
                   },
                   {
                       "failure":  null,
@@ -489,7 +489,7 @@
                       "group":  "[BVA] MealImportRecord.dupeKey ΓÇö edge cases",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                      "file":  "<repo>\\app\\test\\services\\import_selection_test.dart"
                   },
                   {
                       "failure":  null,
@@ -569,7 +569,7 @@
                       "group":  "[BVA] ImportService.parseJson ΓÇö edge inputs",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                      "file":  "<repo>\\app\\test\\export_import_test.dart"
                   },
                   {
                       "failure":  null,
@@ -633,7 +633,7 @@
                       "group":  "[BVA] MealImportRecord.dupeKey ΓÇö edge cases",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                      "file":  "<repo>\\app\\test\\services\\import_selection_test.dart"
                   },
                   {
                       "failure":  null,
@@ -665,7 +665,7 @@
                       "group":  "[MFT] ReactionLevel ΓÇö label",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\reaction_level_test.dart"
                   },
                   {
                       "failure":  null,
@@ -681,7 +681,7 @@
                       "group":  "[BVA] ReactionLevel ΓÇö fromLabel boundary",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\reaction_level_test.dart"
                   },
                   {
                       "failure":  null,
@@ -697,7 +697,7 @@
                       "group":  "[INV] ReactionLevel ΓÇö int round-trip",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\reaction_level_test.dart"
                   },
                   {
                       "failure":  null,
@@ -713,7 +713,7 @@
                       "group":  "[INV] ReactionLevel ΓÇö fromLabel round-trip",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\reaction_level_test.dart"
                   },
                   {
                       "failure":  null,
@@ -729,7 +729,7 @@
                       "group":  "[BVA] ReactionLevel ΓÇö int boundary",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\reaction_level_test.dart"
                   },
                   {
                       "failure":  null,
@@ -761,7 +761,7 @@
                       "group":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\food_item_draft_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\food_item_draft_test.dart"
                   },
                   {
                       "failure":  null,
@@ -793,7 +793,7 @@
                       "group":  "[MFT] MealImportRecord.dupeKey",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                      "file":  "<repo>\\app\\test\\services\\import_selection_test.dart"
                   },
                   {
                       "failure":  null,
@@ -809,7 +809,7 @@
                       "group":  "[MFT] MealImportRecord.dupeKey",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                      "file":  "<repo>\\app\\test\\services\\import_selection_test.dart"
                   },
                   {
                       "failure":  null,
@@ -841,7 +841,7 @@
                       "group":  "[Scenario] FoodItemDraft.fromJson",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\food_item_draft_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\food_item_draft_test.dart"
                   },
                   {
                       "failure":  null,
@@ -857,7 +857,7 @@
                       "group":  "[MFT] ImportSelection.totalCount",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                      "file":  "<repo>\\app\\test\\services\\import_selection_test.dart"
                   },
                   {
                       "failure":  null,
@@ -873,7 +873,7 @@
                       "group":  "[INV] ExportService ΓÇö round-trip",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                      "file":  "<repo>\\app\\test\\export_import_test.dart"
                   },
                   {
                       "failure":  null,
@@ -889,7 +889,7 @@
                       "group":  "[INV] ReactionLevel ΓÇö name round-trip",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\reaction_level_test.dart"
                   },
                   {
                       "failure":  null,
@@ -921,7 +921,7 @@
                       "group":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\food_item_draft_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\food_item_draft_test.dart"
                   },
                   {
                       "failure":  null,
@@ -937,7 +937,7 @@
                       "group":  "",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\widget_test.dart"
+                      "file":  "<repo>\\app\\test\\widget_test.dart"
                   },
                   {
                       "failure":  null,
@@ -969,7 +969,7 @@
                       "group":  "[BVA] WorkerAiService ΓÇö empty URL guard",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\worker_ai_service_test.dart"
+                      "file":  "<repo>\\app\\test\\services\\worker_ai_service_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1001,7 +1001,7 @@
                       "group":  "[MFT] ExportService static helpers",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                      "file":  "<repo>\\app\\test\\export_import_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1017,7 +1017,7 @@
                       "group":  "[MFT] ImportService.parseJson",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                      "file":  "<repo>\\app\\test\\export_import_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1033,7 +1033,7 @@
                       "group":  "[BVA] ReactionLevel ΓÇö byName boundary",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\reaction_level_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1049,7 +1049,7 @@
                       "group":  "[BVA] ImportService.parseJson ΓÇö edge inputs",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                      "file":  "<repo>\\app\\test\\export_import_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1065,7 +1065,7 @@
                       "group":  "[MFT] ImportService.parseJson",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                      "file":  "<repo>\\app\\test\\export_import_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1081,7 +1081,7 @@
                       "group":  "[MFT] ExportService static helpers",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                      "file":  "<repo>\\app\\test\\export_import_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1129,7 +1129,7 @@
                       "group":  "[BVA] WorkerAiService ΓÇö missing input guard",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\worker_ai_service_test.dart"
+                      "file":  "<repo>\\app\\test\\services\\worker_ai_service_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1177,7 +1177,7 @@
                       "group":  "[MFT] MealImportRecord.dupeKey",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                      "file":  "<repo>\\app\\test\\services\\import_selection_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1225,7 +1225,7 @@
                       "group":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\food_item_draft_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\food_item_draft_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1257,7 +1257,7 @@
                       "group":  "[BVA] WorkerAiService ΓÇö empty URL guard",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\worker_ai_service_test.dart"
+                      "file":  "<repo>\\app\\test\\services\\worker_ai_service_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1273,7 +1273,7 @@
                       "group":  "[MFT] ImportService.parseJson",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                      "file":  "<repo>\\app\\test\\export_import_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1305,7 +1305,7 @@
                       "group":  "[BVA] FoodItemDraft.fromJson ΓÇö edge inputs",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\food_item_draft_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\food_item_draft_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1401,7 +1401,7 @@
                       "group":  "[BVA] MealImportRecord.dupeKey ΓÇö edge cases",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\services\\import_selection_test.dart"
+                      "file":  "<repo>\\app\\test\\services\\import_selection_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1433,7 +1433,7 @@
                       "group":  "[MFT] ExportService static helpers",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                      "file":  "<repo>\\app\\test\\export_import_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1449,7 +1449,7 @@
                       "group":  "[INV] ReactionLevel ΓÇö int round-trip",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\models\\reaction_level_test.dart"
+                      "file":  "<repo>\\app\\test\\models\\reaction_level_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1465,7 +1465,7 @@
                       "group":  "[MFT] ImportService.parseJson",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                      "file":  "<repo>\\app\\test\\export_import_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1481,7 +1481,7 @@
                       "group":  "[BVA] ImportService.parseJson ΓÇö edge inputs",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                      "file":  "<repo>\\app\\test\\export_import_test.dart"
                   },
                   {
                       "failure":  null,
@@ -1497,7 +1497,7 @@
                       "group":  "[MFT] ImportService.parseJson",
                       "status":  "pass",
                       "testOutput":  null,
-                      "file":  "C:\\Users\\SCora\\Documents\\Repositories\\food-journal\\app\\test\\export_import_test.dart"
+                      "file":  "<repo>\\app\\test\\export_import_test.dart"
                   }
               ]
 }
