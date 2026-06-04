@@ -193,7 +193,10 @@ Probe:
 - Date string format: does `_toDateString` match what `_queryFingerprints` queries?
 
 ### Step 9 — Medication parsing coverage
-File: `app/lib/services/anthropic_ai_service.dart` (or equivalent)
+Interface: `app/lib/services/ai_service.dart` (`AiService.parseMedication`,
+`MedicationParseResult`). Impl: `app/lib/services/worker_ai_service.dart` — POSTs
+`task: parse_medication` to the Worker (Gemini); app holds no LLM key. The actual
+parse prompt lives in the Worker (Step 10), not in the app.
 
 Apply full validation framework to medication parsing:
 - MFT: 10 canonical drugs must parse correctly (name, dose, unit)
