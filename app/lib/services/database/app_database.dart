@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
+import '../../models/food_entity.dart';
+
 part 'app_database.g.dart';
 
 // ─── Tables ───────────────────────────────────────────────────────────────────
@@ -29,6 +31,10 @@ class FoodItems extends Table {
   IntColumn get reaction => integer().withDefault(const Constant(0))(); // ReactionLevel index
   TextColumn get notes => text().nullable()();
   IntColumn get servings => integer().withDefault(const Constant(1))();
+  // Canonical identity (lowercase/trim/punct-collapsed name) for cross-log
+  // accumulation. Computed at save via canonicalize(). See
+  // specs/food_entity_resolution.spec.md.
+  TextColumn get canonicalName => text().nullable()();
 }
 
 class Ingredients extends Table {
@@ -87,6 +93,8 @@ class Medications extends Table {
   TextColumn get notes => text().nullable()();
   BlobColumn get imageData => blob().nullable()();
   DateTimeColumn get createdAt => dateTime()();
+  // Canonical identity — see FoodItems.canonicalName.
+  TextColumn get canonicalName => text().nullable()();
 }
 
 class MealFingerprints extends Table {
@@ -142,11 +150,11 @@ class AppDatabase extends _$AppDatabase {
 
   // Exposed as a static constant so tests can assert the current version
   // without instantiating the singleton (which requires native sqlite3).
-  static const int currentSchemaVersion = 11;
+  static const int currentSchemaVersion = 12;
 
   // The declared migration ceiling versions in the order they appear in
   // onUpgrade.  Must be non-decreasing — tested in migration_order_test.dart.
-  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -289,8 +297,33 @@ class AppDatabase extends _$AppDatabase {
           'CREATE INDEX IF NOT EXISTS idx_suspicion_log ON food_suspicions(reaction_log_id)',
         );
       }
+      if (from < 12) {
+        await customStatement(
+          'ALTER TABLE food_items ADD COLUMN canonical_name TEXT',
+        );
+        await customStatement(
+          'ALTER TABLE medications ADD COLUMN canonical_name TEXT',
+        );
+        // Backfill existing rows with the real canonicalize() (SQLite has no
+        // regex; applying the Dart fn keeps the key identical to new saves).
+        await _backfillCanonicalNames('food_items');
+        await _backfillCanonicalNames('medications');
+      }
     },
   );
+
+  /// Populates [table].canonical_name from its raw `name` using [canonicalize],
+  /// so historical rows share buckets with freshly-saved ones (v12 backfill).
+  Future<void> _backfillCanonicalNames(String table) async {
+    final rows =
+        await customSelect('SELECT id, name FROM $table').get();
+    for (final r in rows) {
+      await customStatement(
+        'UPDATE $table SET canonical_name = ? WHERE id = ?',
+        [canonicalize(r.read<String>('name')), r.read<int>('id')],
+      );
+    }
+  }
 
   static QueryExecutor _openConnection() {
     return driftDatabase(name: 'food_journal');

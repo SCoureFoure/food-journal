@@ -22,6 +22,9 @@ class _FakeStorage extends StorageService {
   final List<int> deleted = [];
   int _nextId = 1;
 
+  /// History returned by the reuse-nudge lookup. Empty = no chip.
+  List<Medication> history = const [];
+
   @override
   Future<int> saveMedication(Medication med) async {
     saved.add(med);
@@ -33,6 +36,10 @@ class _FakeStorage extends StorageService {
 
   @override
   Future<void> deleteMedication(int medId) async => deleted.add(medId);
+
+  @override
+  Future<List<Medication>> searchMedicationHistory(String query, {int limit = 30}) async =>
+      history;
 }
 
 class _FakeAi implements AiService {
@@ -313,5 +320,65 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(storage.deleted, contains(7));
+  });
+
+  // ─── Layer B reuse nudge (food_entity_resolution AC17, AC18) ──────────────
+
+  group('[food_entity_resolution] reuse nudge', () {
+    _FakeStorage withHistory() => _FakeStorage()
+      ..history = [
+        Medication(
+          date: DateTime(2026, 6, 1),
+          time: '9:00 AM',
+          name: 'Vitamin D3',
+          dose: 2000,
+          unit: 'mcg',
+          route: 'oral',
+          createdAt: DateTime(2026, 6, 1),
+        ),
+      ];
+
+    Future<void> typeName(WidgetTester tester, String text) async {
+      await tester.enterText(_field('log-med-name'), text);
+      await tester.pump(const Duration(milliseconds: 450)); // fire debounce
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('AC17: close med match shows chip; tap adopts name + dose', (tester) async {
+      final storage = withHistory();
+      await tester.pumpWidget(_screen(storage: storage, settings: _FakeSettings(aiEnabled: false)));
+      await tester.pumpAndSettle();
+
+      await typeName(tester, 'vitamin d3 2000 iu');
+      expect(_bySemanticsId('med-reuse-suggestion'), findsOneWidget,
+          reason: 'AC17: close match surfaces the chip');
+
+      await tester.tap(find.text('Reuse "Vitamin D3"'));
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<TextField>(_field('log-med-name')).controller!.text,
+          'Vitamin D3',
+          reason: 'AC17: name adopted');
+      expect(tester.widget<TextField>(_field('log-med-dose')).controller!.text,
+          '2000',
+          reason: 'AC17: dose adopted');
+      expect(_bySemanticsId('med-reuse-suggestion'), findsNothing,
+          reason: 'AC17: chip gone after adopt');
+    });
+
+    testWidgets('AC18: ignoring the chip saves the raw typed name', (tester) async {
+      final storage = withHistory();
+      await tester.pumpWidget(_screen(storage: storage, settings: _FakeSettings(aiEnabled: false)));
+      await tester.pumpAndSettle();
+
+      await typeName(tester, 'vitamin d3 2000 iu');
+      expect(_bySemanticsId('med-reuse-suggestion'), findsOneWidget);
+
+      await _tapSave(tester);
+      await tester.pumpAndSettle();
+
+      expect(storage.saved.single.name, 'vitamin d3 2000 iu',
+          reason: 'AC18: nudge never auto-applies — raw name persists, save not blocked');
+    });
   });
 }

@@ -107,7 +107,7 @@ lib/
 │   ├── settings_service.dart        # AI toggle (shared_preferences)
 │   ├── seed_service.dart            # debug seed data
 │   ├── database/
-│   │   ├── app_database.dart        # drift schema (v4) + migration strategy
+│   │   ├── app_database.dart        # drift schema (v12) + migration strategy
 │   │   └── app_database.g.dart      # generated
 │   └── meal_memory/
 │       ├── meal_memory_service.dart # isReferential / buildContextSnippet / recordFingerprint
@@ -135,24 +135,22 @@ lib/
 
 ## Database Schema
 
-Schema version: **4**. Managed by drift with an explicit `MigrationStrategy`.
+Schema version: **12**. Managed by drift with an explicit `MigrationStrategy`. Migration history in `app_database.dart`; each step is verified in `migration_order_test.dart`.
 
 ```
-┌─────────────────────┐       ┌──────────────────────┐
-│   meals             │       │   food_items          │
-├─────────────────────┤       ├──────────────────────┤
-│ id (PK)             │──┐    │ id (PK)               │
-│ date                │  └───▶│ meal_id (FK → meals)  │
-│ time                │       │ name                  │
-│ meal_type           │       │ portion               │
-│ raw_input           │       │ prep                  │
-│ overall_symptoms    │       │ calories              │
-│ image_data (BLOB)   │       │ protein               │
-│ created_at          │       │ carbs                 │
-└─────────────────────┘       │ fat                   │
-                              │ reaction (int index)  │
-                              │ notes                 │
-                              └──────────┬────────────┘
+┌─────────────────────┐       ┌──────────────────────────┐
+│   meals             │       │   food_items              │
+├─────────────────────┤       ├──────────────────────────┤
+│ id (PK)             │──┐    │ id (PK)                   │
+│ date                │  └───▶│ meal_id (FK → meals)      │
+│ time                │       │ name                      │
+│ meal_type           │       │ canonical_name  ← v12     │
+│ raw_input           │       │ portion / prep            │
+│ overall_symptoms    │       │ calories / protein        │
+│ image_data (BLOB)   │       │ carbs / fat               │
+│ created_at          │       │ reaction (int index)      │
+└─────────────────────┘       │ notes / servings          │
+                              └──────────┬────────────────┘
                                          │
                              ┌───────────┘
                              ▼
@@ -161,9 +159,7 @@ Schema version: **4**. Managed by drift with an explicit `MigrationStrategy`.
                    ├──────────────────────┤
                    │ id (PK)              │
                    │ food_item_id (FK)    │
-                   │ name                 │
-                   │ quantity             │
-                   │ unit                 │
+                   │ name / quantity / unit│
                    └──────────────────────┘
 
 ┌──────────────────────┐       ┌──────────────────────┐
@@ -173,38 +169,61 @@ Schema version: **4**. Managed by drift with an explicit `MigrationStrategy`.
 │ meal_id (nullable FK)│       │ food_name (UNIQUE)   │
 │ checkin_time         │       │ reaction_pattern     │
 │ symptoms (JSON)      │       │ occurrences          │
-│ severity (int index) │       │ last_seen            │
-│ notes                │       │ flagged              │
-└──────────────────────┘       └──────────────────────┘
-  meal_id = null → standalone
-  "Feeling…" log (no linked meal)
+│ severity (int)       │       │ last_seen            │
+│ mood (int, nullable) │       │ flagged / favorited  │
+│ symptom_levels (JSON)│       └──────────────────────┘
+│ notes                │
+└──────────┬───────────┘
+           │ ON DELETE CASCADE
+           ▼
+┌──────────────────────────────────────────────────────┐
+│  food_suspicions  (blame ledger — v11)               │
+├──────────────────────────────────────────────────────┤
+│ id (PK)                                              │
+│ reaction_log_id (FK → reaction_logs CASCADE)         │
+│ symptom (text)                                       │
+│ target_type ('food' | 'medication')                  │
+│ target_id (food_items.id | medications.id)           │
+│ target_name (canonical — groups across re-entries)   │
+│ base_weight (REAL — ReactionLevel severity index)    │
+│ source ('auto' | 'manual')                           │
+│ created_at (INTEGER — decay input)                   │
+│ INDEX (target_name, symptom) — aggregation           │
+│ INDEX (reaction_log_id)      — edit / cascade        │
+└──────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────┐
 │  medications                                         │
 ├──────────────────────────────────────────────────────┤
 │ id (PK)  date  time  name                           │
+│ canonical_name  ← v12                                │
 │ dose  unit  route                                    │
 │ checkin_delay_minutes  raw_input  notes              │
 │ image_data (BLOB)  created_at                        │
 └──────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────┐
-│  meal_fingerprints   (rolling 40-row window)         │
+│  meal_fingerprints  (rolling 40-row window)          │
 ├──────────────────────────────────────────────────────┤
-│ id (PK)                                              │
-│ meal_id (FK → meals, ON DELETE CASCADE)              │
-│ date (ISO 8601 text)                                 │
-│ meal_type (nullable text)                            │
-│ foods_summary (text)                                 │
-│ total_cals  total_protein                            │
+│ id (PK)  meal_id (FK CASCADE)  date (ISO text)      │
+│ meal_type  foods_summary  total_cals  total_protein  │
 │ created_at (Unix ms)                                 │
-│                                                      │
-│ INDEX: (date DESC)                                   │
-│ INDEX: (meal_type, date DESC)                        │
+│ INDEX (date DESC)  INDEX (meal_type, date DESC)      │
 └──────────────────────────────────────────────────────┘
-  Used by MealMemoryService to build context snippets
-  for temporal-referential prompts without full-history joins.
+  Used by MealMemoryService for temporal-ref context snippets.
+
+┌────────────────────┐  ┌────────────────────┐  ┌─────────────────────┐
+│  water_logs        │  │  weight_logs       │  │  saved_items        │
+├────────────────────┤  ├────────────────────┤  ├─────────────────────┤
+│ id  date  time     │  │ id  date  time     │  │ id  name            │
+│ amount_ml  notes   │  │ weight_value  unit │  │ calories/protein    │
+│ created_at         │  │ notes  created_at  │  │ carbs/fat           │
+└────────────────────┘  └────────────────────┘  │ components_json     │
+                                                 │ created_at          │
+                                                 └─────────────────────┘
 ```
+
+**canonical_name** (v12) — every `food_items` and `medications` row stores a normalized entity key (`canonicalize()`: lowercase → strip punct → collapse whitespace). Blame ledger groups on this key so the same food re-entered with different spelling/casing accumulates in one suspicion bucket. Backfilled for all existing rows on migration.
 
 > **body_outputs** is NOT implemented. It is listed as a stretch feature in FEATURES.md.
 

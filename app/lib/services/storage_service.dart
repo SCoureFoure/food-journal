@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
+import '../models/food_entity.dart';
 import '../models/food_item.dart';
 import '../models/food_memory.dart';
 import '../models/food_suspicion.dart';
@@ -58,6 +59,7 @@ class StorageService {
             reaction: Value(item.reaction.toInt()),
             notes: Value(item.notes),
             servings: Value(item.servings),
+            canonicalName: Value(canonicalize(item.name)),
           ),
         );
 
@@ -214,6 +216,7 @@ class StorageService {
             reaction: Value(item.reaction.toInt()),
             notes: Value(item.notes),
             servings: Value(item.servings),
+            canonicalName: Value(canonicalize(item.name)),
           ),
         );
         for (final ing in ingredientsByItem[i]) {
@@ -278,6 +281,7 @@ class StorageService {
         rawInput: Value(med.rawInput),
         notes: Value(med.notes),
         imageData: Value(med.imageData),
+        canonicalName: Value(canonicalize(med.name)),
       ),
     );
   }
@@ -300,6 +304,7 @@ class StorageService {
         notes: Value(med.notes),
         imageData: Value(med.imageData),
         createdAt: med.createdAt,
+        canonicalName: Value(canonicalize(med.name)),
       ),
     );
   }
@@ -317,6 +322,28 @@ class StorageService {
   Future<Medication?> getMedicationById(int id) async {
     final row = await (_db.select(_db.medications)..where((t) => t.id.equals(id))).getSingleOrNull();
     return row == null ? null : _medicationFromRow(row);
+  }
+
+  /// Distinct past medications for the reuse nudge — one row per canonical
+  /// identity, most-recently-logged first, carrying that log's dose/unit/route
+  /// so the nudge can adopt the whole entry. [query] substring-filters by name
+  /// (empty = all). Parallels [searchFoodHistory] for meds.
+  /// See specs/food_entity_resolution.spec.md.
+  Future<List<Medication>> searchMedicationHistory(String query, {int limit = 30}) async {
+    final rows = await (_db.select(_db.medications)
+          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+        .get();
+    final q = query.trim().toLowerCase();
+    final seen = <String>{};
+    final out = <Medication>[];
+    for (final r in rows) {
+      final canon = r.canonicalName ?? canonicalize(r.name);
+      if (canon.isEmpty || !seen.add(canon)) continue;
+      if (q.isNotEmpty && !r.name.toLowerCase().contains(q)) continue;
+      out.add(_medicationFromRow(r));
+      if (out.length >= limit) break;
+    }
+    return out;
   }
 
   Future<List<Medication>> getMedicationsInRange({DateTime? from, DateTime? to}) async {
@@ -422,6 +449,7 @@ class StorageService {
           type: SuspicionTargetType.food,
           targetId: item.id,
           name: item.name,
+          canonicalName: item.canonicalName ?? canonicalize(item.name),
           timestamp: ts,
           subtitle: item.portion,
         ));
@@ -445,6 +473,7 @@ class StorageService {
         type: SuspicionTargetType.medication,
         targetId: med.id,
         name: med.name,
+        canonicalName: med.canonicalName ?? canonicalize(med.name),
         timestamp: ts,
         subtitle: dose,
       ));

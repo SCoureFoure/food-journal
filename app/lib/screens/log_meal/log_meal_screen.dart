@@ -582,6 +582,9 @@ class _LogMealScreenState extends State<LogMealScreen> {
                       key: ValueKey(i),
                       data: _foodItems[i],
                       onDelete: () => _removeItem(i),
+                      reuseStorage: _storage,
+                      reuseSemanticsId: 'food-reuse-suggestion-$i',
+                      enabled: !_isSaving,
                     ),
                   ),
                   if (_errorMessage != null) ...[

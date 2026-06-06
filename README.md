@@ -30,6 +30,8 @@ Mobile-first journal for tracking meals, macros, ingredients, medications, water
 ### Food history & saved items
 
 - **Food history search** — search any food item logged in the past; one tap re-uses it in the current meal
+- **Reuse nudge** — while typing a food or medication name, a debounced fuzzy-token match runs against recent history; a chip appears when a close match is found (`Reuse "Turkey Sandwich"`). One tap adopts the name + macros. No match → no chip → zero extra clicks. Fuzzy-token Jaccard (threshold 0.5, length-gated character-trigram fallback) catches compound variants (`hamburger` → `burger`) and wording variants, while blocking false merges (`turkey sandwich` / `tuna sandwich`)
+- **Entity resolution** — every saved food/med gets a `canonical_name` (lowercase, whitespace/punctuation collapsed). Blame and future dashboards group on canonical identity so the same food logged with different phrasing accumulates in one bucket
 - **Favorites** — star foods in history or food memory; filter history to favorites-only for quick re-use
 - **Saved items** — create named food templates with macros (e.g., "My Protein Shake — 300 cal / 40g protein"); insert into any meal log with one tap
 
@@ -37,6 +39,7 @@ Mobile-first journal for tracking meals, macros, ingredients, medications, water
 
 - Push notification ~90 min after each meal/medication save (configurable delay)
 - Check-in screen: multi-select symptoms, severity (none/mild/moderate/bad), notes
+- **Blame ledger** — on every check-in with symptoms, every food/med logged in the prior 16h is auto-suspected; user can manually blame specific items from a 24h window. Suspicions accumulate per `(item, symptom)` across all logs with severity weighting — the basis for "what bloats me most" queries
 - **Food memory** — automatically flags foods with 2+ non-none reactions; configurable lookback window (30 / 90 / 180 days / all time)
 - Flagged foods show a warning badge anywhere they appear in the feed
 
@@ -82,7 +85,7 @@ Standalone Feeling logs (`FAB → Feeling`) save a `ReactionLog` with no linked 
 | ------- | ----------- | ----- |
 | UI | Flutter (Dart) | Android primary, iOS same codebase |
 | AI | Cloudflare Worker + Gemini | `MEAL_PARSER_URL` in `.env`; handles `parse_meal` and `parse_medication` tasks; auto-retries once on 503 |
-| Storage | drift (SQLite) | Local only; schema v10 is a stable contract |
+| Storage | drift (SQLite) | Local only; schema v12 is a stable contract |
 | Settings | shared_preferences | AI toggle (`ai_enabled`); persists across launches |
 | Notifications | flutter_local_notifications | Post-entry check-in, ~90 min configurable delay |
 | Camera | image_picker | Camera primary, gallery fallback |
@@ -92,7 +95,7 @@ Standalone Feeling logs (`FAB → Feeling`) save a `ReactionLog` with no linked 
 
 **AI-optional** — every AI-powered flow has a complete manual fallback. AI pre-fills; it never blocks. If the API is unavailable, the key is missing, or the user has toggled AI off in Settings — the manual entry form shows directly.
 
-**Schema as contract** — the SQLite schema (v10) is a stable API. No column rename or removal without a drift migration and a corresponding integration test. AI-parsed JSON is validated before any DB write.
+**Schema as contract** — the SQLite schema (v12) is a stable API. No column rename or removal without a drift migration and a corresponding integration test. AI-parsed JSON is validated before any DB write.
 
 **Services as tool interface** — service methods are designed to be exposable as Claude tool-use functions (clear typed inputs/outputs, single responsibility). Forward-compatible for an agentic AI layer calling services as tools.
 
@@ -113,15 +116,32 @@ Solves "I had the leftovers from last night" without a round-trip or a vector DB
 
 The Python reference implementation lives in [`docs/meal_memory_starter/`](docs/meal_memory_starter/) — pattern engine, domain rules, and agent brief explaining the design decisions.
 
-### Food history & saved items — `app/lib/widgets/`
+### Food history, saved items & reuse nudge — `app/lib/widgets/`
 
-Two bottom-sheet pickers surfaced inside the meal log screen:
-
-- [`food_history_search_sheet.dart`](app/lib/widgets/food_history_search_sheet.dart) — full-text search over every food item ever logged; togglable favorites-only filter; selecting an item pre-fills a new food item row with all prior macros
-- [`saved_items_sheet.dart`](app/lib/widgets/saved_items_sheet.dart) — manage and insert named food templates with stored macros (e.g., protein shakes, recurring snacks)
+- [`food_history_search_sheet.dart`](app/lib/widgets/food_history_search_sheet.dart) — full-text search over every food item ever logged; togglable favorites-only filter; selecting pre-fills a new food item row with all prior macros
+- [`saved_items_sheet.dart`](app/lib/widgets/saved_items_sheet.dart) — manage and insert named food templates with stored macros
 - [`create_saved_item_sheet.dart`](app/lib/widgets/create_saved_item_sheet.dart) — create/edit a saved item template
+- [`editable_food_item_card.dart`](app/lib/widgets/editable_food_item_card.dart) — food item card with inline reuse nudge (debounced fuzzy lookup → chip on match)
+- [`reuse_suggestion.dart`](app/lib/widgets/reuse_suggestion.dart) — `ReuseSuggestionChip`: adopt tap + dismiss ×
 
-Favorites are stored on `FoodMemories.favorited`; saved items live in the `SavedItems` table.
+Favorites on `FoodMemories.favorited`; saved items in `SavedItems`; entity keys on `food_items.canonical_name` / `medications.canonical_name`.
+
+### Entity resolution — `app/lib/models/food_entity.dart`
+
+Pure, offline, no AI. Two exports:
+
+- `canonicalize(name)` — lowercase → strip punct → collapse whitespace. The single normalization written to `canonical_name` at save and used by the matcher.
+- `bestNameMatch(typed, candidates)` — fuzzy-token Jaccard (threshold 0.5). Finds the best history candidate. Powers the reuse nudge chip.
+
+### Blame ledger — `app/lib/models/food_suspicion.dart`
+
+Pure functions (testable without native sqlite):
+
+- `buildSuspicionRows()` — fan-out: one row per `(symptom × candidate)`, auto + manual sources
+- `aggregateSuspicions()` — sum effective weight by `(targetName, symptom)`
+- `isWithinBlameWindow()` / `suspicionWeightFor()` / `effectiveSuspicionWeight()`
+
+SQL path in `StorageService.applyBlame()` + `getSuspicionScores()`.
 
 ### Test suite — `app/test/`
 
@@ -129,8 +149,8 @@ Three tiers:
 
 | Tier | Location | What it covers |
 | ------ | ---------- | --------------- |
-| Deterministic unit | [`test/meal_memory/`](app/test/meal_memory/) | Temporal logic, invariance, directional scoring, macro drift — ~145 tests, no network |
-| Widget | [`test/widgets/`](app/test/widgets/) | UI component rendering and interaction |
+| Deterministic unit | [`test/models/`](app/test/models/), [`test/meal_memory/`](app/test/meal_memory/), [`test/services/`](app/test/services/) | Pure logic: entity resolution, blame ledger, meal memory — 200+ tests, no network |
+| Widget | [`test/widgets/`](app/test/widgets/) | UI component rendering and interaction (~420 total with all tiers) |
 | Live AI integration | [`test/integration/ai/`](app/test/integration/ai/) | Real API calls; structural + semantic contracts on parse output; requires `.env` |
 
 Testing data flow (LLM-judge pipeline for validating AI output quality): [`docs/testing_data_flow.md`](docs/testing_data_flow.md)
@@ -149,17 +169,25 @@ Testing data flow (LLM-judge pipeline for validating AI output quality): [`docs/
 app/
 ├── lib/
 │   ├── main.dart
-│   ├── models/                       # Dart data classes
+│   ├── models/
+│   │   ├── food_entity.dart          # canonicalize(), bestNameMatch(), fuzzy-token Jaccard
+│   │   ├── food_suspicion.dart       # blame ledger types + pure logic (buildSuspicionRows etc.)
+│   │   ├── food_item.dart            # FoodItem, FoodItemDraft, ReactionLevel
+│   │   ├── food_memory.dart
+│   │   ├── meal_entry.dart
+│   │   ├── medication.dart
+│   │   ├── reaction_log.dart
+│   │   └── ...
 │   ├── services/
 │   │   ├── ai_service.dart           # AiService interface + result types + factory
 │   │   ├── worker_ai_service.dart    # Cloudflare Worker / Gemini impl (sole)
-│   │   ├── storage_service.dart      # drift DB abstraction
+│   │   ├── storage_service.dart      # drift DB abstraction (schema v12)
 │   │   ├── notification_service.dart
 │   │   ├── export_service.dart       # CSV + grocery list
 │   │   ├── import_service.dart       # JSON import (dupe-detect + merge)
 │   │   ├── settings_service.dart
 │   │   ├── seed_service.dart         # dev seed data
-│   │   ├── database/                 # drift schema + generated code
+│   │   ├── database/                 # drift schema (v12) + generated code
 │   │   └── meal_memory/              # pattern engine + context injection
 │   ├── screens/
 │   │   ├── home/                     # journal feed, week-grouped nav
@@ -168,12 +196,19 @@ app/
 │   │   ├── log_water/                # quick water log sheet
 │   │   ├── log_weight/               # weigh-in entry
 │   │   ├── meal_detail/              # view/edit single meal
-│   │   ├── checkin/                  # reaction check-in
+│   │   ├── checkin/                  # reaction check-in + blame modal
 │   │   ├── export/                   # export options
 │   │   └── import/                   # import wizard
 │   ├── utils/
-│   └── widgets/                      # shared UI components
+│   └── widgets/
+│       ├── editable_food_item_card.dart  # meal item card with inline reuse nudge
+│       ├── reuse_suggestion.dart         # ReuseSuggestionChip (Layer B nudge)
+│       ├── blame_sheet.dart             # blame modal (food_blame)
+│       ├── food_history_search_sheet.dart
+│       ├── saved_items_sheet.dart
+│       └── ...
 ├── test/
+│   ├── models/                       # pure-logic unit tests (entity resolution, blame)
 │   ├── meal_memory/                  # deterministic rule + engine tests
 │   ├── integration/ai/               # live API integration tests
 │   ├── widgets/                      # widget tests

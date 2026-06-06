@@ -150,7 +150,32 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 ## Local Storage — drift
 
-Database file lives in app documents directory via `path_provider`. Schema is at v4 with an explicit `MigrationStrategy` in `app_database.dart`.
+`driftDatabase(name: 'food_journal')` → the DB lives in the app **documents**
+directory (`getApplicationDocumentsDirectory()`), **not** the Android `databases/`
+dir. Schema version + `MigrationStrategy` are in `app_database.dart`.
+
+**On-device location (debug builds, emulator + real device):**
+
+```text
+/data/data/com.foodjournal.app/app_flutter/food_journal.sqlite      (+ -wal, -shm)
+```
+
+There is **no `sqlite3` binary on the device** — query it on the host. Pull via
+`run-as` (works on debuggable builds without root):
+
+```powershell
+# main DB file is committed schema+data; WAL may hold uncommitted pages
+adb -s emulator-5554 exec-out run-as com.foodjournal.app `
+    cat app_flutter/food_journal.sqlite > pulled.sqlite
+# then inspect locally, e.g. python -c "import sqlite3; ..."  or sqlite3 pulled.sqlite
+#   PRAGMA user_version;   -> current schema version
+#   PRAGMA table_info(food_items);
+```
+
+`PRAGMA user_version` is the live schema version on disk (drift's
+`schemaVersion`). Migrations run on first open after an upgrade — to verify one
+actually applied, launch the app once on a populated DB, then pull and check
+`user_version` + the new columns/backfill.
 
 ---
 

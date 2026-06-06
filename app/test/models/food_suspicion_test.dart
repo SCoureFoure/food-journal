@@ -237,4 +237,83 @@ void main() {
       expect(aggregateSuspicions(const []), isEmpty);
     });
   });
+
+  // ── entity_resolution: canonical key collapses format variants ──────────────
+  // Cross-ref specs/food_entity_resolution.spec.md (AC8, AC9). Verifies the
+  // blame ledger groups on the canonical identity, not the raw name — so the
+  // same food re-entered with different casing/punctuation accumulates.
+  group('[INV] entity_resolution — blame buckets by canonical identity', () {
+    // testTheory: invariant — two raw names that canonicalize equal must land in
+    // ONE (targetName, symptom) bucket regardless of casing/whitespace/punct.
+    // contract: BlameCandidate.canonicalKey (← canonical_name, else canonicalize)
+    //   is the ledger grouping key.
+    // implication: "what bloats me most" reflects the true entity, not fragments.
+    test('AC8: "Turkey Sandwich" + "turkey-sandwich" → one summed bucket', () {
+      final rows = [
+        ...buildSuspicionRows(
+          reactionLogId: 1,
+          symptomLevels: {'Bloating': ReactionLevel.mild}, // weight 1
+          autoCandidates: [_food(1, 'Turkey Sandwich')],
+          manualSelections: const [],
+          createdAt: _now,
+        ),
+        ...buildSuspicionRows(
+          reactionLogId: 2,
+          symptomLevels: {'Bloating': ReactionLevel.mild}, // weight 1
+          autoCandidates: [_food(2, 'turkey-sandwich')],
+          manualSelections: const [],
+          createdAt: _now,
+        ),
+      ];
+      final scores = aggregateSuspicions(rows);
+      expect(scores, hasLength(1), reason: 'variants must not split');
+      expect(scores.single.targetName, 'turkey sandwich');
+      expect(scores.single.score, 2.0, reason: 'summed, not two halves');
+    });
+
+    test('AC8: explicit canonical_name on candidate overrides raw name', () {
+      // Stored canonical wins even if the raw display name differs in wording.
+      final rows = buildSuspicionRows(
+        reactionLogId: 1,
+        symptomLevels: {'Bloating': ReactionLevel.mild},
+        autoCandidates: [
+          BlameCandidate(
+            type: SuspicionTargetType.food,
+            targetId: 1,
+            name: 'Turkey Sandwich w/ Mayo',
+            canonicalName: 'turkey sandwich',
+            timestamp: _now,
+          ),
+        ],
+        manualSelections: const [],
+        createdAt: _now,
+      );
+      expect(rows.single.targetName, 'turkey sandwich');
+    });
+
+    test('AC9: distinct foods stay in separate buckets', () {
+      final rows = [
+        ...buildSuspicionRows(
+          reactionLogId: 1,
+          symptomLevels: {'Bloating': ReactionLevel.mild},
+          autoCandidates: [_food(1, 'Turkey Sandwich')],
+          manualSelections: const [],
+          createdAt: _now,
+        ),
+        ...buildSuspicionRows(
+          reactionLogId: 2,
+          symptomLevels: {'Bloating': ReactionLevel.mild},
+          autoCandidates: [_food(2, 'Tuna Sandwich')],
+          manualSelections: const [],
+          createdAt: _now,
+        ),
+      ];
+      final scores = aggregateSuspicions(rows);
+      expect(scores, hasLength(2));
+      expect(
+        scores.map((s) => s.targetName).toSet(),
+        {'turkey sandwich', 'tuna sandwich'},
+      );
+    });
+  });
 }

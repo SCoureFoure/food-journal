@@ -43,6 +43,7 @@ touches and links back here; it does not redefine meaning or fallback.
 | Log Meal     | `btn-add-from-history`          | Open food-history search sheet                 |
 | Log Meal     | `btn-add-from-favorites`        | Open history sheet, favorites-only             |
 | Log Meal     | `btn-my-items`                  | Open saved-items sheet                         |
+| Log Meal     | `food-reuse-suggestion-<i>`     | Reuse-nudge chip under food-item card `i` (Layer B). Appears only on a close history match; tap adopts, `…-dismiss` child × hides. Reach: type a name matching history into card `i` |
 | Log Meal     | `btn-save-meal`                 | Save / Save Changes. ✱ absorbed; tap via bounds |
 | Export       | `export-screen`                 | Export screen root                             |
 | Export       | `btn-date-from`                 | From date picker tile                          |
@@ -72,6 +73,7 @@ touches and links back here; it does not redefine meaning or fallback.
 | Create item  | `btn-save-saved-item`           | Save the composite item                        |
 | Medication   | `log-medication-screen`         | Log/Edit medication screen root                |
 | Medication   | `log-med-name`                  | Medication name field                          |
+| Medication   | `med-reuse-suggestion`          | Reuse-nudge chip under the name field (Layer B). Appears only on a close history match; tap adopts name/dose/unit/route, `…-dismiss` child × hides |
 | Medication   | `btn-autofill-medication`       | Autofill-with-AI button (shared LogDescriptionSection) |
 | Medication   | `log-med-dose`                  | Dose field                                     |
 | Medication   | `log-med-unit`                  | Unit dropdown                                  |

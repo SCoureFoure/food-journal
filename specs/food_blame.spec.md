@@ -60,8 +60,12 @@ compute flags or surface conclusions — it only writes and aggregates the ledge
   interval `(checkinTime − window, checkinTime)` — an item exactly at the far edge
   or at the check-in instant is excluded. Item timestamp = its date + parsed time.
 - **Targets are items, not meals.** `targetType ∈ {food, medication}`,
-  `targetId` = `food_items.id` / `medications.id`, plus denormalized `targetName`
-  (lowercased for aggregation, matching `food_memories.foodName` convention).
+  `targetId` = `food_items.id` / `medications.id`, plus denormalized `targetName`.
+  **SUPERSEDED 2026-06-05** by [food_entity_resolution](food_entity_resolution.spec.md):
+  `targetName` is now the item's **`canonical_name`** (lowercase + trim + collapse
+  whitespace/punctuation), not a bare `toLowerCase()`. `BlameCandidate.canonicalKey`
+  supplies it (stored `canonical_name`, else `canonicalize(name)`); aggregation groups
+  on it so format variants of one item accumulate into one bucket.
 - **Per-symptom rows.** One suspicion row per `(symptom, target)`. A log with N
   symptoms and M in-window targets writes N×M auto rows.
 - **Weight = severity-scaled.** `baseWeight` = that symptom's `ReactionLevel` index

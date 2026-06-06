@@ -17,16 +17,18 @@ void main() {
   // tests.  This file covers what we CAN verify at pure-Dart level.
 
   group('[REGRESSION] AppDatabase schema version', () {
-    test('schemaVersion is 11 after v11 food_suspicions migration', () {
+    test('schemaVersion is 12 after v12 canonical_name migration', () {
       // AppDatabase is a singleton — we can't instantiate it in tests without
       // native sqlite3.  We verify the declared schemaVersion constant instead.
       // If this breaks, the DB won't open at all on first launch.
-      expect(AppDatabase.currentSchemaVersion, 11);
+      // v12 adds canonical_name to food_items + medications
+      // (specs/food_entity_resolution.spec.md AC5).
+      expect(AppDatabase.currentSchemaVersion, 12);
     });
 
-    test('migrationStepVersions includes the v11 step', () {
-      expect(AppDatabase.migrationStepVersions.last, 11,
-          reason: 'food_suspicions migration step must be declared');
+    test('migrationStepVersions includes the v12 step', () {
+      expect(AppDatabase.migrationStepVersions.last, 12,
+          reason: 'canonical_name migration step must be declared');
     });
   });
 

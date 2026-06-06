@@ -643,6 +643,17 @@ class $FoodItemsTable extends FoodItems
     requiredDuringInsert: false,
     defaultValue: const Constant(1),
   );
+  static const VerificationMeta _canonicalNameMeta = const VerificationMeta(
+    'canonicalName',
+  );
+  @override
+  late final GeneratedColumn<String> canonicalName = GeneratedColumn<String>(
+    'canonical_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -657,6 +668,7 @@ class $FoodItemsTable extends FoodItems
     reaction,
     notes,
     servings,
+    canonicalName,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -743,6 +755,15 @@ class $FoodItemsTable extends FoodItems
         servings.isAcceptableOrUnknown(data['servings']!, _servingsMeta),
       );
     }
+    if (data.containsKey('canonical_name')) {
+      context.handle(
+        _canonicalNameMeta,
+        canonicalName.isAcceptableOrUnknown(
+          data['canonical_name']!,
+          _canonicalNameMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -800,6 +821,10 @@ class $FoodItemsTable extends FoodItems
         DriftSqlType.int,
         data['${effectivePrefix}servings'],
       )!,
+      canonicalName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}canonical_name'],
+      ),
     );
   }
 
@@ -822,6 +847,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
   final int reaction;
   final String? notes;
   final int servings;
+  final String? canonicalName;
   const FoodItem({
     required this.id,
     required this.mealId,
@@ -835,6 +861,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
     required this.reaction,
     this.notes,
     required this.servings,
+    this.canonicalName,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -865,6 +892,9 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
       map['notes'] = Variable<String>(notes);
     }
     map['servings'] = Variable<int>(servings);
+    if (!nullToAbsent || canonicalName != null) {
+      map['canonical_name'] = Variable<String>(canonicalName);
+    }
     return map;
   }
 
@@ -892,6 +922,9 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
           ? const Value.absent()
           : Value(notes),
       servings: Value(servings),
+      canonicalName: canonicalName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(canonicalName),
     );
   }
 
@@ -913,6 +946,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
       reaction: serializer.fromJson<int>(json['reaction']),
       notes: serializer.fromJson<String?>(json['notes']),
       servings: serializer.fromJson<int>(json['servings']),
+      canonicalName: serializer.fromJson<String?>(json['canonicalName']),
     );
   }
   @override
@@ -931,6 +965,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
       'reaction': serializer.toJson<int>(reaction),
       'notes': serializer.toJson<String?>(notes),
       'servings': serializer.toJson<int>(servings),
+      'canonicalName': serializer.toJson<String?>(canonicalName),
     };
   }
 
@@ -947,6 +982,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
     int? reaction,
     Value<String?> notes = const Value.absent(),
     int? servings,
+    Value<String?> canonicalName = const Value.absent(),
   }) => FoodItem(
     id: id ?? this.id,
     mealId: mealId ?? this.mealId,
@@ -960,6 +996,9 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
     reaction: reaction ?? this.reaction,
     notes: notes.present ? notes.value : this.notes,
     servings: servings ?? this.servings,
+    canonicalName: canonicalName.present
+        ? canonicalName.value
+        : this.canonicalName,
   );
   FoodItem copyWithCompanion(FoodItemsCompanion data) {
     return FoodItem(
@@ -975,6 +1014,9 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
       reaction: data.reaction.present ? data.reaction.value : this.reaction,
       notes: data.notes.present ? data.notes.value : this.notes,
       servings: data.servings.present ? data.servings.value : this.servings,
+      canonicalName: data.canonicalName.present
+          ? data.canonicalName.value
+          : this.canonicalName,
     );
   }
 
@@ -992,7 +1034,8 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
           ..write('fat: $fat, ')
           ..write('reaction: $reaction, ')
           ..write('notes: $notes, ')
-          ..write('servings: $servings')
+          ..write('servings: $servings, ')
+          ..write('canonicalName: $canonicalName')
           ..write(')'))
         .toString();
   }
@@ -1011,6 +1054,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
     reaction,
     notes,
     servings,
+    canonicalName,
   );
   @override
   bool operator ==(Object other) =>
@@ -1027,7 +1071,8 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
           other.fat == this.fat &&
           other.reaction == this.reaction &&
           other.notes == this.notes &&
-          other.servings == this.servings);
+          other.servings == this.servings &&
+          other.canonicalName == this.canonicalName);
 }
 
 class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
@@ -1043,6 +1088,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
   final Value<int> reaction;
   final Value<String?> notes;
   final Value<int> servings;
+  final Value<String?> canonicalName;
   const FoodItemsCompanion({
     this.id = const Value.absent(),
     this.mealId = const Value.absent(),
@@ -1056,6 +1102,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
     this.reaction = const Value.absent(),
     this.notes = const Value.absent(),
     this.servings = const Value.absent(),
+    this.canonicalName = const Value.absent(),
   });
   FoodItemsCompanion.insert({
     this.id = const Value.absent(),
@@ -1070,6 +1117,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
     this.reaction = const Value.absent(),
     this.notes = const Value.absent(),
     this.servings = const Value.absent(),
+    this.canonicalName = const Value.absent(),
   }) : mealId = Value(mealId),
        name = Value(name);
   static Insertable<FoodItem> custom({
@@ -1085,6 +1133,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
     Expression<int>? reaction,
     Expression<String>? notes,
     Expression<int>? servings,
+    Expression<String>? canonicalName,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1099,6 +1148,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
       if (reaction != null) 'reaction': reaction,
       if (notes != null) 'notes': notes,
       if (servings != null) 'servings': servings,
+      if (canonicalName != null) 'canonical_name': canonicalName,
     });
   }
 
@@ -1115,6 +1165,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
     Value<int>? reaction,
     Value<String?>? notes,
     Value<int>? servings,
+    Value<String?>? canonicalName,
   }) {
     return FoodItemsCompanion(
       id: id ?? this.id,
@@ -1129,6 +1180,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
       reaction: reaction ?? this.reaction,
       notes: notes ?? this.notes,
       servings: servings ?? this.servings,
+      canonicalName: canonicalName ?? this.canonicalName,
     );
   }
 
@@ -1171,6 +1223,9 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
     if (servings.present) {
       map['servings'] = Variable<int>(servings.value);
     }
+    if (canonicalName.present) {
+      map['canonical_name'] = Variable<String>(canonicalName.value);
+    }
     return map;
   }
 
@@ -1188,7 +1243,8 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
           ..write('fat: $fat, ')
           ..write('reaction: $reaction, ')
           ..write('notes: $notes, ')
-          ..write('servings: $servings')
+          ..write('servings: $servings, ')
+          ..write('canonicalName: $canonicalName')
           ..write(')'))
         .toString();
   }
@@ -2647,6 +2703,17 @@ class $MedicationsTable extends Medications
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _canonicalNameMeta = const VerificationMeta(
+    'canonicalName',
+  );
+  @override
+  late final GeneratedColumn<String> canonicalName = GeneratedColumn<String>(
+    'canonical_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2661,6 +2728,7 @@ class $MedicationsTable extends Medications
     notes,
     imageData,
     createdAt,
+    canonicalName,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2754,6 +2822,15 @@ class $MedicationsTable extends Medications
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
+    if (data.containsKey('canonical_name')) {
+      context.handle(
+        _canonicalNameMeta,
+        canonicalName.isAcceptableOrUnknown(
+          data['canonical_name']!,
+          _canonicalNameMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -2811,6 +2888,10 @@ class $MedicationsTable extends Medications
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      canonicalName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}canonical_name'],
+      ),
     );
   }
 
@@ -2833,6 +2914,7 @@ class Medication extends DataClass implements Insertable<Medication> {
   final String? notes;
   final Uint8List? imageData;
   final DateTime createdAt;
+  final String? canonicalName;
   const Medication({
     required this.id,
     required this.date,
@@ -2846,6 +2928,7 @@ class Medication extends DataClass implements Insertable<Medication> {
     this.notes,
     this.imageData,
     required this.createdAt,
+    this.canonicalName,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2876,6 +2959,9 @@ class Medication extends DataClass implements Insertable<Medication> {
       map['image_data'] = Variable<Uint8List>(imageData);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || canonicalName != null) {
+      map['canonical_name'] = Variable<String>(canonicalName);
+    }
     return map;
   }
 
@@ -2903,6 +2989,9 @@ class Medication extends DataClass implements Insertable<Medication> {
           ? const Value.absent()
           : Value(imageData),
       createdAt: Value(createdAt),
+      canonicalName: canonicalName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(canonicalName),
     );
   }
 
@@ -2926,6 +3015,7 @@ class Medication extends DataClass implements Insertable<Medication> {
       notes: serializer.fromJson<String?>(json['notes']),
       imageData: serializer.fromJson<Uint8List?>(json['imageData']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      canonicalName: serializer.fromJson<String?>(json['canonicalName']),
     );
   }
   @override
@@ -2944,6 +3034,7 @@ class Medication extends DataClass implements Insertable<Medication> {
       'notes': serializer.toJson<String?>(notes),
       'imageData': serializer.toJson<Uint8List?>(imageData),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'canonicalName': serializer.toJson<String?>(canonicalName),
     };
   }
 
@@ -2960,6 +3051,7 @@ class Medication extends DataClass implements Insertable<Medication> {
     Value<String?> notes = const Value.absent(),
     Value<Uint8List?> imageData = const Value.absent(),
     DateTime? createdAt,
+    Value<String?> canonicalName = const Value.absent(),
   }) => Medication(
     id: id ?? this.id,
     date: date ?? this.date,
@@ -2975,6 +3067,9 @@ class Medication extends DataClass implements Insertable<Medication> {
     notes: notes.present ? notes.value : this.notes,
     imageData: imageData.present ? imageData.value : this.imageData,
     createdAt: createdAt ?? this.createdAt,
+    canonicalName: canonicalName.present
+        ? canonicalName.value
+        : this.canonicalName,
   );
   Medication copyWithCompanion(MedicationsCompanion data) {
     return Medication(
@@ -2992,6 +3087,9 @@ class Medication extends DataClass implements Insertable<Medication> {
       notes: data.notes.present ? data.notes.value : this.notes,
       imageData: data.imageData.present ? data.imageData.value : this.imageData,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      canonicalName: data.canonicalName.present
+          ? data.canonicalName.value
+          : this.canonicalName,
     );
   }
 
@@ -3009,7 +3107,8 @@ class Medication extends DataClass implements Insertable<Medication> {
           ..write('rawInput: $rawInput, ')
           ..write('notes: $notes, ')
           ..write('imageData: $imageData, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('canonicalName: $canonicalName')
           ..write(')'))
         .toString();
   }
@@ -3028,6 +3127,7 @@ class Medication extends DataClass implements Insertable<Medication> {
     notes,
     $driftBlobEquality.hash(imageData),
     createdAt,
+    canonicalName,
   );
   @override
   bool operator ==(Object other) =>
@@ -3044,7 +3144,8 @@ class Medication extends DataClass implements Insertable<Medication> {
           other.rawInput == this.rawInput &&
           other.notes == this.notes &&
           $driftBlobEquality.equals(other.imageData, this.imageData) &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.canonicalName == this.canonicalName);
 }
 
 class MedicationsCompanion extends UpdateCompanion<Medication> {
@@ -3060,6 +3161,7 @@ class MedicationsCompanion extends UpdateCompanion<Medication> {
   final Value<String?> notes;
   final Value<Uint8List?> imageData;
   final Value<DateTime> createdAt;
+  final Value<String?> canonicalName;
   const MedicationsCompanion({
     this.id = const Value.absent(),
     this.date = const Value.absent(),
@@ -3073,6 +3175,7 @@ class MedicationsCompanion extends UpdateCompanion<Medication> {
     this.notes = const Value.absent(),
     this.imageData = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.canonicalName = const Value.absent(),
   });
   MedicationsCompanion.insert({
     this.id = const Value.absent(),
@@ -3087,6 +3190,7 @@ class MedicationsCompanion extends UpdateCompanion<Medication> {
     this.notes = const Value.absent(),
     this.imageData = const Value.absent(),
     required DateTime createdAt,
+    this.canonicalName = const Value.absent(),
   }) : date = Value(date),
        time = Value(time),
        name = Value(name),
@@ -3104,6 +3208,7 @@ class MedicationsCompanion extends UpdateCompanion<Medication> {
     Expression<String>? notes,
     Expression<Uint8List>? imageData,
     Expression<DateTime>? createdAt,
+    Expression<String>? canonicalName,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3119,6 +3224,7 @@ class MedicationsCompanion extends UpdateCompanion<Medication> {
       if (notes != null) 'notes': notes,
       if (imageData != null) 'image_data': imageData,
       if (createdAt != null) 'created_at': createdAt,
+      if (canonicalName != null) 'canonical_name': canonicalName,
     });
   }
 
@@ -3135,6 +3241,7 @@ class MedicationsCompanion extends UpdateCompanion<Medication> {
     Value<String?>? notes,
     Value<Uint8List?>? imageData,
     Value<DateTime>? createdAt,
+    Value<String?>? canonicalName,
   }) {
     return MedicationsCompanion(
       id: id ?? this.id,
@@ -3149,6 +3256,7 @@ class MedicationsCompanion extends UpdateCompanion<Medication> {
       notes: notes ?? this.notes,
       imageData: imageData ?? this.imageData,
       createdAt: createdAt ?? this.createdAt,
+      canonicalName: canonicalName ?? this.canonicalName,
     );
   }
 
@@ -3191,6 +3299,9 @@ class MedicationsCompanion extends UpdateCompanion<Medication> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (canonicalName.present) {
+      map['canonical_name'] = Variable<String>(canonicalName.value);
+    }
     return map;
   }
 
@@ -3208,7 +3319,8 @@ class MedicationsCompanion extends UpdateCompanion<Medication> {
           ..write('rawInput: $rawInput, ')
           ..write('notes: $notes, ')
           ..write('imageData: $imageData, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('canonicalName: $canonicalName')
           ..write(')'))
         .toString();
   }
@@ -6145,6 +6257,7 @@ typedef $$FoodItemsTableCreateCompanionBuilder =
       Value<int> reaction,
       Value<String?> notes,
       Value<int> servings,
+      Value<String?> canonicalName,
     });
 typedef $$FoodItemsTableUpdateCompanionBuilder =
     FoodItemsCompanion Function({
@@ -6160,6 +6273,7 @@ typedef $$FoodItemsTableUpdateCompanionBuilder =
       Value<int> reaction,
       Value<String?> notes,
       Value<int> servings,
+      Value<String?> canonicalName,
     });
 
 final class $$FoodItemsTableReferences
@@ -6264,6 +6378,11 @@ class $$FoodItemsTableFilterComposer
 
   ColumnFilters<int> get servings => $composableBuilder(
     column: $table.servings,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get canonicalName => $composableBuilder(
+    column: $table.canonicalName,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6380,6 +6499,11 @@ class $$FoodItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get canonicalName => $composableBuilder(
+    column: $table.canonicalName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$MealsTableOrderingComposer get mealId {
     final $$MealsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -6445,6 +6569,11 @@ class $$FoodItemsTableAnnotationComposer
 
   GeneratedColumn<int> get servings =>
       $composableBuilder(column: $table.servings, builder: (column) => column);
+
+  GeneratedColumn<String> get canonicalName => $composableBuilder(
+    column: $table.canonicalName,
+    builder: (column) => column,
+  );
 
   $$MealsTableAnnotationComposer get mealId {
     final $$MealsTableAnnotationComposer composer = $composerBuilder(
@@ -6535,6 +6664,7 @@ class $$FoodItemsTableTableManager
                 Value<int> reaction = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<int> servings = const Value.absent(),
+                Value<String?> canonicalName = const Value.absent(),
               }) => FoodItemsCompanion(
                 id: id,
                 mealId: mealId,
@@ -6548,6 +6678,7 @@ class $$FoodItemsTableTableManager
                 reaction: reaction,
                 notes: notes,
                 servings: servings,
+                canonicalName: canonicalName,
               ),
           createCompanionCallback:
               ({
@@ -6563,6 +6694,7 @@ class $$FoodItemsTableTableManager
                 Value<int> reaction = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<int> servings = const Value.absent(),
+                Value<String?> canonicalName = const Value.absent(),
               }) => FoodItemsCompanion.insert(
                 id: id,
                 mealId: mealId,
@@ -6576,6 +6708,7 @@ class $$FoodItemsTableTableManager
                 reaction: reaction,
                 notes: notes,
                 servings: servings,
+                canonicalName: canonicalName,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -7590,6 +7723,7 @@ typedef $$MedicationsTableCreateCompanionBuilder =
       Value<String?> notes,
       Value<Uint8List?> imageData,
       required DateTime createdAt,
+      Value<String?> canonicalName,
     });
 typedef $$MedicationsTableUpdateCompanionBuilder =
     MedicationsCompanion Function({
@@ -7605,6 +7739,7 @@ typedef $$MedicationsTableUpdateCompanionBuilder =
       Value<String?> notes,
       Value<Uint8List?> imageData,
       Value<DateTime> createdAt,
+      Value<String?> canonicalName,
     });
 
 class $$MedicationsTableFilterComposer
@@ -7673,6 +7808,11 @@ class $$MedicationsTableFilterComposer
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get canonicalName => $composableBuilder(
+    column: $table.canonicalName,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -7745,6 +7885,11 @@ class $$MedicationsTableOrderingComposer
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get canonicalName => $composableBuilder(
+    column: $table.canonicalName,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$MedicationsTableAnnotationComposer
@@ -7793,6 +7938,11 @@ class $$MedicationsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get canonicalName => $composableBuilder(
+    column: $table.canonicalName,
+    builder: (column) => column,
+  );
 }
 
 class $$MedicationsTableTableManager
@@ -7838,6 +7988,7 @@ class $$MedicationsTableTableManager
                 Value<String?> notes = const Value.absent(),
                 Value<Uint8List?> imageData = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<String?> canonicalName = const Value.absent(),
               }) => MedicationsCompanion(
                 id: id,
                 date: date,
@@ -7851,6 +8002,7 @@ class $$MedicationsTableTableManager
                 notes: notes,
                 imageData: imageData,
                 createdAt: createdAt,
+                canonicalName: canonicalName,
               ),
           createCompanionCallback:
               ({
@@ -7866,6 +8018,7 @@ class $$MedicationsTableTableManager
                 Value<String?> notes = const Value.absent(),
                 Value<Uint8List?> imageData = const Value.absent(),
                 required DateTime createdAt,
+                Value<String?> canonicalName = const Value.absent(),
               }) => MedicationsCompanion.insert(
                 id: id,
                 date: date,
@@ -7879,6 +8032,7 @@ class $$MedicationsTableTableManager
                 notes: notes,
                 imageData: imageData,
                 createdAt: createdAt,
+                canonicalName: canonicalName,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

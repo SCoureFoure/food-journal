@@ -22,6 +22,7 @@ import 'package:food_journal/services/import_service.dart';
 import 'package:food_journal/screens/log_meal/log_meal_screen.dart';
 import 'package:food_journal/widgets/editable_food_item_card.dart';
 import 'package:food_journal/widgets/log_photo_section.dart';
+import 'package:food_journal/widgets/reuse_suggestion.dart';
 
 // ── Fakes ─────────────────────────────────────────────────────────────────────
 
@@ -78,8 +79,17 @@ class _FakeNotifications extends NotificationService {
 }
 
 // Storage is not exercised by the parse flow on a new meal; a bare subclass keeps
-// the lazy native DB from ever being constructed.
-class _FakeStorage extends StorageService {}
+// the lazy native DB from ever being constructed. searchFoodHistory is stubbed
+// because the reuse nudge calls it on every name change — empty = no chip.
+class _FakeStorage extends StorageService {
+  /// History returned by the reuse-nudge lookup. Empty = no chip.
+  List<FoodItemDraft> foodHistory = const [];
+
+  @override
+  Future<List<FoodItemDraft>> searchFoodHistory(String query,
+          {bool favoritesOnly = false}) async =>
+      foodHistory;
+}
 
 // ── Fixture-derived drafts ──────────────────────────────────────────────────
 
@@ -105,11 +115,12 @@ Widget _screen({
   required AiService ai,
   MealMemoryService? memory,
   SettingsService? settings,
+  StorageService? storage,
 }) =>
     MaterialApp(
       home: LogMealScreen(
         aiOverride: ai,
-        storageOverride: _FakeStorage(),
+        storageOverride: storage ?? _FakeStorage(),
         memoryOverride: memory ?? _FakeMemory(),
         notificationsOverride: _FakeNotifications(),
         settingsOverride: settings ?? _FakeSettings(aiEnabled: true),
@@ -308,5 +319,111 @@ void main() {
         reason: 'AC10: no autofill button when AI is off');
     expect(_bySemanticsId('btn-add-item'), findsOneWidget,
         reason: 'AC10: manual add control remains');
+  });
+
+  // ─── Layer B reuse nudge (food_entity_resolution AC15, AC16) ──────────────
+
+  group('[food_entity_resolution] reuse nudge', () {
+    Finder itemNameField() => find
+        .descendant(
+          of: find.byType(EditableFoodItemCard),
+          matching: find.byType(TextField),
+        )
+        .first;
+
+    _FakeStorage withHistory() => _FakeStorage()
+      ..foodHistory = const [
+        FoodItemDraft(name: 'Turkey Sandwich', calories: 320, protein: 24),
+      ];
+
+    Future<void> openCardAndType(WidgetTester tester, String text) async {
+      await tester.tap(_bySemanticsId('btn-add-item'));
+      await tester.pump();
+      await tester.enterText(itemNameField(), text);
+      await tester.pump(const Duration(milliseconds: 450)); // fire debounce
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('AC15: close match shows chip; unrelated shows none', (tester) async {
+      final ai = _FakeAi((_, __) => _ok([const FoodItemDraft(name: 'X')]));
+      await tester.pumpWidget(
+          _screen(ai: ai, storage: withHistory(), settings: _FakeSettings(aiEnabled: false)));
+      await tester.pump();
+      await tester.pump();
+
+      await openCardAndType(tester, 'turkey sandwich w/ mayo');
+      expect(_bySemanticsId('food-reuse-suggestion-0'), findsOneWidget,
+          reason: 'AC15: close lexical match surfaces the chip');
+      expect(find.byType(ReuseSuggestionChip), findsOneWidget);
+
+      await tester.enterText(itemNameField(), 'oatmeal');
+      await tester.pump(const Duration(milliseconds: 450));
+      await tester.pumpAndSettle();
+      expect(_bySemanticsId('food-reuse-suggestion-0'), findsNothing,
+          reason: 'AC15: no close match → no chip');
+    });
+
+    testWidgets('AC16: tapping chip adopts name + macros, chip disappears', (tester) async {
+      final ai = _FakeAi((_, __) => _ok([const FoodItemDraft(name: 'X')]));
+      await tester.pumpWidget(
+          _screen(ai: ai, storage: withHistory(), settings: _FakeSettings(aiEnabled: false)));
+      await tester.pump();
+      await tester.pump();
+
+      await openCardAndType(tester, 'turkey sandwich w/ mayo');
+      await tester.tap(find.text('Reuse "Turkey Sandwich"'));
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<TextField>(itemNameField()).controller!.text,
+          'Turkey Sandwich',
+          reason: 'AC16: name replaced with the history item');
+      expect(_bySemanticsId('food-reuse-suggestion-0'), findsNothing,
+          reason: 'AC16: chip gone after adopt');
+      // macros adopted: expand the card and read the calories field.
+      await tester.tap(find.byIcon(Icons.expand_more).first);
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(TextField, '320'), findsOneWidget,
+          reason: 'AC16: calories adopted from the history item');
+    });
+
+    testWidgets('compound word matches via full-history fuzzy (LIKE-fix regression)', (tester) async {
+      // "hamburger" typed, history has "Burger" — the old LIKE filter returned
+      // nothing because "Burger" doesn't contain "hamburger". Full-history fetch
+      // lets the fuzzy matcher find it.
+      final ai = _FakeAi((_, __) => _ok([const FoodItemDraft(name: 'X')]));
+      final storage = _FakeStorage()
+        ..foodHistory = const [FoodItemDraft(name: 'Burger', calories: 450)];
+      await tester.pumpWidget(
+          _screen(ai: ai, storage: storage, settings: _FakeSettings(aiEnabled: false)));
+      await tester.pump();
+      await tester.pump();
+
+      await openCardAndType(tester, 'hamburger');
+      expect(_bySemanticsId('food-reuse-suggestion-0'), findsOneWidget,
+          reason: 'hamburger~burger fuzzy match must fire via full-history fetch');
+    });
+
+    testWidgets('chip hidden when enabled=false (save-in-progress guard)', (tester) async {
+      // Card with a pre-populated match but enabled:false — chip must not show.
+      // This mirrors what the meal screen does when _isSaving flips true.
+      final storage = withHistory();
+      final data = FoodItemFormData.blank()..nameCtrl.text = 'turkey sandwich w/ mayo';
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: EditableFoodItemCard(
+            data: data,
+            onDelete: () {},
+            reuseStorage: storage,
+            reuseSemanticsId: 'food-reuse-suggestion-0',
+            enabled: false,
+          ),
+        ),
+      ));
+      await tester.pump(const Duration(milliseconds: 450));
+      await tester.pumpAndSettle();
+      expect(_bySemanticsId('food-reuse-suggestion-0'), findsNothing,
+          reason: 'chip hidden when enabled=false');
+      data.dispose();
+    });
   });
 }

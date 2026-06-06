@@ -1,7 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../models/food_entity.dart';
 import '../models/food_item.dart';
 import '../models/ingredient.dart';
+import '../services/storage_service.dart';
+import 'reuse_suggestion.dart';
 
 class FoodItemFormData {
   final nameCtrl = TextEditingController();
@@ -82,7 +87,26 @@ class EditableFoodItemCard extends StatefulWidget {
   final FoodItemFormData data;
   final VoidCallback onDelete;
 
-  const EditableFoodItemCard({super.key, required this.data, required this.onDelete});
+  /// When non-null, the card surfaces a reuse nudge: as the name is typed it
+  /// searches food history and, on a close lexical match, shows an inline chip
+  /// that adopts the matched item (name + macros) on tap. Null → no nudge.
+  /// Production passes the screen's StorageService; tests inject a fake.
+  final StorageService? reuseStorage;
+
+  /// Semantics id for the reuse chip (per-item, e.g. `food-reuse-suggestion-0`).
+  final String reuseSemanticsId;
+
+  /// When false (e.g. save in progress) the chip is hidden and lookup is skipped.
+  final bool enabled;
+
+  const EditableFoodItemCard({
+    super.key,
+    required this.data,
+    required this.onDelete,
+    this.reuseStorage,
+    this.reuseSemanticsId = 'food-reuse-suggestion',
+    this.enabled = true,
+  });
 
   @override
   State<EditableFoodItemCard> createState() => _EditableFoodItemCardState();
@@ -90,6 +114,81 @@ class EditableFoodItemCard extends StatefulWidget {
 
 class _EditableFoodItemCardState extends State<EditableFoodItemCard> {
   bool _expanded = false;
+
+  Timer? _reuseDebounce;
+  NameMatch? _reuseMatch;
+  List<FoodItemDraft> _reuseResults = const [];
+  String _lastQueried = '';
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.reuseStorage != null) {
+      widget.data.nameCtrl.addListener(_onNameChanged);
+    }
+  }
+
+  void _onNameChanged() {
+    _reuseDebounce?.cancel();
+    _reuseDebounce = Timer(const Duration(milliseconds: 400), _lookupReuse);
+  }
+
+  Future<void> _lookupReuse() async {
+    final storage = widget.reuseStorage;
+    if (storage == null || !widget.enabled) return;
+    final typed = widget.data.nameCtrl.text.trim();
+    final canon = canonicalize(typed);
+    // Guard on canonical so "Burger" → "burger" doesn't re-query the same results.
+    if (canon == _lastQueried) return;
+    _lastQueried = canon;
+    if (canon.isEmpty) {
+      if (mounted) setState(() => _reuseMatch = null);
+      return;
+    }
+    // Fetch the full recent history (not filtered by typed substring) so the
+    // fuzzy matcher can reach items that don't contain the typed string as a
+    // literal substring — e.g. "hamburger" typed, "burger" in history.
+    final results = await storage.searchFoodHistory('');
+    if (!mounted) return;
+    final match = bestNameMatch(typed, results.map((d) => d.name));
+    setState(() {
+      _reuseResults = results;
+      _reuseMatch = match;
+    });
+  }
+
+  void _adoptReuse() {
+    final m = _reuseMatch;
+    if (m == null) return;
+    final draft = _reuseResults.firstWhere(
+      (d) => d.name == m.candidate,
+      orElse: () => FoodItemDraft(name: m.candidate),
+    );
+    final d = widget.data;
+    setState(() {
+      d.nameCtrl.text = draft.name;
+      if (draft.portion != null) d.portionCtrl.text = draft.portion!;
+      if (draft.prep != null) d.prepCtrl.text = draft.prep!;
+      if (draft.calories != null) d.caloriesCtrl.text = draft.calories!.toString();
+      if (draft.protein != null) d.proteinCtrl.text = draft.protein!.toString();
+      if (draft.carbs != null) d.carbsCtrl.text = draft.carbs!.toString();
+      if (draft.fat != null) d.fatCtrl.text = draft.fat!.toString();
+      if (draft.ingredients.isNotEmpty) {
+        d.ingredientsCtrl.text = draft.ingredients.join(', ');
+      }
+      d.servings = draft.servings;
+      _reuseMatch = null;
+    });
+  }
+
+  @override
+  void dispose() {
+    _reuseDebounce?.cancel();
+    if (widget.reuseStorage != null) {
+      widget.data.nameCtrl.removeListener(_onNameChanged);
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -194,6 +293,16 @@ class _EditableFoodItemCardState extends State<EditableFoodItemCard> {
               ),
             ),
           ),
+          if (_reuseMatch != null && widget.enabled)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+              child: ReuseSuggestionChip(
+                semanticsId: widget.reuseSemanticsId,
+                match: _reuseMatch!,
+                onAdopt: _adoptReuse,
+                onDismiss: () => setState(() => _reuseMatch = null),
+              ),
+            ),
           if (_expanded) ...[
             const Divider(height: 1),
             Padding(

@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../../models/food_entity.dart';
 import '../../models/medication.dart';
 import '../../services/ai_service.dart';
 import '../../services/notification_service.dart';
@@ -15,6 +17,7 @@ import '../../widgets/loading_button.dart';
 import '../../widgets/log_date_time_row.dart';
 import '../../widgets/log_description_section.dart';
 import '../../widgets/log_photo_section.dart';
+import '../../widgets/reuse_suggestion.dart';
 
 class LogMedicationScreen extends StatefulWidget {
   final Medication? existingMed;
@@ -60,6 +63,11 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
   String? _selectedUnit;
   String? _selectedRoute;
 
+  Timer? _reuseDebounce;
+  NameMatch? _reuseMatch;
+  List<Medication> _reuseResults = const [];
+  String _lastQueried = '';
+
   bool get _isEditing => widget.existingMed != null;
 
   @override
@@ -67,6 +75,56 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
     super.initState();
     _loadSettings();
     if (_isEditing) _populateExisting();
+    _nameCtrl.addListener(_onNameChanged);
+  }
+
+  void _onNameChanged() {
+    _reuseDebounce?.cancel();
+    _reuseDebounce = Timer(const Duration(milliseconds: 400), _lookupReuse);
+  }
+
+  Future<void> _lookupReuse() async {
+    // No nudge when saving or editing an existing entry (name already resolved).
+    if (_isSaving || _isEditing) return;
+    final typed = _nameCtrl.text.trim();
+    final canon = canonicalize(typed);
+    if (canon == _lastQueried) return;
+    _lastQueried = canon;
+    if (canon.isEmpty) {
+      if (mounted) setState(() => _reuseMatch = null);
+      return;
+    }
+    // Fetch full recent history so fuzzy match can reach items that don't
+    // contain the typed string as a literal substring.
+    final results = await _storage.searchMedicationHistory('');
+    if (!mounted) return;
+    setState(() {
+      _reuseResults = results;
+      _reuseMatch = bestNameMatch(typed, results.map((m) => m.name));
+    });
+  }
+
+  void _adoptReuse() {
+    final m = _reuseMatch;
+    if (m == null) return;
+    final med = _reuseResults.firstWhere(
+      (x) => x.name == m.candidate,
+      orElse: () => _reuseResults.first,
+    );
+    setState(() {
+      _nameCtrl.text = med.name;
+      if (med.dose != null) {
+        _doseCtrl.text = med.dose! == med.dose!.truncateToDouble()
+            ? med.dose!.toInt().toString()
+            : med.dose!.toStringAsFixed(1);
+      }
+      // Only adopt dropdown values that are valid options — a history row may
+      // carry an off-list unit/route (legacy / AI-parsed) and feeding that to
+      // the DropdownButton would assert.
+      if (med.unit != null && kMedUnits.contains(med.unit)) _selectedUnit = med.unit;
+      if (med.route != null && kMedRoutes.contains(med.route)) _selectedRoute = med.route;
+      _reuseMatch = null;
+    });
   }
 
   Future<void> _loadSettings() async {
@@ -94,6 +152,8 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
 
   @override
   void dispose() {
+    _reuseDebounce?.cancel();
+    _nameCtrl.removeListener(_onNameChanged);
     _nameCtrl.dispose();
     _doseCtrl.dispose();
     _descCtrl.dispose();
@@ -264,6 +324,16 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
                 ),
               ),
             ),
+            if (_reuseMatch != null && !_isSaving && !_isEditing)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: ReuseSuggestionChip(
+                  semanticsId: 'med-reuse-suggestion',
+                  match: _reuseMatch!,
+                  onAdopt: _adoptReuse,
+                  onDismiss: () => setState(() => _reuseMatch = null),
+                ),
+              ),
             const SizedBox(height: 12),
             LogPhotoSection(
               imageBytes: _imageBytes,

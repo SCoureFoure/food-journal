@@ -41,13 +41,22 @@
 - Reaction saved to `reaction_logs` table
 - Per-food-item reaction can also be logged directly in meal detail
 
-### F4 — Food Memory / Pattern Detection
+### F4 — Reaction Tracking & Pattern Detection
 
-- Automatic: builds from reaction logs
-- Flags a food when it has caused a non-none reaction 2+ times
-- Memory view: list of flagged foods with reaction summary and last-seen date
-- Configurable lookback window (default: all time, options: 30 / 90 / 180 days)
-- Flagged foods show warning badge wherever they appear in journal
+- **Blame ledger** — on any check-in with ≥1 symptom, every food/med logged in the
+  prior 16h is auto-suspected (`auto` rows). User can manually blame specific items
+  from a 24h window (`manual` rows, 3× weight). Ledger stored in `food_suspicions`:
+  one row per `(symptom × item)`, severity-weighted, keyed by `canonical_name` so
+  the same food re-entered with different phrasing accumulates in one bucket.
+- **`getSuspicionScores()`** — aggregates `food_suspicions` by `(canonical_name,
+  symptom)`, summing effective weight (base × source multiplier × decay stub).
+  Answers "what foods correlate most with bloating?" without any manual tagging.
+- **Food memory** — flags foods with 2+ non-none reactions; configurable lookback
+  window (30 / 90 / 180 days / all time). Flagged foods show a warning badge.
+- **Blame modal** — from the check-in screen, opens a searchable item list (food +
+  meds in 24h window); tapping blames an item with manual-weight rows for all active
+  symptoms. "Blamed" items surface on the home-feed feeling tile (manual only —
+  auto suspicions are a discreet background signal).
 
 ### F5 — Ingredients Tracking
 
@@ -92,6 +101,24 @@
 - No AI parsing needed (structured form only)
 - Appears in journal feed with distinct icon
 - Correlates with food_memory over time (stretch: flag foods that precede urgent BM within N hours)
+
+### F11 — Entity Resolution & Reuse Nudge
+
+- **Canonical identity** — every saved food item and medication gets a
+  `canonical_name` (lowercase, punctuation stripped, whitespace collapsed). Blame
+  and dashboard queries group on this key so "Turkey Sandwich" and "turkey-sandwich"
+  share one suspicion bucket automatically. All existing rows backfilled on v12 migration.
+- **Reuse nudge** — while typing a food name on Log Meal, or a medication name on
+  Log Medication, a debounced (400ms) fuzzy search runs against recent history.
+  On a close match a chip appears (`Reuse "Turkey Sandwich"`); one tap adopts the
+  matched name + macros (or med name + dose/unit/route). No match → no chip → no
+  extra clicks. Chip hidden during save and (med) when editing an existing entry.
+- **Fuzzy-token Jaccard matcher** — token-set Jaccard where two tokens may match by
+  equality *or* length-gated character-trigram overlap (both tokens ≥4 chars,
+  trigram score ≥0.4). Catches compound variants (`hamburger` ≈ `burger`) that
+  pure string equality misses, without false-merging distinct foods
+  (`turkey sandwich` / `tuna sandwich` stays 0.33) or short-word collisions
+  (`ice` / `rice` blocked by the length gate).
 
 ---
 
