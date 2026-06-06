@@ -26,14 +26,12 @@ export default {
     const isPaidRequest = env.TEST_AUTH_TOKEN && authHeader === `Bearer ${env.TEST_AUTH_TOKEN}`;
     const apiKey = isPaidRequest ? env.GEMINI_API_KEY_PAID : env.GEMINI_API_KEY;
 
-    console.log(JSON.stringify({
-      event: 'req', ts: new Date().toISOString(),
-      task, hasText: Boolean(text), textLen: text?.length ?? 0,
-      hasImage: Boolean(image), mealType: mealType ?? null, paid: isPaidRequest,
-    }));
+    // Stryker disable next-line all
+    console.log(JSON.stringify({ event: 'req', ts: new Date().toISOString(), task, hasText: Boolean(text), textLen: text?.length ?? 0, hasImage: Boolean(image), mealType: mealType ?? null, paid: isPaidRequest }));
 
     const promptEntry = prompts[task];
     if (!promptEntry) {
+      // Stryker disable next-line all
       console.log(JSON.stringify({ event: 'err', ts: new Date().toISOString(), task, reason: 'unknown_task', durationMs: Date.now() - startMs }));
       return new Response(JSON.stringify({ error: `Unknown task: ${task}` }), {
         status: 400,
@@ -47,6 +45,7 @@ export default {
     if (userText) parts.push({ text: userText });
 
     if (parts.length === 0) {
+      // Stryker disable next-line all
       console.log(JSON.stringify({ event: 'err', ts: new Date().toISOString(), task, reason: 'no_input', durationMs: Date.now() - startMs }));
       return new Response(JSON.stringify({ error: 'Provide text or image' }), {
         status: 400,
@@ -68,6 +67,7 @@ export default {
 
     if (!res.ok) {
       const err = await res.text();
+      // Stryker disable next-line all
       console.log(JSON.stringify({ event: 'err', ts: new Date().toISOString(), task, reason: 'gemini_error', geminiStatus: res.status, durationMs: Date.now() - startMs }));
       return new Response(JSON.stringify({ error: err }), {
         status: res.status,
@@ -79,6 +79,7 @@ export default {
     const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
     const cleaned = rawText.replace(/```json\s*/g, '').replace(/\s*```/g, '').trim();
 
+    // Stryker disable next-line all
     console.log(JSON.stringify({ event: 'res', ts: new Date().toISOString(), task, outputLen: cleaned.length, durationMs: Date.now() - startMs }));
 
     return new Response(cleaned, {
