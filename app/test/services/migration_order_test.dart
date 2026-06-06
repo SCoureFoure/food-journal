@@ -37,7 +37,7 @@ void main() {
     // before `if (from < 5)` in onUpgrade.  We verify this structurally by
     // checking the migration source returns steps in ascending version order.
     test('migration steps are declared in ascending version order', () {
-      final steps = AppDatabase.migrationStepVersions;
+      const steps = AppDatabase.migrationStepVersions;
       expect(steps, isNotEmpty, reason: 'migrationStepVersions must be populated');
       for (var i = 0; i < steps.length - 1; i++) {
         expect(

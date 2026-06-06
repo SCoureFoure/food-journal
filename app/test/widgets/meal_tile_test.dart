@@ -266,8 +266,8 @@ void main() {
         (tester) async {
       final storage = _FakeStorage()
         ..itemsResult = [
-          (item: FoodItem(id: 1, mealId: 1, name: 'Eggs', calories: 140), ingredients: []),
-          (item: FoodItem(id: 2, mealId: 1, name: 'Toast', calories: 80), ingredients: []),
+          (item: const FoodItem(id: 1, mealId: 1, name: 'Eggs', calories: 140), ingredients: []),
+          (item: const FoodItem(id: 2, mealId: 1, name: 'Toast', calories: 80), ingredients: []),
         ]
         ..favoritedNames = {};
 
@@ -283,7 +283,7 @@ void main() {
         (tester) async {
       final storage = _FakeStorage()
         ..itemsResult = [
-          (item: FoodItem(id: 1, mealId: 1, name: 'Mystery food'), ingredients: []),
+          (item: const FoodItem(id: 1, mealId: 1, name: 'Mystery food'), ingredients: []),
         ]
         ..favoritedNames = {};
 
@@ -314,7 +314,7 @@ void main() {
       // to avoid showing "12:00 PM · 0 cal" which looks like no data.
       final storage = _FakeStorage()
         ..itemsResult = [
-          (item: FoodItem(id: 1, mealId: 1, name: 'Water', calories: 0), ingredients: []),
+          (item: const FoodItem(id: 1, mealId: 1, name: 'Water', calories: 0), ingredients: []),
         ]
         ..favoritedNames = {};
 
@@ -330,8 +330,8 @@ void main() {
       // Mixed: one item has calories, one has null — null treated as 0 in fold
       final storage = _FakeStorage()
         ..itemsResult = [
-          (item: FoodItem(id: 1, mealId: 1, name: 'Eggs', calories: 140), ingredients: []),
-          (item: FoodItem(id: 2, mealId: 1, name: 'Mystery side'), ingredients: []),
+          (item: const FoodItem(id: 1, mealId: 1, name: 'Eggs', calories: 140), ingredients: []),
+          (item: const FoodItem(id: 2, mealId: 1, name: 'Mystery side'), ingredients: []),
         ]
         ..favoritedNames = {};
 

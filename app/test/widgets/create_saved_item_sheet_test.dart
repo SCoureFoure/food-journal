@@ -553,7 +553,7 @@ void main() {
 
     testWidgets('composite result shows bookmark icon in search results',
         (tester) async {
-      final compositeResult = const FoodItemDraft(
+      const compositeResult = FoodItemDraft(
         name: 'Power Bowl',
         isComposite: true,
         savedItemId: 1,

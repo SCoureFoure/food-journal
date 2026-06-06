@@ -28,8 +28,8 @@ export default {
 
     console.log(JSON.stringify({
       event: 'req', ts: new Date().toISOString(),
-      task, hasText: !!text, textLen: text?.length ?? 0,
-      hasImage: !!image, mealType: mealType ?? null, paid: isPaidRequest,
+      task, hasText: Boolean(text), textLen: text?.length ?? 0,
+      hasImage: Boolean(image), mealType: mealType ?? null, paid: isPaidRequest,
     }));
 
     const promptEntry = prompts[task];

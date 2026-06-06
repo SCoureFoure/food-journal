@@ -12,6 +12,9 @@ scratch/
 .wrangler/
 **/.wrangler/
 
+# Node (worker ESLint tooling)
+worker/node_modules/
+
 # Python bytecode cache (embeds absolute build paths)
 **/__pycache__/
 *.pyc

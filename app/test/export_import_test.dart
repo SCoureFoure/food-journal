@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:food_journal/services/storage_service.dart';
 import 'package:food_journal/models/food_item.dart';
 import 'package:food_journal/models/ingredient.dart';
 import 'package:food_journal/models/meal_entry.dart';
@@ -11,6 +10,7 @@ import 'package:food_journal/models/medication.dart';
 import 'package:food_journal/models/reaction_log.dart';
 import 'package:food_journal/services/export_service.dart';
 import 'package:food_journal/services/import_service.dart';
+import 'package:food_journal/services/storage_service.dart';
 
 // ─── Sample JSON ──────────────────────────────────────────────────────────────
 
@@ -234,7 +234,7 @@ void main() {
       createdAt: DateTime(2026, 5, 14, 7, 30),
     );
 
-    final foodItem = FoodItem(
+    const foodItem = FoodItem(
       id: 10,
       mealId: 1,
       name: 'Eggs',
@@ -247,7 +247,7 @@ void main() {
       reaction: ReactionLevel.none,
     );
 
-    final ingredient = Ingredient(
+    const ingredient = Ingredient(
       foodItemId: 10,
       name: 'eggs',
       quantity: '2',
@@ -332,7 +332,7 @@ void main() {
         rawInput: 'eggs and toast',
         createdAt: DateTime(2026, 5, 14, 7, 30),
       );
-      final foodItem = FoodItem(
+      const foodItem = FoodItem(
         id: 10,
         mealId: 1,
         name: 'Eggs',
@@ -340,7 +340,7 @@ void main() {
         protein: 12,
         reaction: ReactionLevel.none,
       );
-      final ingredient = Ingredient(
+      const ingredient = Ingredient(
         foodItemId: 10,
         name: 'eggs',
         quantity: '2',
@@ -426,7 +426,7 @@ void main() {
       createdAt: DateTime(2026, 5, 14, 7, 30),
       imageData: img,
     );
-    final foodItem = FoodItem(
+    const foodItem = FoodItem(
       id: 10,
       mealId: 1,
       name: 'Eggs',

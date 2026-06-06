@@ -215,10 +215,10 @@ void main() {
 
     test('what was left variant — case invariant', () {
       _assertInvariant(
-        "what was left",
+        'what was left',
         [
-          "WHAT WAS LEFT",
-          "What Was Left",
+          'WHAT WAS LEFT',
+          'What Was Left',
         ],
         expectRef: true,
         expectOffset: 1,

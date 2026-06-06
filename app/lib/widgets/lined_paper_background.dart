@@ -37,7 +37,7 @@ class _LinedPaperPainter extends CustomPainter {
 
     // Left margin
     canvas.drawLine(
-      Offset(_marginX, 0),
+      const Offset(_marginX, 0),
       Offset(_marginX, size.height),
       Paint()
         ..color = const Color(0x33D95B5B)
@@ -48,10 +48,10 @@ class _LinedPaperPainter extends CustomPainter {
     canvas.drawRect(
       Offset.zero & Size(size.width, 120),
       Paint()
-        ..shader = LinearGradient(
+        ..shader = const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [const Color(0x55000000), Colors.transparent],
+          colors: [Color(0x55000000), Colors.transparent],
         ).createShader(Rect.fromLTWH(0, 0, size.width, 120)),
     );
 
@@ -59,10 +59,10 @@ class _LinedPaperPainter extends CustomPainter {
     canvas.drawRect(
       Offset(0, size.height - 80) & Size(size.width, 80),
       Paint()
-        ..shader = LinearGradient(
+        ..shader = const LinearGradient(
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
-          colors: [const Color(0x33000000), Colors.transparent],
+          colors: [Color(0x33000000), Colors.transparent],
         ).createShader(Rect.fromLTWH(0, size.height - 80, size.width, 80)),
     );
 

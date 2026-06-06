@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+
+import '../models/food_item.dart';
 import '../models/food_memory.dart';
 import 'reaction_badge.dart';
-import '../models/food_item.dart';
 
 class FoodMemoryCard extends StatelessWidget {
   final FoodMemory memory;

@@ -110,7 +110,7 @@ void main() {
       const storedCals = 530;
       const storedProtein = 47;
       // Simulate what _formatMacros produces for these values.
-      final snippet = '- Yesterday Dinner: steak and potatoes ($storedCals cal, ${storedProtein}g protein)';
+      const snippet = '- Yesterday Dinner: steak and potatoes ($storedCals cal, ${storedProtein}g protein)';
 
       final parsedCals = _parseCals(snippet)!;
       final parsedProtein = _parseProtein(snippet)!;

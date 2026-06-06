@@ -201,7 +201,7 @@ class _NotebookPaperPainter extends CustomPainter {
     final margin = Paint()
       ..color = _marginColor.withAlpha(140)
       ..strokeWidth = 1.5;
-    canvas.drawLine(Offset(_marginX, 0), Offset(_marginX, size.height), margin);
+    canvas.drawLine(const Offset(_marginX, 0), Offset(_marginX, size.height), margin);
   }
 
   @override

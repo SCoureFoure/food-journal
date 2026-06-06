@@ -36,7 +36,7 @@ void main() {
 
   group('[MFT] ImportSelection.totalCount', () {
     test('sums across all three sets', () {
-      final sel = ImportSelection(
+      const sel = ImportSelection(
         mealIndices: {0, 1, 2},
         medicationIndices: {0},
         foodMemoryIndices: {0, 1},
@@ -45,7 +45,7 @@ void main() {
     });
 
     test('counts only selected indices, not total available', () {
-      final sel = ImportSelection(
+      const sel = ImportSelection(
         mealIndices: {5, 10},
         medicationIndices: {},
         foodMemoryIndices: {},
@@ -58,7 +58,7 @@ void main() {
 
   group('[BVA] ImportSelection.totalCount — boundary', () {
     test('zero when all sets are empty', () {
-      final sel = ImportSelection(
+      const sel = ImportSelection(
         mealIndices: {},
         medicationIndices: {},
         foodMemoryIndices: {},

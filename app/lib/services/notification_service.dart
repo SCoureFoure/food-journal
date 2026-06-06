@@ -51,14 +51,14 @@ class NotificationService {
       'How did you feel after $label?',
       'Tap to log any reactions.',
       scheduledTime,
-      NotificationDetails(
+      const NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,
           _channelName,
           importance: Importance.defaultImportance,
           priority: Priority.defaultPriority,
         ),
-        iOS: const DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:

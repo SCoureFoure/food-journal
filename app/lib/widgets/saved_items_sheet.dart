@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/food_item.dart';
@@ -51,7 +53,7 @@ class _SavedItemsSheetState extends State<SavedItemsSheet> {
     );
     if (confirmed != true || !mounted) return;
     await _storage.deleteSavedItem(item.savedItemId!);
-    if (mounted) _load(_searchCtrl.text);
+    if (mounted) unawaited(_load(_searchCtrl.text));
   }
 
   @override

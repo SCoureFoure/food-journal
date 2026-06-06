@@ -5,6 +5,8 @@
 // pure model test in test/models/reaction_log_test.dart; AC10 (feed subtitle) is
 // test/widgets/feeling_tile_test.dart.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:food_journal/models/food_item.dart';
@@ -72,9 +74,9 @@ Future<void> _pump(WidgetTester tester, _FakeStorage storage,
 
   final key = GlobalKey<NavigatorState>();
   await tester.pumpWidget(MaterialApp(navigatorKey: key, home: const Scaffold()));
-  key.currentState!.push(MaterialPageRoute(
+  unawaited(key.currentState!.push(MaterialPageRoute(
     builder: (_) => CheckinScreen(existingLog: existingLog, storageOverride: storage),
-  ));
+  )));
   await tester.pumpAndSettle();
 }
 

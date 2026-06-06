@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../models/meal_entry.dart';
@@ -155,19 +157,19 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _navigate(String route, {Object? arguments}) async {
     _closeFab();
     await Navigator.pushNamed(context, route, arguments: arguments);
-    _load();
+    unawaited(_load());
   }
 
   Future<void> _showWaterSheet() async {
     _closeFab();
     await showDialog<bool>(
       context: context,
-      builder: (_) => Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-        child: SingleChildScrollView(child: const LogWaterSheet()),
+      builder: (_) => const Dialog(
+        insetPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+        child: SingleChildScrollView(child: LogWaterSheet()),
       ),
     );
-    _load();
+    unawaited(_load());
   }
 
   Future<void> _showSettings() async {
@@ -176,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (ctx) => _SettingsDialog(settings: _settings),
     );
-    _loadSettings();
+    unawaited(_loadSettings());
   }
 
   @override

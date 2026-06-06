@@ -53,7 +53,7 @@ class _FoodHistorySearchSheetState extends State<FoodHistorySearchSheet> {
 
   Future<void> _toggleFavorite(FoodItemDraft item) async {
     await _storage.toggleFoodFavorite(item.name);
-    if (mounted) _load(_searchCtrl.text);
+    if (mounted) unawaited(_load(_searchCtrl.text));
   }
 
   Future<void> _deleteSavedItem(FoodItemDraft item) async {
@@ -75,7 +75,7 @@ class _FoodHistorySearchSheetState extends State<FoodHistorySearchSheet> {
     );
     if (confirmed != true || !mounted) return;
     await _storage.deleteSavedItem(item.savedItemId!);
-    if (mounted) _load(_searchCtrl.text);
+    if (mounted) unawaited(_load(_searchCtrl.text));
   }
 
   @override
