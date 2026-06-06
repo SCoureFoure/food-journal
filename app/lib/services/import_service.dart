@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 import '../models/food_item.dart';
 import '../models/food_memory.dart';
 import '../models/ingredient.dart';
@@ -244,10 +246,11 @@ class ImportService {
     );
   }
 
-  Future<ImportPayload> parseFile(String filePath) async {
-    final content = await File(filePath).readAsString();
-    return parseJson(content);
-  }
+  /// Reads + parses off the main isolate so a large file (many base64 photos)
+  /// never blocks the UI / triggers an ANR. [parseJson] stays a pure static so
+  /// it can be the isolate entry and remain unit-testable without an isolate.
+  Future<ImportPayload> parseFile(String filePath) =>
+      compute(_parseFileTask, filePath);
 
   Future<
       ({
@@ -409,4 +412,10 @@ class ImportService {
       return null;
     }
   }
+}
+
+/// Top-level isolate entry: read the file and parse it in the background.
+Future<ImportPayload> _parseFileTask(String filePath) async {
+  final content = await File(filePath).readAsString();
+  return ImportService.parseJson(content);
 }

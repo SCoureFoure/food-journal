@@ -22,6 +22,10 @@ class ExportTypes {
   final bool weightLogs;
   final bool savedItems;
 
+  /// Embed photos (base64) in the export. Default true so single-item callers
+  /// keep images; the Export screen defaults its switch off to keep files small.
+  final bool images;
+
   const ExportTypes({
     this.meals = true,
     this.medications = true,
@@ -29,6 +33,7 @@ class ExportTypes {
     this.waterLogs = true,
     this.weightLogs = true,
     this.savedItems = true,
+    this.images = true,
   });
 }
 
@@ -89,7 +94,8 @@ class ExportService {
           itemsList.add(foodItemToJson(item, ingredients));
         }
         final reactionLogs = await _storage.getReactionLogsForMeal(meal.id!);
-        mealsList.add(mealToJson(meal, itemsList, reactionLogs));
+        mealsList.add(mealToJson(meal, itemsList, reactionLogs,
+            includeImages: types.images));
       }
     }
 
@@ -97,7 +103,7 @@ class ExportService {
     if (types.medications) {
       final medications = await _storage.getMedicationsInRange(from: from, to: to);
       for (final med in medications) {
-        medicationsList.add(medicationToJson(med));
+        medicationsList.add(medicationToJson(med, includeImages: types.images));
       }
     }
 
@@ -169,8 +175,9 @@ class ExportService {
   static Map<String, dynamic> mealToJson(
     MealEntry meal,
     List<Map<String, dynamic>> itemsList,
-    List<ReactionLog> reactionLogs,
-  ) =>
+    List<ReactionLog> reactionLogs, {
+    bool includeImages = true,
+  }) =>
       {
         'date': meal.date.toIso8601String().split('T').first,
         'time': meal.time,
@@ -178,7 +185,9 @@ class ExportService {
         'overall_symptoms': meal.overallSymptoms,
         'raw_input': meal.rawInput,
         'created_at': meal.createdAt.toIso8601String(),
-        'image_data': meal.imageData != null ? base64Encode(meal.imageData!) : null,
+        'image_data': includeImages && meal.imageData != null
+            ? base64Encode(meal.imageData!)
+            : null,
         'food_items': itemsList,
         'reaction_logs': reactionLogs
             .map((r) => {
@@ -212,7 +221,9 @@ class ExportService {
             .toList(),
       };
 
-  static Map<String, dynamic> medicationToJson(Medication med) => {
+  static Map<String, dynamic> medicationToJson(Medication med,
+          {bool includeImages = true}) =>
+      {
         'date': med.date.toIso8601String().split('T').first,
         'time': med.time,
         'name': med.name,
@@ -223,7 +234,9 @@ class ExportService {
         'raw_input': med.rawInput,
         'notes': med.notes,
         'created_at': med.createdAt.toIso8601String(),
-        'image_data': med.imageData != null ? base64Encode(med.imageData!) : null,
+        'image_data': includeImages && med.imageData != null
+            ? base64Encode(med.imageData!)
+            : null,
       };
 
   static Map<String, dynamic> waterLogToJson(WaterLog log) => {
@@ -254,7 +267,7 @@ class ExportService {
       };
 
   Future<void> _shareJson(Map<String, dynamic> payload, String namePrefix) async {
-    final jsonStr = const JsonEncoder.withIndent('  ').convert(payload);
+    final jsonStr = jsonEncode(payload);
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/${namePrefix}_$timestamp.json');

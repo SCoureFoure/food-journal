@@ -18,7 +18,12 @@ class LogPhotoSection extends StatelessWidget {
 
   Future<void> _pick(BuildContext context, ImageSource source) async {
     final picker = ImagePicker();
-    final picked = await picker.pickImage(source: source, imageQuality: 80);
+    final picked = await picker.pickImage(
+      source: source,
+      imageQuality: 80,
+      maxWidth: 1280,
+      maxHeight: 1280,
+    );
     if (picked == null) return;
     final bytes = await picked.readAsBytes();
     onImagePicked(bytes);

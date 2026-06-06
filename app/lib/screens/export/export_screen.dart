@@ -22,6 +22,7 @@ class _ExportScreenState extends State<ExportScreen> {
   bool _includeMeals = true;
   bool _includeMedications = true;
   bool _includeFoodMemories = true;
+  bool _includePhotos = false;
   bool _isLoading = false;
   String? _error;
 
@@ -139,6 +140,17 @@ class _ExportScreenState extends State<ExportScreen> {
                               dense: true,
                             ),
                           ),
+                          Semantics(
+                            identifier: 'toggle-include-photos',
+                            child: SwitchListTile(
+                              title: const Text('Photos'),
+                              subtitle: const Text('Larger file — off by default'),
+                              value: _includePhotos,
+                              onChanged: (v) =>
+                                  setState(() => _includePhotos = v),
+                              dense: true,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -210,6 +222,7 @@ class _ExportScreenState extends State<ExportScreen> {
           meals: _includeMeals,
           medications: _includeMedications,
           foodMemories: _includeFoodMemories,
+          images: _includePhotos,
         ),
       );
     } catch (e) {

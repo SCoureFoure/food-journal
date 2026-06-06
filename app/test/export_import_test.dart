@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:food_journal/services/storage_service.dart';
 import 'package:food_journal/models/food_item.dart';
 import 'package:food_journal/models/ingredient.dart';
 import 'package:food_journal/models/meal_entry.dart';
@@ -363,6 +366,137 @@ void main() {
         foodItem.reaction,
       );
       expect(parsed.meals.first.ingredientsByItem.first.first.name, 'eggs');
+    });
+  });
+
+  // ─── Photo-export toggle (export_import_size AC1) ─────────────────────────
+
+  group('[DIR] photo-export toggle', () {
+    final img = Uint8List.fromList(List<int>.generate(64, (i) => i));
+
+    final meal = MealEntry(
+      id: 1,
+      date: DateTime(2026, 5, 14),
+      time: '7:30 AM',
+      mealType: 'breakfast',
+      createdAt: DateTime(2026, 5, 14, 7, 30),
+      imageData: img,
+    );
+
+    final med = Medication(
+      date: DateTime(2026, 5, 14),
+      time: '8:00 AM',
+      name: 'Metformin',
+      dose: 500.0,
+      createdAt: DateTime(2026, 5, 14, 8),
+      imageData: img,
+    );
+
+    test('mealToJson includeImages:false drops image_data', () {
+      final json = ExportService.mealToJson(meal, [], [], includeImages: false);
+      expect(json['image_data'], isNull);
+    });
+
+    test('mealToJson default/true embeds base64 image_data', () {
+      final json = ExportService.mealToJson(meal, [], []);
+      expect(json['image_data'], base64Encode(img));
+    });
+
+    test('medicationToJson includeImages:false drops image_data', () {
+      final json = ExportService.medicationToJson(med, includeImages: false);
+      expect(json['image_data'], isNull);
+    });
+
+    test('medicationToJson default/true embeds base64 image_data', () {
+      final json = ExportService.medicationToJson(med);
+      expect(json['image_data'], base64Encode(img));
+    });
+  });
+
+  // ─── Compact JSON + round-trip with photos off (AC3, AC4) ─────────────────
+
+  group('[INV] compact export round-trips with photos off', () {
+    final img = Uint8List.fromList(List<int>.generate(64, (i) => i));
+    final meal = MealEntry(
+      id: 1,
+      date: DateTime(2026, 5, 14),
+      time: '7:30 AM',
+      mealType: 'breakfast',
+      rawInput: 'eggs and toast',
+      createdAt: DateTime(2026, 5, 14, 7, 30),
+      imageData: img,
+    );
+    final foodItem = FoodItem(
+      id: 10,
+      mealId: 1,
+      name: 'Eggs',
+      calories: 180,
+      protein: 12,
+      reaction: ReactionLevel.none,
+    );
+
+    test('jsonEncode produces no pretty-print indentation', () {
+      final mealJson =
+          ExportService.mealToJson(meal, [], [], includeImages: false);
+      final out = jsonEncode({
+        'version': 3,
+        'meals': [mealJson],
+        'medications': [],
+        'food_memories': [],
+      });
+      // withIndent('  ') would emit newline + leading spaces; compact has none.
+      expect(out.contains('\n  '), isFalse);
+      expect(out.contains('\n'), isFalse);
+    });
+
+    test('photos-off export re-parses to same fields, null image', () {
+      final itemJson = ExportService.foodItemToJson(foodItem, []);
+      final mealJson = ExportService.mealToJson(
+        meal,
+        [itemJson],
+        [],
+        includeImages: false,
+      );
+      final payload = jsonEncode({
+        'version': 3,
+        'meals': [mealJson],
+        'medications': [],
+        'food_memories': [],
+      });
+
+      final parsed = ImportService.parseJson(payload);
+      final record = parsed.meals.single;
+      expect(record.meal.mealType, 'breakfast');
+      expect(record.meal.rawInput, 'eggs and toast');
+      expect(record.foodItems.single.name, 'Eggs');
+      expect(record.foodItems.single.calories, 180);
+      expect(record.foodItems.single.reaction, ReactionLevel.none);
+      expect(record.meal.imageData, isNull);
+    });
+  });
+
+  // ─── Isolate parse parity (AC5) ───────────────────────────────────────────
+
+  group('[INV] parseFile (isolate) == parseJson', () {
+    test('parseFile returns the same payload as parseJson', () async {
+      final tmp = await File(
+        '${Directory.systemTemp.path}/fj_export_import_${DateTime.now().microsecondsSinceEpoch}.json',
+      ).create();
+      await tmp.writeAsString(_sampleJson);
+      addTearDown(() async {
+        if (await tmp.exists()) await tmp.delete();
+      });
+
+      final viaFile = await ImportService(StorageService()).parseFile(tmp.path);
+      final viaString = ImportService.parseJson(_sampleJson);
+
+      expect(viaFile.version, viaString.version);
+      expect(viaFile.meals.length, viaString.meals.length);
+      expect(viaFile.meals.first.meal.mealType,
+          viaString.meals.first.meal.mealType);
+      expect(viaFile.medications.length, viaString.medications.length);
+      expect(viaFile.medications.first.name, viaString.medications.first.name);
+      expect(viaFile.foodMemories.length, viaString.foodMemories.length);
     });
   });
 }

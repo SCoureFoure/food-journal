@@ -47,7 +47,11 @@ touches and links back here; it does not redefine meaning or fallback.
 | Export       | `export-screen`                 | Export screen root                             |
 | Export       | `btn-date-from`                 | From date picker tile                          |
 | Export       | `btn-date-to`                   | To date picker tile                            |
+| Export       | `toggle-include-photos`         | "Photos" switch — embed base64 images in export. Default **off** (export_import_size). ✱ absorbed (Switch); Dart: ancestor `SwitchListTile` of title "Photos" |
 | Export       | `btn-export-json`               | Export as JSON button                          |
+| Export       | `btn-import-json`               | Import-from-JSON button — opens OS file picker |
+| Import       | `import-wizard-screen`          | Import wizard root (per-record selection)      |
+| Import       | `btn-import-confirm`            | Confirm import of selected records. ✱ absorbed (ElevatedButton); tap via bounds/label |
 | Check-in     | `checkin-screen`                | Feeling check-in screen root                   |
 | Check-in     | `mood-selector`                 | Row of 5 mood faces                            |
 | Check-in     | `mood-<name>`                   | Mood face (great/good/okay/low/awful)          |
