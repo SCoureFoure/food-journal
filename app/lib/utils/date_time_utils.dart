@@ -8,9 +8,12 @@ class DateTimeUtils {
 
   static String inferMealType() {
     final hour = DateTime.now().hour;
-    if (hour < 10) return 'Breakfast';
-    if (hour < 14) return 'Lunch';
-    return 'Dinner';
+    if (hour < 5) return 'Snack'; // 00:00–04:59 late night
+    if (hour < 11) return 'Breakfast'; // 05:00–10:59
+    if (hour < 15) return 'Lunch'; // 11:00–14:59
+    if (hour < 17) return 'Snack'; // 15:00–16:59 afternoon
+    if (hour < 21) return 'Dinner'; // 17:00–20:59
+    return 'Snack'; // 21:00+ late
   }
 
   static TimeOfDay parseTime(String timeStr) {
