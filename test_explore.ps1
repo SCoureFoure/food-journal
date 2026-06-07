@@ -184,6 +184,54 @@ function Go-Collapsible {
     Log-Ok "COLLAPSIBLE test sequence complete"
 }
 
+function Go-BlameHistory {
+    Tap-Element "btn-blame-history"
+    Wait-Element "blame-history-screen" | Out-Null   # anchor: dashboard screen root
+
+    Log-Step "BLAME-HISTORY: capturing dashboard list..."
+    Save-Screenshot "01-list"
+
+    & $ADB -s $DEVICE shell uiautomator dump /sdcard/ui.xml 2>$null | Out-Null
+    $xml = & $ADB -s $DEVICE shell cat /sdcard/ui.xml | Out-String
+    $itemIds = [regex]::Matches($xml, 'resource-id="(blame-history-item-[a-z0-9-]+)"') | ForEach-Object { $_.Groups[1].Value }
+
+    if ($itemIds.Count -eq 0) {
+        Log-Warn "No blame-history-item-* anchors found - empty ledger or load error"
+        return
+    }
+    Log-Ok "Found $($itemIds.Count) episode(s): $($itemIds -join ', ')"
+
+    # Dismiss/Restore are TextButton/OutlinedButton - they absorb their wrapping
+    # Semantics(identifier:) into the button-label node (✱, same pattern as
+    # btn-edit-feeling-<id> in specs/anchors.md), so they don't surface as their
+    # own resource-id in the accessibility tree. Tap by visible label text instead.
+    if ($xml -match 'text="Dismiss"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"') {
+        $cx = [int](([int]$Matches[1] + [int]$Matches[3]) / 2)
+        $cy = [int](([int]$Matches[2] + [int]$Matches[4]) / 2)
+        Log-Step "BLAME-HISTORY: dismissing first episode via 'Dismiss' label at ($cx, $cy)..."
+        & $ADB -s $DEVICE shell input tap $cx $cy
+        Start-Sleep -Seconds 1
+        Save-Screenshot "02-dismissed"
+    } else {
+        Log-Warn "No 'Dismiss' label found - every episode may already be dismissed"
+    }
+
+    & $ADB -s $DEVICE shell uiautomator dump /sdcard/ui.xml 2>$null | Out-Null
+    $xml2 = & $ADB -s $DEVICE shell cat /sdcard/ui.xml | Out-String
+    if ($xml2 -match 'text="Restore"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"') {
+        $cx = [int](([int]$Matches[1] + [int]$Matches[3]) / 2)
+        $cy = [int](([int]$Matches[2] + [int]$Matches[4]) / 2)
+        Log-Step "BLAME-HISTORY: restoring via 'Restore' label at ($cx, $cy)..."
+        & $ADB -s $DEVICE shell input tap $cx $cy
+        Start-Sleep -Seconds 1
+        Save-Screenshot "03-restored"
+    } else {
+        Log-Warn "No 'Restore' label found after dismiss - toggle may not have applied"
+    }
+
+    Log-Ok "BLAME-HISTORY test sequence complete"
+}
+
 # ── device detect ─────────────────────────────────────────────────────────────
 $lines = & $ADB devices | Where-Object { $_ -match "device$" -and $_ -notmatch "List" }
 if (-not $lines) { Log-Fail "No device found."; exit 1 }
@@ -221,6 +269,7 @@ switch ($Scenario) {
     "log-meal"     { Go-LogMeal }
     "export"       { Go-Export }
     "collapsible"  { Go-Collapsible }
+    "blame-history" { Go-BlameHistory }
     default        { Log-Warn "Unknown scenario '$Scenario' - staying on home" }
 }
 

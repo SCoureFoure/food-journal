@@ -316,4 +316,166 @@ void main() {
       );
     });
   });
+
+  // ── blame_history: dismissal filter (specs/blame_history.spec.md) ──────────
+  group('[MFT] excludeDismissedSuspicions — drops a whole (log, symptom) episode', () {
+    // testTheory: invariant — dismissing (log, symptom) removes EVERY row for
+    // that pair regardless of source/target, leaves siblings (same log, other
+    // symptom; other logs, same symptom) untouched.
+    // contract: excludeDismissedSuspicions mirrors getSuspicionScores' anti-join.
+    // implication: dismissing "Nausea" from a flu episode can't accidentally
+    // also suppress that log's real "Bloating" signal, or another day's Nausea.
+    test('AC3: dismissing (logA, Nausea) drops auto+manual rows for it only', () {
+      final rows = [
+        ...buildSuspicionRows(
+          reactionLogId: 1,
+          symptomLevels: {'Nausea': ReactionLevel.bad, 'Bloating': ReactionLevel.mild},
+          autoCandidates: [_food(1, 'Salad')],
+          manualSelections: [_food(2, 'Yogurt')],
+          createdAt: _now,
+        ),
+        ...buildSuspicionRows(
+          reactionLogId: 2,
+          symptomLevels: {'Nausea': ReactionLevel.mild},
+          autoCandidates: [_food(3, 'Soup')],
+          manualSelections: const [],
+          createdAt: _now,
+        ),
+      ];
+      final filtered =
+          excludeDismissedSuspicions(rows, {blameHistoryKey(1, 'Nausea')});
+
+      expect(filtered.where((r) => r.reactionLogId == 1 && r.symptom == 'Nausea'),
+          isEmpty, reason: 'both auto (salad) and manual (yogurt) rows gone');
+      expect(filtered.where((r) => r.reactionLogId == 1 && r.symptom == 'Bloating'),
+          hasLength(2),
+          reason: 'sibling symptom on the same log keeps scoring '
+              '(both candidates fan out across every active symptom)');
+      expect(filtered.where((r) => r.reactionLogId == 2 && r.symptom == 'Nausea'),
+          hasLength(1), reason: 'same symptom on a different log is unaffected');
+    });
+
+    test('AC4: empty dismissed set lets every row through unchanged', () {
+      final rows = buildSuspicionRows(
+        reactionLogId: 1,
+        symptomLevels: {'Bloating': ReactionLevel.mild},
+        autoCandidates: [_food(1, 'Milk')],
+        manualSelections: const [],
+        createdAt: _now,
+      );
+      expect(excludeDismissedSuspicions(rows, const {}), rows);
+    });
+  });
+
+  group('[MFT] buildBlameHistory — group ledger rows into reviewable episodes', () {
+    // testTheory: MFT — the dashboard's row-building math: group by (log,
+    // symptom), dedupe blamed names across auto+manual (insertion order),
+    // attach severity/checkinTime/dismissed, sort newest-checkin-first.
+    // contract: buildBlameHistory is the pure spec of StorageService.getBlameHistory.
+    // implication: what the user reviews matches what aggregation actually sums.
+    test('AC2: groups by (log, symptom), dedupes names, newest checkin first', () {
+      final rows = [
+        ...buildSuspicionRows(
+          reactionLogId: 1,
+          symptomLevels: {'Nausea': ReactionLevel.bad},
+          autoCandidates: [_food(1, 'Salad'), _food(1, 'Salad')], // same target twice
+          manualSelections: [_food(2, 'Yogurt')],
+          createdAt: _now,
+        ),
+        ...buildSuspicionRows(
+          reactionLogId: 2,
+          symptomLevels: {'Bloating': ReactionLevel.mild},
+          autoCandidates: [_food(3, 'Soup')],
+          manualSelections: const [],
+          createdAt: _now,
+        ),
+      ];
+      final entries = buildBlameHistory(
+        rows: rows,
+        checkinTimes: {1: DateTime(2026, 6, 1, 20), 2: DateTime(2026, 6, 2, 8)},
+        symptomLevelsByLog: {
+          1: {'Nausea': ReactionLevel.bad},
+          2: {'Bloating': ReactionLevel.mild},
+        },
+        dismissedKeys: const {},
+      );
+
+      expect(entries, hasLength(2));
+      // log 2's check-in (Jun 2, 8am) is newer than log 1's (Jun 1, 8pm).
+      expect(entries[0].reactionLogId, 2);
+      expect(entries[0].symptom, 'Bloating');
+      expect(entries[0].severity, ReactionLevel.mild);
+      expect(entries[0].blamedNames, ['soup']);
+
+      expect(entries[1].reactionLogId, 1);
+      expect(entries[1].symptom, 'Nausea');
+      expect(entries[1].severity, ReactionLevel.bad);
+      expect(entries[1].blamedNames, ['salad', 'yogurt'],
+          reason: 'auto+manual together, duplicate target deduped, insertion order');
+      expect(entries.every((e) => !e.dismissed), isTrue);
+    });
+
+    test('AC4: dismissed flag mirrors dismissedKeys; ties broken by log id desc', () {
+      final rows = [
+        ...buildSuspicionRows(
+          reactionLogId: 1,
+          symptomLevels: {'Nausea': ReactionLevel.bad},
+          autoCandidates: [_food(1, 'Salad')],
+          manualSelections: const [],
+          createdAt: _now,
+        ),
+        ...buildSuspicionRows(
+          reactionLogId: 2,
+          symptomLevels: {'Bloating': ReactionLevel.mild},
+          autoCandidates: [_food(2, 'Eggs')],
+          manualSelections: const [],
+          createdAt: _now,
+        ),
+      ];
+      final sameTime = DateTime(2026, 6, 2, 8);
+      final entries = buildBlameHistory(
+        rows: rows,
+        checkinTimes: {1: sameTime, 2: sameTime},
+        symptomLevelsByLog: {
+          1: {'Nausea': ReactionLevel.bad},
+          2: {'Bloating': ReactionLevel.mild},
+        },
+        dismissedKeys: {blameHistoryKey(1, 'Nausea')},
+      );
+
+      expect(entries[0].reactionLogId, 2, reason: 'tie on checkinTime → higher log id first');
+      expect(entries[0].dismissed, isFalse);
+      expect(entries[1].reactionLogId, 1);
+      expect(entries[1].dismissed, isTrue);
+    });
+
+    test('defensively skips a log missing from checkinTimes (deleted between reads)', () {
+      final rows = buildSuspicionRows(
+        reactionLogId: 99,
+        symptomLevels: {'Bloating': ReactionLevel.mild},
+        autoCandidates: [_food(1, 'Milk')],
+        manualSelections: const [],
+        createdAt: _now,
+      );
+      final entries = buildBlameHistory(
+        rows: rows,
+        checkinTimes: const {},
+        symptomLevelsByLog: const {},
+        dismissedKeys: const {},
+      );
+      expect(entries, isEmpty);
+    });
+
+    test('empty ledger → empty list', () {
+      expect(
+        buildBlameHistory(
+          rows: const [],
+          checkinTimes: const {},
+          symptomLevelsByLog: const {},
+          dismissedKeys: const {},
+        ),
+        isEmpty,
+      );
+    });
+  });
 }

@@ -5744,6 +5744,319 @@ class FoodSuspicionsCompanion extends UpdateCompanion<FoodSuspicion> {
   }
 }
 
+class $SuspicionExclusionsTable extends SuspicionExclusions
+    with TableInfo<$SuspicionExclusionsTable, SuspicionExclusion> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SuspicionExclusionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _reactionLogIdMeta = const VerificationMeta(
+    'reactionLogId',
+  );
+  @override
+  late final GeneratedColumn<int> reactionLogId = GeneratedColumn<int>(
+    'reaction_log_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES reaction_logs (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _symptomMeta = const VerificationMeta(
+    'symptom',
+  );
+  @override
+  late final GeneratedColumn<String> symptom = GeneratedColumn<String>(
+    'symptom',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, reactionLogId, symptom, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'suspicion_exclusions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SuspicionExclusion> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('reaction_log_id')) {
+      context.handle(
+        _reactionLogIdMeta,
+        reactionLogId.isAcceptableOrUnknown(
+          data['reaction_log_id']!,
+          _reactionLogIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_reactionLogIdMeta);
+    }
+    if (data.containsKey('symptom')) {
+      context.handle(
+        _symptomMeta,
+        symptom.isAcceptableOrUnknown(data['symptom']!, _symptomMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_symptomMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {reactionLogId, symptom},
+  ];
+  @override
+  SuspicionExclusion map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SuspicionExclusion(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      reactionLogId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reaction_log_id'],
+      )!,
+      symptom: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}symptom'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SuspicionExclusionsTable createAlias(String alias) {
+    return $SuspicionExclusionsTable(attachedDatabase, alias);
+  }
+}
+
+class SuspicionExclusion extends DataClass
+    implements Insertable<SuspicionExclusion> {
+  final int id;
+  final int reactionLogId;
+  final String symptom;
+  final DateTime createdAt;
+  const SuspicionExclusion({
+    required this.id,
+    required this.reactionLogId,
+    required this.symptom,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['reaction_log_id'] = Variable<int>(reactionLogId);
+    map['symptom'] = Variable<String>(symptom);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  SuspicionExclusionsCompanion toCompanion(bool nullToAbsent) {
+    return SuspicionExclusionsCompanion(
+      id: Value(id),
+      reactionLogId: Value(reactionLogId),
+      symptom: Value(symptom),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SuspicionExclusion.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SuspicionExclusion(
+      id: serializer.fromJson<int>(json['id']),
+      reactionLogId: serializer.fromJson<int>(json['reactionLogId']),
+      symptom: serializer.fromJson<String>(json['symptom']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'reactionLogId': serializer.toJson<int>(reactionLogId),
+      'symptom': serializer.toJson<String>(symptom),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  SuspicionExclusion copyWith({
+    int? id,
+    int? reactionLogId,
+    String? symptom,
+    DateTime? createdAt,
+  }) => SuspicionExclusion(
+    id: id ?? this.id,
+    reactionLogId: reactionLogId ?? this.reactionLogId,
+    symptom: symptom ?? this.symptom,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  SuspicionExclusion copyWithCompanion(SuspicionExclusionsCompanion data) {
+    return SuspicionExclusion(
+      id: data.id.present ? data.id.value : this.id,
+      reactionLogId: data.reactionLogId.present
+          ? data.reactionLogId.value
+          : this.reactionLogId,
+      symptom: data.symptom.present ? data.symptom.value : this.symptom,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SuspicionExclusion(')
+          ..write('id: $id, ')
+          ..write('reactionLogId: $reactionLogId, ')
+          ..write('symptom: $symptom, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, reactionLogId, symptom, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SuspicionExclusion &&
+          other.id == this.id &&
+          other.reactionLogId == this.reactionLogId &&
+          other.symptom == this.symptom &&
+          other.createdAt == this.createdAt);
+}
+
+class SuspicionExclusionsCompanion extends UpdateCompanion<SuspicionExclusion> {
+  final Value<int> id;
+  final Value<int> reactionLogId;
+  final Value<String> symptom;
+  final Value<DateTime> createdAt;
+  const SuspicionExclusionsCompanion({
+    this.id = const Value.absent(),
+    this.reactionLogId = const Value.absent(),
+    this.symptom = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  SuspicionExclusionsCompanion.insert({
+    this.id = const Value.absent(),
+    required int reactionLogId,
+    required String symptom,
+    required DateTime createdAt,
+  }) : reactionLogId = Value(reactionLogId),
+       symptom = Value(symptom),
+       createdAt = Value(createdAt);
+  static Insertable<SuspicionExclusion> custom({
+    Expression<int>? id,
+    Expression<int>? reactionLogId,
+    Expression<String>? symptom,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (reactionLogId != null) 'reaction_log_id': reactionLogId,
+      if (symptom != null) 'symptom': symptom,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  SuspicionExclusionsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? reactionLogId,
+    Value<String>? symptom,
+    Value<DateTime>? createdAt,
+  }) {
+    return SuspicionExclusionsCompanion(
+      id: id ?? this.id,
+      reactionLogId: reactionLogId ?? this.reactionLogId,
+      symptom: symptom ?? this.symptom,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (reactionLogId.present) {
+      map['reaction_log_id'] = Variable<int>(reactionLogId.value);
+    }
+    if (symptom.present) {
+      map['symptom'] = Variable<String>(symptom.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SuspicionExclusionsCompanion(')
+          ..write('id: $id, ')
+          ..write('reactionLogId: $reactionLogId, ')
+          ..write('symptom: $symptom, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5760,6 +6073,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $WeightLogsTable weightLogs = $WeightLogsTable(this);
   late final $SavedItemsTable savedItems = $SavedItemsTable(this);
   late final $FoodSuspicionsTable foodSuspicions = $FoodSuspicionsTable(this);
+  late final $SuspicionExclusionsTable suspicionExclusions =
+      $SuspicionExclusionsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5776,6 +6091,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     weightLogs,
     savedItems,
     foodSuspicions,
+    suspicionExclusions,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -5792,6 +6108,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('food_suspicions', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'reaction_logs',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('suspicion_exclusions', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -7157,6 +7480,33 @@ final class $$ReactionLogsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<
+    $SuspicionExclusionsTable,
+    List<SuspicionExclusion>
+  >
+  _suspicionExclusionsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.suspicionExclusions,
+        aliasName: $_aliasNameGenerator(
+          db.reactionLogs.id,
+          db.suspicionExclusions.reactionLogId,
+        ),
+      );
+
+  $$SuspicionExclusionsTableProcessedTableManager get suspicionExclusionsRefs {
+    final manager = $$SuspicionExclusionsTableTableManager(
+      $_db,
+      $_db.suspicionExclusions,
+    ).filter((f) => f.reactionLogId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _suspicionExclusionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$ReactionLogsTableFilterComposer
@@ -7224,6 +7574,31 @@ class $$ReactionLogsTableFilterComposer
           }) => $$FoodSuspicionsTableFilterComposer(
             $db: $db,
             $table: $db.foodSuspicions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> suspicionExclusionsRefs(
+    Expression<bool> Function($$SuspicionExclusionsTableFilterComposer f) f,
+  ) {
+    final $$SuspicionExclusionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.suspicionExclusions,
+      getReferencedColumn: (t) => t.reactionLogId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SuspicionExclusionsTableFilterComposer(
+            $db: $db,
+            $table: $db.suspicionExclusions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -7345,6 +7720,32 @@ class $$ReactionLogsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> suspicionExclusionsRefs<T extends Object>(
+    Expression<T> Function($$SuspicionExclusionsTableAnnotationComposer a) f,
+  ) {
+    final $$SuspicionExclusionsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.suspicionExclusions,
+          getReferencedColumn: (t) => t.reactionLogId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$SuspicionExclusionsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.suspicionExclusions,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$ReactionLogsTableTableManager
@@ -7360,7 +7761,10 @@ class $$ReactionLogsTableTableManager
           $$ReactionLogsTableUpdateCompanionBuilder,
           (ReactionLog, $$ReactionLogsTableReferences),
           ReactionLog,
-          PrefetchHooks Function({bool foodSuspicionsRefs})
+          PrefetchHooks Function({
+            bool foodSuspicionsRefs,
+            bool suspicionExclusionsRefs,
+          })
         > {
   $$ReactionLogsTableTableManager(_$AppDatabase db, $ReactionLogsTable table)
     : super(
@@ -7421,40 +7825,63 @@ class $$ReactionLogsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({foodSuspicionsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (foodSuspicionsRefs) db.foodSuspicions,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (foodSuspicionsRefs)
-                    await $_getPrefetchedData<
-                      ReactionLog,
-                      $ReactionLogsTable,
-                      FoodSuspicion
-                    >(
-                      currentTable: table,
-                      referencedTable: $$ReactionLogsTableReferences
-                          ._foodSuspicionsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$ReactionLogsTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).foodSuspicionsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.reactionLogId == item.id,
-                          ),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({foodSuspicionsRefs = false, suspicionExclusionsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (foodSuspicionsRefs) db.foodSuspicions,
+                    if (suspicionExclusionsRefs) db.suspicionExclusions,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (foodSuspicionsRefs)
+                        await $_getPrefetchedData<
+                          ReactionLog,
+                          $ReactionLogsTable,
+                          FoodSuspicion
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ReactionLogsTableReferences
+                              ._foodSuspicionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ReactionLogsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).foodSuspicionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.reactionLogId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (suspicionExclusionsRefs)
+                        await $_getPrefetchedData<
+                          ReactionLog,
+                          $ReactionLogsTable,
+                          SuspicionExclusion
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ReactionLogsTableReferences
+                              ._suspicionExclusionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ReactionLogsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).suspicionExclusionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.reactionLogId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -7471,7 +7898,10 @@ typedef $$ReactionLogsTableProcessedTableManager =
       $$ReactionLogsTableUpdateCompanionBuilder,
       (ReactionLog, $$ReactionLogsTableReferences),
       ReactionLog,
-      PrefetchHooks Function({bool foodSuspicionsRefs})
+      PrefetchHooks Function({
+        bool foodSuspicionsRefs,
+        bool suspicionExclusionsRefs,
+      })
     >;
 typedef $$FoodMemoriesTableCreateCompanionBuilder =
     FoodMemoriesCompanion Function({
@@ -9534,6 +9964,322 @@ typedef $$FoodSuspicionsTableProcessedTableManager =
       FoodSuspicion,
       PrefetchHooks Function({bool reactionLogId})
     >;
+typedef $$SuspicionExclusionsTableCreateCompanionBuilder =
+    SuspicionExclusionsCompanion Function({
+      Value<int> id,
+      required int reactionLogId,
+      required String symptom,
+      required DateTime createdAt,
+    });
+typedef $$SuspicionExclusionsTableUpdateCompanionBuilder =
+    SuspicionExclusionsCompanion Function({
+      Value<int> id,
+      Value<int> reactionLogId,
+      Value<String> symptom,
+      Value<DateTime> createdAt,
+    });
+
+final class $$SuspicionExclusionsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $SuspicionExclusionsTable,
+          SuspicionExclusion
+        > {
+  $$SuspicionExclusionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $ReactionLogsTable _reactionLogIdTable(_$AppDatabase db) =>
+      db.reactionLogs.createAlias(
+        $_aliasNameGenerator(
+          db.suspicionExclusions.reactionLogId,
+          db.reactionLogs.id,
+        ),
+      );
+
+  $$ReactionLogsTableProcessedTableManager get reactionLogId {
+    final $_column = $_itemColumn<int>('reaction_log_id')!;
+
+    final manager = $$ReactionLogsTableTableManager(
+      $_db,
+      $_db.reactionLogs,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_reactionLogIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$SuspicionExclusionsTableFilterComposer
+    extends Composer<_$AppDatabase, $SuspicionExclusionsTable> {
+  $$SuspicionExclusionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get symptom => $composableBuilder(
+    column: $table.symptom,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ReactionLogsTableFilterComposer get reactionLogId {
+    final $$ReactionLogsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.reactionLogId,
+      referencedTable: $db.reactionLogs,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReactionLogsTableFilterComposer(
+            $db: $db,
+            $table: $db.reactionLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SuspicionExclusionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SuspicionExclusionsTable> {
+  $$SuspicionExclusionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get symptom => $composableBuilder(
+    column: $table.symptom,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ReactionLogsTableOrderingComposer get reactionLogId {
+    final $$ReactionLogsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.reactionLogId,
+      referencedTable: $db.reactionLogs,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReactionLogsTableOrderingComposer(
+            $db: $db,
+            $table: $db.reactionLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SuspicionExclusionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SuspicionExclusionsTable> {
+  $$SuspicionExclusionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get symptom =>
+      $composableBuilder(column: $table.symptom, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$ReactionLogsTableAnnotationComposer get reactionLogId {
+    final $$ReactionLogsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.reactionLogId,
+      referencedTable: $db.reactionLogs,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReactionLogsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.reactionLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SuspicionExclusionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SuspicionExclusionsTable,
+          SuspicionExclusion,
+          $$SuspicionExclusionsTableFilterComposer,
+          $$SuspicionExclusionsTableOrderingComposer,
+          $$SuspicionExclusionsTableAnnotationComposer,
+          $$SuspicionExclusionsTableCreateCompanionBuilder,
+          $$SuspicionExclusionsTableUpdateCompanionBuilder,
+          (SuspicionExclusion, $$SuspicionExclusionsTableReferences),
+          SuspicionExclusion,
+          PrefetchHooks Function({bool reactionLogId})
+        > {
+  $$SuspicionExclusionsTableTableManager(
+    _$AppDatabase db,
+    $SuspicionExclusionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SuspicionExclusionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SuspicionExclusionsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$SuspicionExclusionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> reactionLogId = const Value.absent(),
+                Value<String> symptom = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => SuspicionExclusionsCompanion(
+                id: id,
+                reactionLogId: reactionLogId,
+                symptom: symptom,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int reactionLogId,
+                required String symptom,
+                required DateTime createdAt,
+              }) => SuspicionExclusionsCompanion.insert(
+                id: id,
+                reactionLogId: reactionLogId,
+                symptom: symptom,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$SuspicionExclusionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({reactionLogId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (reactionLogId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.reactionLogId,
+                                referencedTable:
+                                    $$SuspicionExclusionsTableReferences
+                                        ._reactionLogIdTable(db),
+                                referencedColumn:
+                                    $$SuspicionExclusionsTableReferences
+                                        ._reactionLogIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$SuspicionExclusionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SuspicionExclusionsTable,
+      SuspicionExclusion,
+      $$SuspicionExclusionsTableFilterComposer,
+      $$SuspicionExclusionsTableOrderingComposer,
+      $$SuspicionExclusionsTableAnnotationComposer,
+      $$SuspicionExclusionsTableCreateCompanionBuilder,
+      $$SuspicionExclusionsTableUpdateCompanionBuilder,
+      (SuspicionExclusion, $$SuspicionExclusionsTableReferences),
+      SuspicionExclusion,
+      PrefetchHooks Function({bool reactionLogId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -9560,4 +10306,6 @@ class $AppDatabaseManager {
       $$SavedItemsTableTableManager(_db, _db.savedItems);
   $$FoodSuspicionsTableTableManager get foodSuspicions =>
       $$FoodSuspicionsTableTableManager(_db, _db.foodSuspicions);
+  $$SuspicionExclusionsTableTableManager get suspicionExclusions =>
+      $$SuspicionExclusionsTableTableManager(_db, _db.suspicionExclusions);
 }

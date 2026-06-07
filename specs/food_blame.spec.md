@@ -24,6 +24,10 @@ triggers re-fire and out-weigh one-off false positives. This spec does **not**
 compute flags or surface conclusions — it only writes and aggregates the ledger.
 
 ## Out of scope (future work)
+- **Reviewing/dismissing accrued suspicion.** Letting the user correct the ledger
+  when a symptom had a 3rd-party cause (illness, etc.) rather than food — covered by
+  [blame_history](blame_history.spec.md) (v13, `suspicion_exclusions`). See the
+  amendment notes on `getSuspicionScores`/AC9/AC11 below.
 - **System flagging.** Crossing an accrued-suspicion threshold → `food_memories.flagged`.
   Ledger must *support* the aggregation query; computing/surfacing the flag is a later
   spec.
@@ -71,6 +75,10 @@ compute flags or surface conclusions — it only writes and aggregates the ledge
 - **Weight = severity-scaled.** `baseWeight` = that symptom's `ReactionLevel` index
   for this log (mild=1, moderate=2, bad=3). Effective weight on read =
   `baseWeight × sourceMultiplier × decay(age)`.
+  **AMENDED 2026-06-07** by [blame_history](blame_history.spec.md): the read also
+  filters out any `(reaction_log_id, symptom)` the user has dismissed via the new
+  `suspicion_exclusions` table (v13) — see that spec's `getSuspicionScores` SQL
+  amendment and AC11 below.
   `sourceMultiplier`: auto = 1.0, manual = `kManualWeightMultiplier` (placeholder
   3.0). `decay()` = 1.0 stub (see out-of-scope).
 - **Manual blame targets the whole log's symptom set.** Tapping an item in the modal
@@ -84,6 +92,15 @@ compute flags or surface conclusions — it only writes and aggregates the ledge
   that `reactionLogId` and rewrite them from the (possibly changed) `checkinTime` /
   symptom set. `source=manual` rows are **preserved** unless the blamed symptom was
   removed from the log (then the orphaned manual rows for that symptom are deleted).
+  **Note (load-bearing for [blame_history](blame_history.spec.md)):** in the actual
+  `applyBlame` implementation this "preserve" is achieved by a full wipe-and-rewrite
+  of *every* row (auto **and** manual) on **every** save — the screen pre-loads the
+  existing manual selections and resubmits them, so the visible outcome matches, but
+  row `id`s/`createdAt` churn each time. This is why per-row state (e.g. a dismissal
+  flag) cannot live on `food_suspicions` — see blame_history's pinned rationale.
+  **AMENDED 2026-06-07:** `applyBlame` additionally prunes any orphaned
+  `suspicion_exclusions` row whose symptom was removed from the log — same spirit,
+  new table (blame_history AC6).
 - **Delete = cascade.** Deleting the check-in drops all its suspicion rows via FK.
 - **Best-effort, never blocks save.** Auto-blame runs after the log row is written,
   in the same transaction where practical; if the window query/insert throws, the
@@ -143,6 +160,10 @@ INDEX idx_suspicion_log    ON (reaction_log_id)        -- edit / cascade lookup
 11. **AC11 — aggregation read.** `getSuspicionScores()` returns effective weight
     summed and grouped by `(targetName, symptom)`; given the same item blamed once
     auto (weight 1) and once manual (weight 1×3), its Bloating score == 4.
+    **AMENDED 2026-06-07** by [blame_history](blame_history.spec.md) AC3/AC4: rows
+    whose `(reaction_log_id, symptom)` appears in `suspicion_exclusions` are
+    excluded from this sum entirely (both sources), and restoring re-includes them
+    at their original weight.
 12. **AC12 — blame entry point gating.** Given the check-in screen with ≥1 symptom
     selected, then `btn-blame-foods` is present; given zero symptoms, the blame entry
     point is absent/disabled (nothing to blame for).

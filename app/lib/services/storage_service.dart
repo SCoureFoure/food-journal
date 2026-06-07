@@ -521,7 +521,99 @@ class StorageService {
               ),
             );
       }
+      await _pruneOrphanedExclusions(
+        reactionLogId: reactionLogId,
+        symptomLevels: symptomLevels,
+      );
     });
+  }
+
+  /// Deletes any `suspicion_exclusions` row for [reactionLogId] whose symptom
+  /// is no longer active on the log (removed, or demoted to none/pending) — no
+  /// `food_suspicions` row will ever match it again, so the dismissal is dead
+  /// weight. Mirrors food_blame AC9's "orphaned manual rows for a removed
+  /// symptom are deleted." See specs/blame_history.spec.md AC6.
+  Future<void> _pruneOrphanedExclusions({
+    required int reactionLogId,
+    required Map<String, ReactionLevel> symptomLevels,
+  }) async {
+    final active = symptomLevels.entries
+        .where((e) =>
+            e.value != ReactionLevel.none && e.value != ReactionLevel.pending)
+        .map((e) => e.key)
+        .toSet();
+    final existing = await (_db.select(_db.suspicionExclusions)
+          ..where((t) => t.reactionLogId.equals(reactionLogId)))
+        .get();
+    final orphanedIds = existing
+        .where((e) => !active.contains(e.symptom))
+        .map((e) => e.id)
+        .toList();
+    if (orphanedIds.isEmpty) return;
+    await (_db.delete(_db.suspicionExclusions)
+          ..where((t) => t.id.isIn(orphanedIds)))
+        .go();
+  }
+
+  /// Toggles whether a `(check-in, symptom)` episode counts toward
+  /// `getSuspicionScores`. Idempotent: dismissing an already-dismissed episode
+  /// or restoring an active one is a no-op beyond the row flip. See
+  /// specs/blame_history.spec.md.
+  Future<void> toggleSuspicionExclusion({
+    required int reactionLogId,
+    required String symptom,
+  }) async {
+    final existing = await (_db.select(_db.suspicionExclusions)
+          ..where((t) =>
+              t.reactionLogId.equals(reactionLogId) & t.symptom.equals(symptom)))
+        .getSingleOrNull();
+    if (existing != null) {
+      await (_db.delete(_db.suspicionExclusions)
+            ..where((t) => t.id.equals(existing.id)))
+          .go();
+    } else {
+      await _db.into(_db.suspicionExclusions).insert(
+            db.SuspicionExclusionsCompanion.insert(
+              reactionLogId: reactionLogId,
+              symptom: symptom,
+              createdAt: DateTime.now(),
+            ),
+            mode: InsertMode.insertOrIgnore,
+          );
+    }
+  }
+
+  /// Every `(check-in, symptom)` episode the ledger has accrued, newest-
+  /// `checkinTime` first — drives the blame-history dashboard. Shows `auto` +
+  /// `manual` targets together (unlike `getManualBlamedNamesForLog`, which is
+  /// manual-only for the feeling tile). See specs/blame_history.spec.md.
+  Future<List<BlameHistoryEntry>> getBlameHistory() async {
+    final rows = await _db.select(_db.foodSuspicions).get();
+    if (rows.isEmpty) return const [];
+    final suspicions = rows.map(_suspicionFromRow).toList();
+
+    final logIds = suspicions.map((r) => r.reactionLogId).toSet();
+    final logs = await (_db.select(_db.reactionLogs)
+          ..where((t) => t.id.isIn(logIds)))
+        .get();
+    final checkinTimes = {for (final l in logs) l.id: l.checkinTime};
+    final symptomLevelsByLog = {
+      for (final l in logs) l.id: _decodeSymptomLevels(l),
+    };
+
+    final exclusions = await (_db.select(_db.suspicionExclusions)
+          ..where((t) => t.reactionLogId.isIn(logIds)))
+        .get();
+    final dismissedKeys = exclusions
+        .map((e) => blameHistoryKey(e.reactionLogId, e.symptom))
+        .toSet();
+
+    return buildBlameHistory(
+      rows: suspicions,
+      checkinTimes: checkinTimes,
+      symptomLevelsByLog: symptomLevelsByLog,
+      dismissedKeys: dismissedKeys,
+    );
   }
 
   /// Target+id keys (`type:id`) the user manually blamed on [logId] — used to
@@ -562,16 +654,23 @@ class StorageService {
   /// Aggregated suspicion per `(targetName, symptom)` across all check-ins,
   /// highest first. Effective weight = baseWeight × source multiplier ×
   /// decay(age); decay is the identity (1.0) for now — see food_blame spec.
+  /// Episodes the user dismissed via the blame-history dashboard
+  /// (`suspicion_exclusions` — see specs/blame_history.spec.md) are excluded
+  /// from the sum entirely, regardless of source.
   Future<List<SuspicionScore>> getSuspicionScores() async {
     final rows = await _db.customSelect(
       '''
       SELECT target_name, symptom,
              SUM(base_weight * CASE source WHEN 'manual' THEN $kManualWeightMultiplier ELSE 1.0 END) AS score
-      FROM food_suspicions
+      FROM food_suspicions fs
+      WHERE NOT EXISTS (
+        SELECT 1 FROM suspicion_exclusions se
+        WHERE se.reaction_log_id = fs.reaction_log_id AND se.symptom = fs.symptom
+      )
       GROUP BY target_name, symptom
       ORDER BY score DESC
       ''',
-      readsFrom: {_db.foodSuspicions},
+      readsFrom: {_db.foodSuspicions, _db.suspicionExclusions},
     ).get();
     return rows
         .map((r) => SuspicionScore(

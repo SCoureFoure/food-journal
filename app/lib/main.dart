@@ -5,6 +5,7 @@ import 'models/meal_entry.dart';
 import 'models/medication.dart';
 import 'models/reaction_log.dart';
 import 'models/weight_log.dart';
+import 'screens/blame_history/blame_history_screen.dart';
 import 'screens/checkin/checkin_screen.dart';
 import 'screens/export/export_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -49,6 +50,7 @@ class FoodJournalApp extends StatelessWidget {
         '/log_medication': (_) => const LogMedicationScreen(),
         '/log_weight': (_) => const LogWeightScreen(),
         '/export': (_) => const ExportScreen(),
+        '/blame-history': (_) => const BlameHistoryScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/meal') {

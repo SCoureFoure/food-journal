@@ -209,6 +209,14 @@ class _HomeScreenState extends State<HomeScreen> {
               tooltip: 'Export',
             ),
           ),
+          Semantics(
+            identifier: 'btn-blame-history',
+            child: IconButton(
+              icon: const Icon(Icons.history_outlined),
+              onPressed: () => Navigator.pushNamed(context, '/blame-history'),
+              tooltip: 'Blame history',
+            ),
+          ),
         ],
       ),
       body: Stack(

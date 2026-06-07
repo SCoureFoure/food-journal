@@ -80,6 +80,24 @@ class FoodSuspicions extends Table {
   DateTimeColumn get createdAt => dateTime()(); // decay input
 }
 
+/// User-dismissed `(check-in, symptom)` episodes — see specs/blame_history.spec.md.
+/// Lives apart from [FoodSuspicions] because `applyBlame` wipes-and-rewrites that
+/// table on every check-in save; a flag column there would be lost on the next
+/// unrelated save. This table survives that regenerate untouched and cascades on
+/// log delete just like the ledger does.
+class SuspicionExclusions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get reactionLogId =>
+      integer().references(ReactionLogs, #id, onDelete: KeyAction.cascade)();
+  TextColumn get symptom => text()();
+  DateTimeColumn get createdAt => dateTime()(); // when the user dismissed it
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+        {reactionLogId, symptom},
+      ];
+}
+
 class Medications extends Table {
   IntColumn get id => integer().autoIncrement()();
   DateTimeColumn get date => dateTime()();
@@ -140,7 +158,7 @@ class SavedItems extends Table {
 
 // ─── Database ─────────────────────────────────────────────────────────────────
 
-@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories, Medications, MealFingerprints, WaterLogs, WeightLogs, SavedItems, FoodSuspicions])
+@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories, Medications, MealFingerprints, WaterLogs, WeightLogs, SavedItems, FoodSuspicions, SuspicionExclusions])
 class AppDatabase extends _$AppDatabase {
   static final AppDatabase _instance = AppDatabase._internal();
 
@@ -150,11 +168,11 @@ class AppDatabase extends _$AppDatabase {
 
   // Exposed as a static constant so tests can assert the current version
   // without instantiating the singleton (which requires native sqlite3).
-  static const int currentSchemaVersion = 12;
+  static const int currentSchemaVersion = 13;
 
   // The declared migration ceiling versions in the order they appear in
   // onUpgrade.  Must be non-decreasing — tested in migration_order_test.dart.
-  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -308,6 +326,20 @@ class AppDatabase extends _$AppDatabase {
         // regex; applying the Dart fn keeps the key identical to new saves).
         await _backfillCanonicalNames('food_items');
         await _backfillCanonicalNames('medications');
+      }
+      if (from < 13) {
+        await customStatement('''
+          CREATE TABLE IF NOT EXISTS suspicion_exclusions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            reaction_log_id INTEGER NOT NULL REFERENCES reaction_logs(id) ON DELETE CASCADE,
+            symptom TEXT NOT NULL,
+            created_at INTEGER NOT NULL,
+            UNIQUE(reaction_log_id, symptom)
+          )
+        ''');
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_exclusion_log ON suspicion_exclusions(reaction_log_id)',
+        );
       }
     },
   );

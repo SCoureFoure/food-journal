@@ -23,6 +23,10 @@ touches and links back here; it does not redefine meaning or fallback.
 | Home         | `btn-log-entry`                 | FAB — toggles speed-dial. ✱ absorbed; tap via bounds |
 | Home         | `btn-fab-<slug>`                | Speed-dial option (feeling/medication/weighin/water/food). ✱ absorbed |
 | Home         | `home-empty-state`              | No meals — home screen ready                   |
+| Home         | `btn-blame-history`             | App-bar button → blame history dashboard (blame_history) |
+| Blame history| `blame-history-screen`          | Dashboard screen root (blame_history)          |
+| Blame history| `blame-history-item-<logId>-<symptom-slug>` | Episode-symptom row: date, severity, blamed item names. `symptom-slug` = lowercase, spaces→dashes (e.g. "Stomach pain" → `stomach-pain`) (blame_history) |
+| Blame history| `btn-blame-history-toggle-<logId>-<symptom-slug>` | Dismiss/restore control on a row — toggles its exclusion (blame_history) |
 | Home         | `home-meal-list`                | Has meals — home screen ready                  |
 | Home         | `btn-export`                    | Export icon in app bar                         |
 | Home         | `home-loading`                  | Still loading                                  |

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../models/food_suspicion.dart' show titleCase;
 import '../../models/reaction_log.dart';
 import '../../services/storage_service.dart';
 
@@ -145,7 +146,7 @@ class _FeelingTileState extends State<FeelingTile> {
               children: [
                 for (final name in _blamed!)
                   Chip(
-                    label: Text(_titleCase(name)),
+                    label: Text(titleCase(name)),
                     visualDensity: VisualDensity.compact,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     side: BorderSide(color: theme.colorScheme.outlineVariant),
@@ -157,10 +158,4 @@ class _FeelingTileState extends State<FeelingTile> {
       ),
     );
   }
-
-  // Stored target names are lowercased for aggregation; prettify for display.
-  static String _titleCase(String s) => s
-      .split(' ')
-      .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
-      .join(' ');
 }
