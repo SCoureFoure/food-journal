@@ -205,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
             identifier: 'btn-export',
             child: IconButton(
               icon: const Icon(Icons.download),
-              onPressed: () => Navigator.pushNamed(context, '/export'),
+              onPressed: () => _navigate('/export'),
               tooltip: 'Export',
             ),
           ),
