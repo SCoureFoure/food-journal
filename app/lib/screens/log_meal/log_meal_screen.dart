@@ -15,6 +15,7 @@ import '../../utils/date_time_utils.dart';
 import '../../widgets/create_saved_item_sheet.dart';
 import '../../widgets/editable_food_item_card.dart';
 import '../../widgets/error_display.dart';
+import '../../widgets/food_db_search_sheet.dart';
 import '../../widgets/food_history_search_sheet.dart';
 import '../../widgets/loading_button.dart';
 import '../../widgets/log_date_time_row.dart';
@@ -402,6 +403,17 @@ class _LogMealScreenState extends State<LogMealScreen> {
     );
   }
 
+  Future<void> _searchFoodDb() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => FoodDbSearchSheet(
+        aiOverride: widget.aiOverride,
+        onSelect: (draft) => setState(() => _foodItems.add(FoodItemFormData.fromDraft(draft))),
+      ),
+    );
+  }
+
   Future<void> _openCreateItem() async {
     await showModalBottomSheet<void>(
       context: context,
@@ -494,8 +506,10 @@ class _LogMealScreenState extends State<LogMealScreen> {
                     _buildDidYouMeanBanner(theme),
                   Text('Food items', style: theme.textTheme.titleSmall),
                   const SizedBox(height: 2),
-                  // Discovery row — compact labeled icon buttons
-                  Row(
+                  // Discovery row — compact labeled icon buttons; wraps so the
+                  // fourth source (food DB search) flows to a new line on narrow screens.
+                  Wrap(
+                    spacing: 0,
                     children: [
                       Semantics(
                         identifier: 'btn-add-from-favorites',
@@ -527,6 +541,18 @@ class _LogMealScreenState extends State<LogMealScreen> {
                           onPressed: _isSaving ? null : _openMyItems,
                           icon: const Icon(Icons.bookmark_outline, size: 15),
                           label: const Text('My Items'),
+                          style: TextButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                        ),
+                      ),
+                      Semantics(
+                        identifier: 'btn-search-food-db',
+                        child: TextButton.icon(
+                          onPressed: _isSaving ? null : _searchFoodDb,
+                          icon: const Icon(Icons.search, size: 15),
+                          label: const Text('Search'),
                           style: TextButton.styleFrom(
                             visualDensity: VisualDensity.compact,
                             padding: const EdgeInsets.symmetric(horizontal: 8),

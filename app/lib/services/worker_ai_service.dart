@@ -93,6 +93,37 @@ class WorkerAiService implements AiService {
   }
 
   @override
+  Future<FoodDbSearchResult> searchFoodDatabase(String query) async {
+    final q = query.trim();
+    if (q.isEmpty) {
+      return FoodDbSearchResult(success: false, errorMessage: 'Enter a search term.');
+    }
+    if (_resolvedUrl.isEmpty) {
+      return FoodDbSearchResult(success: false, errorMessage: 'MEAL_PARSER_URL not set in .env');
+    }
+
+    try {
+      final response = await _post({'task': 'food_search', 'query': q});
+
+      if (response.statusCode != 200) {
+        return FoodDbSearchResult(
+          success: false,
+          errorMessage: 'Worker error ${response.statusCode}: ${response.body}',
+        );
+      }
+
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      final foods = (json['foods'] as List)
+          .map((f) => FoodItemDraft.fromJson(f as Map<String, dynamic>))
+          .toList();
+
+      return FoodDbSearchResult(success: true, items: foods);
+    } catch (e) {
+      return FoodDbSearchResult(success: false, errorMessage: e.toString());
+    }
+  }
+
+  @override
   Future<MedicationParseResult> parseMedication({String? text, Uint8List? imageBytes}) async {
     if (_resolvedUrl.isEmpty) {
       return MedicationParseResult(success: false, errorMessage: 'MEAL_PARSER_URL not set in .env');

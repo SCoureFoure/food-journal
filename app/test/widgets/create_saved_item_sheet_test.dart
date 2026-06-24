@@ -61,6 +61,10 @@ class _FakeAi implements AiService {
   @override
   Future<MedicationParseResult> parseMedication({String? text, Uint8List? imageBytes}) async =>
       throw UnimplementedError();
+
+  @override
+  Future<FoodDbSearchResult> searchFoodDatabase(String query) async =>
+      throw UnimplementedError();
 }
 
 // Fake memory: pure overrides, no DB. Referential when text contains "leftover".
@@ -226,6 +230,28 @@ void main() {
       await tester.pump();
 
       expect(find.byType(Card), findsNWidgets(2));
+    });
+  });
+
+  // ── Food database search ───────────────────────────────────────────────────
+
+  group('[MFT] CreateSavedItemSheet — Search DB button', () {
+    setUpAll(() {
+      // testTheory: MFT
+      // contract: "Search DB" opens the FoodDbSearchSheet so external database
+      //           results can be added as components of the saved item.
+      // implication: Without it the user can only compose from history/AI/manual.
+    });
+
+    testWidgets('tapping Search DB opens the food-database sheet', (tester) async {
+      final storage = _FakeStorage(searchImpl: (_) => []);
+      await tester.pumpWidget(_sheet(storage: storage, ai: _FakeAi((_) => MealParseResult(success: false))));
+      await tester.pump();
+
+      await tester.tap(_bySemanticsId('btn-create-item-search-db'));
+      await tester.pumpAndSettle();
+
+      expect(_bySemanticsId('food-db-search-sheet'), findsOneWidget);
     });
   });
 

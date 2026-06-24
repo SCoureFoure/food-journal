@@ -34,6 +34,25 @@ void main() {
       final result = await svc.parseMeal(imageBytes: Uint8List.fromList([1, 2, 3]));
       expect(result.success, isFalse);
     });
+
+    test('searchFoodDatabase with empty URL returns failure without throwing', () async {
+      final result = await svc.searchFoodDatabase('wheat bread');
+      expect(result.success, isFalse);
+      expect(result.errorMessage, contains('MEAL_PARSER_URL'));
+    });
+  });
+
+  // ── Empty-query guard ─────────────────────────────────────────────────────
+  // Query is validated before the URL, so a blank query short-circuits even
+  // when a URL is configured — no network I/O.
+
+  group('[BVA] WorkerAiService — food search query guard', () {
+    test('blank query returns failure regardless of URL', () async {
+      final svc = WorkerAiService(workerUrl: 'https://example.workers.dev', authToken: null);
+      final result = await svc.searchFoodDatabase('   ');
+      expect(result.success, isFalse);
+      expect(result.errorMessage, contains('search term'));
+    });
   });
 
   // ── Missing input guard ──────────────────────────────────────────────────

@@ -128,10 +128,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
     final meal = _meal!;
 
-    final totalCal = _items.fold(0, (s, i) => s + (i.item.calories ?? 0) * i.item.servings);
-    final totalProt = _items.fold(0, (s, i) => s + (i.item.protein ?? 0) * i.item.servings);
-    final totalCarbs = _items.fold(0, (s, i) => s + (i.item.carbs ?? 0) * i.item.servings);
-    final totalFat = _items.fold(0, (s, i) => s + (i.item.fat ?? 0) * i.item.servings);
+    final totalCal = _items.fold(0.0, (s, i) => s + (i.item.calories ?? 0) * i.item.servings).round();
+    final totalProt = _items.fold(0.0, (s, i) => s + (i.item.protein ?? 0) * i.item.servings).round();
+    final totalCarbs = _items.fold(0.0, (s, i) => s + (i.item.carbs ?? 0) * i.item.servings).round();
+    final totalFat = _items.fold(0.0, (s, i) => s + (i.item.fat ?? 0) * i.item.servings).round();
 
     return Column(
       children: [

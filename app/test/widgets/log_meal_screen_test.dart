@@ -51,6 +51,10 @@ class _FakeAi implements AiService {
   @override
   Future<MedicationParseResult> parseMedication({String? text, Uint8List? imageBytes}) async =>
       throw UnimplementedError();
+
+  @override
+  Future<FoodDbSearchResult> searchFoodDatabase(String query) async =>
+      throw UnimplementedError();
 }
 
 // Referential when text contains "leftover"; pure, no DB.

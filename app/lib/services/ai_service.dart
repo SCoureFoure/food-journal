@@ -11,6 +11,14 @@ class MealParseResult {
   MealParseResult({required this.success, this.items, this.title, this.errorMessage});
 }
 
+class FoodDbSearchResult {
+  final bool success;
+  final List<FoodItemDraft>? items;
+  final String? errorMessage;
+
+  FoodDbSearchResult({required this.success, this.items, this.errorMessage});
+}
+
 class MedicationParseResult {
   final bool success;
   final String? name;
@@ -39,6 +47,10 @@ abstract class AiService {
     String? mealContext,
   });
   Future<MedicationParseResult> parseMedication({String? text, Uint8List? imageBytes});
+
+  /// Searches an external open food database (USDA FoodData Central) via the
+  /// Worker. Returns drafts with name + estimated macros for one-tap insert.
+  Future<FoodDbSearchResult> searchFoodDatabase(String query);
 
   factory AiService.fromEnv() => WorkerAiService();
 }

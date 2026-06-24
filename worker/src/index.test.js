@@ -1,5 +1,6 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import worker from './index.js';
+import { buildFdcQuery, rankFoods } from './fdc.js';
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -560,9 +561,11 @@ describe('[INV] Gemini request shape', () => {
 // ── CORS Allow-Headers ─────────────────────────────────────────────────────
 
 describe('[INV] CORS Allow-Headers', () => {
-  test('OPTIONS returns Access-Control-Allow-Headers: Content-Type', async () => {
+  test('OPTIONS returns Access-Control-Allow-Headers incl. Content-Type and Authorization', async () => {
     const res = await worker.fetch(makeRequest('OPTIONS'), ENV);
-    expect(res.headers.get('Access-Control-Allow-Headers')).toBe('Content-Type');
+    const allow = res.headers.get('Access-Control-Allow-Headers');
+    expect(allow).toContain('Content-Type');
+    expect(allow).toContain('Authorization');
   });
 });
 
@@ -685,6 +688,224 @@ describe('[EQUIV] Regex edge cases', () => {
     stubGeminiFetch('```json{"x":1}```');
     const res = await worker.fetch(makeRequest('POST', { task: 'parse_meal', text: 'eggs' }), ENV);
     expect(await res.text()).toBe('{"x":1}');
+  });
+});
+
+// ── Food database search (USDA FDC) ──────────────────────────────────────────
+
+const ENV_FDC = { ...ENV, FDC_API_KEY: 'fdc-key' };
+
+function stubFdc(foods, ok = true, status = 200) {
+  return vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue({
+      ok,
+      status,
+      json: async () => ({ foods }),
+      text: async () => 'fdc error',
+    }),
+  );
+}
+
+describe('[DIR] Food search routing', () => {
+  test('food_search with no query → 400', async () => {
+    const res = await worker.fetch(makeRequest('POST', { task: 'food_search' }), ENV_FDC);
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toMatch(/query/i);
+  });
+
+  test('blank query (whitespace) → 400', async () => {
+    const res = await worker.fetch(
+      makeRequest('POST', { task: 'food_search', query: '   ' }),
+      ENV_FDC,
+    );
+    expect(res.status).toBe(400);
+  });
+
+  test('missing FDC_API_KEY → 500', async () => {
+    const res = await worker.fetch(
+      makeRequest('POST', { task: 'food_search', query: 'wheat bread' }),
+      ENV, // no FDC_API_KEY
+    );
+    expect(res.status).toBe(500);
+  });
+
+  test('does not hit Gemini for food_search', async () => {
+    const spy = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ foods: [] }) });
+    vi.stubGlobal('fetch', spy);
+    await worker.fetch(
+      makeRequest('POST', { task: 'food_search', query: 'wheat bread' }),
+      ENV_FDC,
+    );
+    expect(spy.mock.calls[0][0]).toContain('api.nal.usda.gov');
+  });
+});
+
+describe('[DIR] FDC nutrient mapping', () => {
+  test('non-branded food reported per 100 g', async () => {
+    stubFdc([
+      {
+        dataType: 'SR Legacy',
+        description: 'Bread, whole-wheat',
+        foodNutrients: [
+          { nutrientId: 1008, value: 252 },
+          { nutrientId: 1003, value: 12.3 },
+          { nutrientId: 1005, value: 43.1 },
+          { nutrientId: 1004, value: 3.5 },
+        ],
+      },
+    ]);
+    const res = await worker.fetch(
+      makeRequest('POST', { task: 'food_search', query: 'wheat bread' }),
+      ENV_FDC,
+    );
+    const body = await res.json();
+    expect(body.foods).toHaveLength(1);
+    expect(body.foods[0]).toMatchObject({
+      name: 'Bread, whole-wheat',
+      portion: '100 g',
+      calories: 252,
+      protein: 12,
+      carbs: 43,
+      fat: 4,
+    });
+  });
+
+  test('branded food scaled to gram serving size', async () => {
+    stubFdc([
+      {
+        dataType: 'Branded',
+        description: 'Tuna Sushi',
+        brandName: 'Acme',
+        servingSize: 50,
+        servingSizeUnit: 'g',
+        foodNutrients: [
+          { nutrientId: 1008, value: 200 }, // per 100 g → 100 per 50 g
+          { nutrientId: 1003, value: 20 },
+        ],
+      },
+    ]);
+    const res = await worker.fetch(
+      makeRequest('POST', { task: 'food_search', query: 'tuna sushi' }),
+      ENV_FDC,
+    );
+    const body = await res.json();
+    expect(body.foods[0]).toMatchObject({
+      name: 'Tuna Sushi (Acme)',
+      portion: '50 g',
+      calories: 100,
+      protein: 10,
+    });
+  });
+
+  test('foods without calorie data are dropped', async () => {
+    stubFdc([
+      { dataType: 'SR Legacy', description: 'Water', foodNutrients: [] },
+      {
+        dataType: 'SR Legacy',
+        description: 'Apple',
+        foodNutrients: [{ nutrientId: 1008, value: 52 }],
+      },
+    ]);
+    const res = await worker.fetch(
+      makeRequest('POST', { task: 'food_search', query: 'apple' }),
+      ENV_FDC,
+    );
+    const body = await res.json();
+    expect(body.foods).toHaveLength(1);
+    expect(body.foods[0].name).toBe('Apple');
+  });
+
+  test('foods without a description are dropped', async () => {
+    stubFdc([
+      { dataType: 'SR Legacy', description: '', foodNutrients: [{ nutrientId: 1008, value: 10 }] },
+      { dataType: 'SR Legacy', description: 'Apple', foodNutrients: [{ nutrientId: 1008, value: 52 }] },
+    ]);
+    const res = await worker.fetch(
+      makeRequest('POST', { task: 'food_search', query: 'apple' }),
+      ENV_FDC,
+    );
+    const body = await res.json();
+    expect(body.foods).toHaveLength(1);
+    expect(body.foods[0].name).toBe('Apple');
+  });
+
+  test('FDC upstream error forwarded', async () => {
+    stubFdc([], false, 503);
+    const res = await worker.fetch(
+      makeRequest('POST', { task: 'food_search', query: 'eggs' }),
+      ENV_FDC,
+    );
+    expect(res.status).toBe(503);
+  });
+});
+
+describe('[EQUIV] FDC query building', () => {
+  test('multi-word query becomes require-all-words', () => {
+    expect(buildFdcQuery('tuna sushi')).toBe('+tuna +sushi');
+  });
+
+  test('single word still prefixed', () => {
+    expect(buildFdcQuery('apple')).toBe('+apple');
+  });
+
+  test('collapses extra whitespace', () => {
+    expect(buildFdcQuery('  wheat   bread ')).toBe('+wheat +bread');
+  });
+
+  test('strips operator chars from user tokens (no injection)', () => {
+    expect(buildFdcQuery('+tuna -sushi "roll"')).toBe('+tuna +sushi +roll');
+  });
+
+  test('all-punctuation query falls back to trimmed raw', () => {
+    expect(buildFdcQuery('++')).toBe('++');
+  });
+});
+
+describe('[DIR] FDC result re-ranking', () => {
+  const f = (name) => ({ name });
+
+  test('exact phrase match ranked above partial', () => {
+    const ranked = rankFoods(
+      [f('Tuna salad'), f('Tuna sushi combo'), f('Spicy tuna sushi')],
+      'tuna sushi',
+    );
+    expect(ranked[0].name).toBe('Tuna sushi combo');
+  });
+
+  test('higher token coverage beats lower', () => {
+    const ranked = rankFoods([f('Tuna sandwich'), f('Tuna nigiri sushi')], 'tuna sushi');
+    expect(ranked[0].name).toBe('Tuna nigiri sushi');
+  });
+
+  test('shorter name wins on equal coverage and no phrase', () => {
+    const ranked = rankFoods(
+      [f('Tuna sushi sampler platter deluxe'), f('Tuna sushi')],
+      'tuna sushi',
+    );
+    expect(ranked[0].name).toBe('Tuna sushi');
+  });
+
+  test('stable for equal scores (preserves FDC order)', () => {
+    const ranked = rankFoods([f('Apple A'), f('Apple B')], 'apple');
+    expect(ranked.map((x) => x.name)).toEqual(['Apple A', 'Apple B']);
+  });
+});
+
+// ── Bad request body ─────────────────────────────────────────────────────────
+
+describe('[BVA] Malformed body guard', () => {
+  test('non-JSON body → 400', async () => {
+    const req = new Request('https://worker.example.com/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: 'not json{',
+    });
+    const res = await worker.fetch(req, ENV);
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toMatch(/JSON/i);
   });
 });
 

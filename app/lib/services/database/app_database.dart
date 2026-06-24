@@ -30,7 +30,7 @@ class FoodItems extends Table {
   IntColumn get fat => integer().nullable()();
   IntColumn get reaction => integer().withDefault(const Constant(0))(); // ReactionLevel index
   TextColumn get notes => text().nullable()();
-  IntColumn get servings => integer().withDefault(const Constant(1))();
+  RealColumn get servings => real().withDefault(const Constant(1.0))();
   // Canonical identity (lowercase/trim/punct-collapsed name) for cross-log
   // accumulation. Computed at save via canonicalize(). See
   // specs/food_entity_resolution.spec.md.
@@ -168,11 +168,11 @@ class AppDatabase extends _$AppDatabase {
 
   // Exposed as a static constant so tests can assert the current version
   // without instantiating the singleton (which requires native sqlite3).
-  static const int currentSchemaVersion = 13;
+  static const int currentSchemaVersion = 14;
 
   // The declared migration ceiling versions in the order they appear in
   // onUpgrade.  Must be non-decreasing — tested in migration_order_test.dart.
-  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -340,6 +340,14 @@ class AppDatabase extends _$AppDatabase {
         await customStatement(
           'CREATE INDEX IF NOT EXISTS idx_exclusion_log ON suspicion_exclusions(reaction_log_id)',
         );
+      }
+      if (from < 14) {
+        // servings widened int → double to allow half/quarter servings. SQLite
+        // uses dynamic typing, so the existing INTEGER-affinity column already
+        // stores REAL values losslessly — no table rebuild needed. Existing
+        // whole-number rows read back as N.0. Fresh installs get a REAL column
+        // via createAll(). This block documents the version bump; the affinity
+        // change is a no-op on upgraded databases.
       }
     },
   );

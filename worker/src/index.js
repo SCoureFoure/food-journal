@@ -1,13 +1,6 @@
-import prompts from './prompts.json';
-
-const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
-
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+import { CORS_HEADERS, jsonResponse, log } from './http.js';
+import { handleParse, isKnownTask } from './gemini.js';
+import { handleFoodSearch } from './fdc.js';
 
 export default {
   async fetch(request, env) {
@@ -20,70 +13,32 @@ export default {
     }
 
     const startMs = Date.now();
-    const { task, text, image, mealType } = await request.json();
+
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      log('err', { task: null, reason: 'bad_json', durationMs: Date.now() - startMs });
+      return jsonResponse({ error: 'Invalid JSON body' }, 400);
+    }
+
+    const { task } = body;
+
+    if (task === 'food_search') {
+      const query = typeof body.query === 'string' ? body.query.trim() : '';
+      if (!query) {
+        log('err', { task, reason: 'no_query', durationMs: Date.now() - startMs });
+        return jsonResponse({ error: 'Provide a search query' }, 400);
+      }
+      return handleFoodSearch(query, env, startMs);
+    }
+
+    if (!isKnownTask(task)) {
+      log('err', { task, reason: 'unknown_task', durationMs: Date.now() - startMs });
+      return jsonResponse({ error: `Unknown task: ${task}` }, 400);
+    }
 
     const authHeader = request.headers.get('Authorization');
-    const isPaidRequest = env.TEST_AUTH_TOKEN && authHeader === `Bearer ${env.TEST_AUTH_TOKEN}`;
-    const apiKey = isPaidRequest ? env.GEMINI_API_KEY_PAID : env.GEMINI_API_KEY;
-
-    // Stryker disable next-line all
-    console.log(JSON.stringify({ event: 'req', ts: new Date().toISOString(), task, hasText: Boolean(text), textLen: text?.length ?? 0, hasImage: Boolean(image), mealType: mealType ?? null, paid: isPaidRequest }));
-
-    const promptEntry = prompts[task];
-    if (!promptEntry) {
-      // Stryker disable next-line all
-      console.log(JSON.stringify({ event: 'err', ts: new Date().toISOString(), task, reason: 'unknown_task', durationMs: Date.now() - startMs }));
-      return new Response(JSON.stringify({ error: `Unknown task: ${task}` }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    const parts = [];
-    if (image) parts.push({ inlineData: { data: image.data, mimeType: image.mimeType ?? 'image/jpeg' } });
-    const userText = [mealType ? `Meal type: ${mealType}` : null, text].filter(Boolean).join('\n');
-    if (userText) parts.push({ text: userText });
-
-    if (parts.length === 0) {
-      // Stryker disable next-line all
-      console.log(JSON.stringify({ event: 'err', ts: new Date().toISOString(), task, reason: 'no_input', durationMs: Date.now() - startMs }));
-      return new Response(JSON.stringify({ error: 'Provide text or image' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    const res = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey,
-      },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: promptEntry.systemPrompt }] },
-        contents: [{ parts }],
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.text();
-      // Stryker disable next-line all
-      console.log(JSON.stringify({ event: 'err', ts: new Date().toISOString(), task, reason: 'gemini_error', geminiStatus: res.status, durationMs: Date.now() - startMs }));
-      return new Response(JSON.stringify({ error: err }), {
-        status: res.status,
-        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
-      });
-    }
-
-    const data = await res.json();
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-    const cleaned = rawText.replace(/```json\s*/g, '').replace(/\s*```/g, '').trim();
-
-    // Stryker disable next-line all
-    console.log(JSON.stringify({ event: 'res', ts: new Date().toISOString(), task, outputLen: cleaned.length, durationMs: Date.now() - startMs }));
-
-    return new Response(cleaned, {
-      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
-    });
+    return handleParse(task, body, authHeader, env, startMs);
   },
 };

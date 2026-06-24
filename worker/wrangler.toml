@@ -3,4 +3,8 @@ main = "src/index.js"
 compatibility_date = "2024-01-01"
 
 [vars]
-# GEMINI_API_KEY set via: wrangler secret put GEMINI_API_KEY
+# Secrets — set via wrangler, not committed here:
+#   wrangler secret put GEMINI_API_KEY       # Gemini free-tier key (meal/med parse)
+#   wrangler secret put GEMINI_API_KEY_PAID  # Gemini paid key (auth'd test requests)
+#   wrangler secret put TEST_AUTH_TOKEN      # bearer token that selects the paid key
+#   wrangler secret put FDC_API_KEY          # USDA FoodData Central key (food_search)

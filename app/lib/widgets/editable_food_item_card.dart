@@ -18,7 +18,7 @@ class FoodItemFormData {
   final fatCtrl = TextEditingController();
   final ingredientsCtrl = TextEditingController();
   final notesCtrl = TextEditingController();
-  int servings = 1;
+  double servings = 1;
 
   FoodItemFormData.blank();
 
@@ -190,6 +190,24 @@ class _EditableFoodItemCardState extends State<EditableFoodItemCard> {
     super.dispose();
   }
 
+  static double _clampServings(double v) {
+    // Round to the nearest 0.25 and floor at 0.25 so the stepper and manual
+    // entry agree on the same grid.
+    final snapped = (v * 4).round() / 4;
+    return snapped < 0.25 ? 0.25 : snapped;
+  }
+
+  Future<void> _editServings() async {
+    final d = widget.data;
+    final result = await showDialog<double>(
+      context: context,
+      builder: (_) => _ServingsDialog(initial: d.servings),
+    );
+    if (result != null && mounted) {
+      setState(() => d.servings = _clampServings(result));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -256,24 +274,45 @@ class _EditableFoodItemCardState extends State<EditableFoodItemCard> {
                       children: [
                         _stepperBtn(
                           icon: Icons.remove,
-                          onTap: d.servings > 1
-                              ? () => setState(() => d.servings--)
+                          onTap: d.servings > 0.5
+                              ? () => setState(() => d.servings = _clampServings(d.servings - 0.5))
                               : null,
                           theme: theme,
                         ),
-                        SizedBox(
-                          width: 28,
-                          child: Text(
-                            '${d.servings}',
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w600,
+                        // Tap the count to type an exact value (e.g. 0.25, 3).
+                        // Bordered/tinted chip signals it's editable, distinct
+                        // from the flat +/- stepper icons.
+                        Semantics(
+                          identifier: 'btn-servings-edit',
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _editServings,
+                            child: Container(
+                              constraints: const BoxConstraints(minWidth: 34),
+                              margin: const EdgeInsets.symmetric(vertical: 8),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary.withAlpha(20),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: theme.colorScheme.primary.withAlpha(90),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                formatServings(d.servings),
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
                             ),
                           ),
                         ),
                         _stepperBtn(
                           icon: Icons.add,
-                          onTap: () => setState(() => d.servings++),
+                          onTap: () => setState(() => d.servings = _clampServings(d.servings + 0.5)),
                           theme: theme,
                         ),
                       ],
@@ -390,4 +429,59 @@ class _EditableFoodItemCardState extends State<EditableFoodItemCard> {
           contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         ),
       );
+}
+
+/// Stateful so its [TextEditingController] is disposed on the dialog's own
+/// lifecycle — disposing it synchronously after `showDialog` returns crashes,
+/// because the route is still animating out and the TextField re-attaches to a
+/// disposed controller. Pops with the parsed value, or null on cancel.
+class _ServingsDialog extends StatefulWidget {
+  final double initial;
+  const _ServingsDialog({required this.initial});
+
+  @override
+  State<_ServingsDialog> createState() => _ServingsDialogState();
+}
+
+class _ServingsDialogState extends State<_ServingsDialog> {
+  late final TextEditingController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = TextEditingController(text: formatServings(widget.initial));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() => Navigator.pop(context, double.tryParse(_ctrl.text.trim()));
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Servings'),
+      content: Semantics(
+        identifier: 'servings-input-field',
+        child: TextField(
+          controller: _ctrl,
+          autofocus: true,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
+          decoration: const InputDecoration(
+            hintText: 'e.g. 0.5, 1.5, 2',
+            border: OutlineInputBorder(),
+          ),
+          onSubmitted: (_) => _submit(),
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        FilledButton(onPressed: _submit, child: const Text('Set')),
+      ],
+    );
+  }
 }

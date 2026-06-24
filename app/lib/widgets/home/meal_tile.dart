@@ -126,7 +126,9 @@ class _MealTileState extends State<MealTile> {
 
   int? get _totalCalories {
     if (!_loaded || _items.isEmpty) return null;
-    final total = _items.fold<int>(0, (sum, i) => sum + (i.item.calories ?? 0) * i.item.servings);
+    final total = _items
+        .fold<double>(0.0, (sum, i) => sum + (i.item.calories ?? 0) * i.item.servings)
+        .round();
     return total > 0 ? total : null;
   }
 

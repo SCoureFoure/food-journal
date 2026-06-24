@@ -635,13 +635,13 @@ class $FoodItemsTable extends FoodItems
     'servings',
   );
   @override
-  late final GeneratedColumn<int> servings = GeneratedColumn<int>(
+  late final GeneratedColumn<double> servings = GeneratedColumn<double>(
     'servings',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.double,
     requiredDuringInsert: false,
-    defaultValue: const Constant(1),
+    defaultValue: const Constant(1.0),
   );
   static const VerificationMeta _canonicalNameMeta = const VerificationMeta(
     'canonicalName',
@@ -818,7 +818,7 @@ class $FoodItemsTable extends FoodItems
         data['${effectivePrefix}notes'],
       ),
       servings: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.double,
         data['${effectivePrefix}servings'],
       )!,
       canonicalName: attachedDatabase.typeMapping.read(
@@ -846,7 +846,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
   final int? fat;
   final int reaction;
   final String? notes;
-  final int servings;
+  final double servings;
   final String? canonicalName;
   const FoodItem({
     required this.id,
@@ -891,7 +891,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
-    map['servings'] = Variable<int>(servings);
+    map['servings'] = Variable<double>(servings);
     if (!nullToAbsent || canonicalName != null) {
       map['canonical_name'] = Variable<String>(canonicalName);
     }
@@ -945,7 +945,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
       fat: serializer.fromJson<int?>(json['fat']),
       reaction: serializer.fromJson<int>(json['reaction']),
       notes: serializer.fromJson<String?>(json['notes']),
-      servings: serializer.fromJson<int>(json['servings']),
+      servings: serializer.fromJson<double>(json['servings']),
       canonicalName: serializer.fromJson<String?>(json['canonicalName']),
     );
   }
@@ -964,7 +964,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
       'fat': serializer.toJson<int?>(fat),
       'reaction': serializer.toJson<int>(reaction),
       'notes': serializer.toJson<String?>(notes),
-      'servings': serializer.toJson<int>(servings),
+      'servings': serializer.toJson<double>(servings),
       'canonicalName': serializer.toJson<String?>(canonicalName),
     };
   }
@@ -981,7 +981,7 @@ class FoodItem extends DataClass implements Insertable<FoodItem> {
     Value<int?> fat = const Value.absent(),
     int? reaction,
     Value<String?> notes = const Value.absent(),
-    int? servings,
+    double? servings,
     Value<String?> canonicalName = const Value.absent(),
   }) => FoodItem(
     id: id ?? this.id,
@@ -1087,7 +1087,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
   final Value<int?> fat;
   final Value<int> reaction;
   final Value<String?> notes;
-  final Value<int> servings;
+  final Value<double> servings;
   final Value<String?> canonicalName;
   const FoodItemsCompanion({
     this.id = const Value.absent(),
@@ -1132,7 +1132,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
     Expression<int>? fat,
     Expression<int>? reaction,
     Expression<String>? notes,
-    Expression<int>? servings,
+    Expression<double>? servings,
     Expression<String>? canonicalName,
   }) {
     return RawValuesInsertable({
@@ -1164,7 +1164,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
     Value<int?>? fat,
     Value<int>? reaction,
     Value<String?>? notes,
-    Value<int>? servings,
+    Value<double>? servings,
     Value<String?>? canonicalName,
   }) {
     return FoodItemsCompanion(
@@ -1221,7 +1221,7 @@ class FoodItemsCompanion extends UpdateCompanion<FoodItem> {
       map['notes'] = Variable<String>(notes.value);
     }
     if (servings.present) {
-      map['servings'] = Variable<int>(servings.value);
+      map['servings'] = Variable<double>(servings.value);
     }
     if (canonicalName.present) {
       map['canonical_name'] = Variable<String>(canonicalName.value);
@@ -6579,7 +6579,7 @@ typedef $$FoodItemsTableCreateCompanionBuilder =
       Value<int?> fat,
       Value<int> reaction,
       Value<String?> notes,
-      Value<int> servings,
+      Value<double> servings,
       Value<String?> canonicalName,
     });
 typedef $$FoodItemsTableUpdateCompanionBuilder =
@@ -6595,7 +6595,7 @@ typedef $$FoodItemsTableUpdateCompanionBuilder =
       Value<int?> fat,
       Value<int> reaction,
       Value<String?> notes,
-      Value<int> servings,
+      Value<double> servings,
       Value<String?> canonicalName,
     });
 
@@ -6699,7 +6699,7 @@ class $$FoodItemsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get servings => $composableBuilder(
+  ColumnFilters<double> get servings => $composableBuilder(
     column: $table.servings,
     builder: (column) => ColumnFilters(column),
   );
@@ -6817,7 +6817,7 @@ class $$FoodItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get servings => $composableBuilder(
+  ColumnOrderings<double> get servings => $composableBuilder(
     column: $table.servings,
     builder: (column) => ColumnOrderings(column),
   );
@@ -6890,7 +6890,7 @@ class $$FoodItemsTableAnnotationComposer
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 
-  GeneratedColumn<int> get servings =>
+  GeneratedColumn<double> get servings =>
       $composableBuilder(column: $table.servings, builder: (column) => column);
 
   GeneratedColumn<String> get canonicalName => $composableBuilder(
@@ -6986,7 +6986,7 @@ class $$FoodItemsTableTableManager
                 Value<int?> fat = const Value.absent(),
                 Value<int> reaction = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
-                Value<int> servings = const Value.absent(),
+                Value<double> servings = const Value.absent(),
                 Value<String?> canonicalName = const Value.absent(),
               }) => FoodItemsCompanion(
                 id: id,
@@ -7016,7 +7016,7 @@ class $$FoodItemsTableTableManager
                 Value<int?> fat = const Value.absent(),
                 Value<int> reaction = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
-                Value<int> servings = const Value.absent(),
+                Value<double> servings = const Value.absent(),
                 Value<String?> canonicalName = const Value.absent(),
               }) => FoodItemsCompanion.insert(
                 id: id,

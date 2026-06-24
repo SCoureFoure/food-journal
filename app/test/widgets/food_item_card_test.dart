@@ -13,15 +13,41 @@ import 'package:food_journal/widgets/food_item_card.dart';
 
 Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
 
-FoodItem _item({int id = 1, String name = 'Chicken breast'}) => FoodItem(
+FoodItem _item({int id = 1, String name = 'Chicken breast', double servings = 1}) => FoodItem(
       id: id,
       mealId: 10,
       name: name,
+      servings: servings,
     );
 
 // ── Tests ──────────────────────────────────────────────────────────────────────
 
 void main() {
+  // ── Servings badge ──────────────────────────────────────────────────────────
+
+  group('[BVA] FoodItemCard — servings badge', () {
+    testWidgets('no badge at exactly one serving', (tester) async {
+      await tester.pumpWidget(_wrap(
+        FoodItemCard(item: _item(servings: 1), ingredients: const []),
+      ));
+      expect(find.textContaining('×'), findsNothing);
+    });
+
+    testWidgets('half serving renders ×½', (tester) async {
+      await tester.pumpWidget(_wrap(
+        FoodItemCard(item: _item(servings: 0.5), ingredients: const []),
+      ));
+      expect(find.text('×½'), findsOneWidget);
+    });
+
+    testWidgets('mixed serving renders ×1½', (tester) async {
+      await tester.pumpWidget(_wrap(
+        FoodItemCard(item: _item(servings: 1.5), ingredients: const []),
+      ));
+      expect(find.text('×1½'), findsOneWidget);
+    });
+  });
+
   // ── Heart icon visibility ──────────────────────────────────────────────────
 
   group('[MFT] FoodItemCard — heart icon visibility', () {

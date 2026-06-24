@@ -1,3 +1,23 @@
+/// Formats a (possibly fractional) serving count for compact display.
+/// Whole numbers drop the decimal (2.0 → "2"); common fractions render as
+/// glyphs (0.5 → "½", 1.5 → "1½", 0.25 → "¼", 0.75 → "¾"); anything else
+/// falls back to a trimmed decimal (1.2 → "1.2").
+String formatServings(double s) {
+  if (s == s.roundToDouble()) return s.toInt().toString();
+  final whole = s.floor();
+  final frac = s - whole;
+  String? glyph;
+  if ((frac - 0.5).abs() < 0.01) {
+    glyph = '½';
+  } else if ((frac - 0.25).abs() < 0.01) {
+    glyph = '¼';
+  } else if ((frac - 0.75).abs() < 0.01) {
+    glyph = '¾';
+  }
+  if (glyph != null) return whole == 0 ? glyph : '$whole$glyph';
+  return s.toStringAsFixed(2).replaceFirst(RegExp(r'\.?0+$'), '');
+}
+
 enum ReactionLevel {
   pending,
   none,
@@ -38,7 +58,7 @@ class FoodItem {
   final int? fat;
   final ReactionLevel reaction;
   final String? notes;
-  final int servings;
+  final double servings;
 
   const FoodItem({
     this.id,
@@ -67,7 +87,7 @@ class FoodItem {
     int? fat,
     ReactionLevel? reaction,
     String? notes,
-    int? servings,
+    double? servings,
   }) {
     return FoodItem(
       id: id ?? this.id,
@@ -102,7 +122,7 @@ class FoodItemDraft {
   final bool isComposite;
   /// Non-null when [isComposite] is true — the id in the saved_items table.
   final int? savedItemId;
-  final int servings;
+  final double servings;
 
   const FoodItemDraft({
     required this.name,
@@ -131,7 +151,7 @@ class FoodItemDraft {
       fat: (json['fat'] as num?)?.toInt(),
       ingredients: List<String>.from(json['ingredients'] as List? ?? []),
       notes: json['notes'] as String?,
-      servings: (json['servings'] as num?)?.toInt() ?? 1,
+      servings: (json['servings'] as num?)?.toDouble() ?? 1.0,
     );
   }
 }

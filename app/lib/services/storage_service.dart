@@ -251,19 +251,19 @@ class StorageService {
     List<int> mealIds,
   ) async {
     if (mealIds.isEmpty) return (cal: 0, prot: 0.0, carbs: 0.0, fat: 0.0);
-    int cal = 0;
+    double cal = 0.0;
     double prot = 0.0, carbs = 0.0, fat = 0.0;
     for (final id in mealIds) {
       final rows = await (_db.select(_db.foodItems)..where((t) => t.mealId.equals(id))).get();
       for (final row in rows) {
         final s = row.servings;
         cal += (row.calories ?? 0) * s;
-        prot += ((row.protein ?? 0) * s).toDouble();
-        carbs += ((row.carbs ?? 0) * s).toDouble();
-        fat += ((row.fat ?? 0) * s).toDouble();
+        prot += (row.protein ?? 0) * s;
+        carbs += (row.carbs ?? 0) * s;
+        fat += (row.fat ?? 0) * s;
       }
     }
-    return (cal: cal, prot: prot, carbs: carbs, fat: fat);
+    return (cal: cal.round(), prot: prot, carbs: carbs, fat: fat);
   }
 
   // ── Medications ──────────────────────────────────────────────────────────────

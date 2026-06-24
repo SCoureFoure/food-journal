@@ -47,8 +47,13 @@ touches and links back here; it does not redefine meaning or fallback.
 | Log Meal     | `btn-add-from-history`          | Open food-history search sheet                 |
 | Log Meal     | `btn-add-from-favorites`        | Open history sheet, favorites-only             |
 | Log Meal     | `btn-my-items`                  | Open saved-items sheet                         |
+| Log Meal     | `btn-search-food-db`            | Open external food-database (USDA FDC) search sheet |
+| Log Meal     | `btn-servings-edit`             | Servings count in a food-item card header (shared `EditableFoodItemCard`); − / + step by 0.5, tap the count to type an exact value (`servings-input-field` dialog). Snaps to 0.25 grid, min 0.25 |
 | Log Meal     | `food-reuse-suggestion-<i>`     | Reuse-nudge chip under food-item card `i` (Layer B). Appears only on a close history match; tap adopts, `…-dismiss` child × hides. Reach: type a name matching history into card `i` |
 | Log Meal     | `btn-save-meal`                 | Save / Save Changes. ✱ absorbed; tap via bounds |
+| Food DB      | `food-db-search-sheet`          | Food-database search sheet root (opened from `btn-search-food-db`) |
+| Food DB      | `food-db-search-field`          | Query field; debounced, min 2 chars            |
+| Food DB      | `food-db-item-<i>`              | Result row `i`; tap inserts a food item with estimated macros |
 | Export       | `export-screen`                 | Export screen root                             |
 | Export       | `btn-date-from`                 | From date picker tile                          |
 | Export       | `btn-date-to`                   | To date picker tile                            |
@@ -73,6 +78,7 @@ touches and links back here; it does not redefine meaning or fallback.
 | Create item  | `saved-item-ai-field`           | AI description field (text → parse)            |
 | Create item  | `btn-parse-saved-item-ai`       | Parse-with-AI button                           |
 | Create item  | `btn-create-item-add-blank`     | Add a blank component card                     |
+| Create item  | `btn-create-item-search-db`     | Open food-database (USDA FDC) search; result added as a component |
 | Create item  | `saved-item-search-field`       | Search past items to add                       |
 | Create item  | `btn-save-saved-item`           | Save the composite item                        |
 | Medication   | `log-medication-screen`         | Log/Edit medication screen root                |

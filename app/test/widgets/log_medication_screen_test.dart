@@ -61,6 +61,10 @@ class _FakeAi implements AiService {
     String? mealContext,
   }) async =>
       throw UnimplementedError();
+
+  @override
+  Future<FoodDbSearchResult> searchFoodDatabase(String query) async =>
+      throw UnimplementedError();
 }
 
 class _Scheduled {

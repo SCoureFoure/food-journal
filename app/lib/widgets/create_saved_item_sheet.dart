@@ -8,6 +8,7 @@ import '../services/ai_service.dart';
 import '../services/meal_memory/meal_memory_service.dart';
 import '../services/storage_service.dart';
 import 'editable_food_item_card.dart';
+import 'food_db_search_sheet.dart';
 
 class CreateSavedItemSheet extends StatefulWidget {
   final StorageService? storageOverride;
@@ -126,6 +127,17 @@ class _CreateSavedItemSheetState extends State<CreateSavedItemSheet> {
   }
 
   void _addBlank() => _addFormData(FoodItemFormData.blank());
+
+  Future<void> _searchFoodDb() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => FoodDbSearchSheet(
+        aiOverride: widget.aiOverride,
+        onSelect: (draft) => _addFormData(FoodItemFormData.fromDraft(draft)),
+      ),
+    );
+  }
 
   void _removeComponent(int index) {
     final data = _components[index];
@@ -354,6 +366,20 @@ class _CreateSavedItemSheetState extends State<CreateSavedItemSheet> {
                                   onPressed: _addBlank,
                                   icon: const Icon(Icons.add, size: 15),
                                   label: const Text('Add item'),
+                                  style: OutlinedButton.styleFrom(
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Semantics(
+                                identifier: 'btn-create-item-search-db',
+                                child: OutlinedButton.icon(
+                                  onPressed: _searchFoodDb,
+                                  icon: const Icon(Icons.search, size: 15),
+                                  label: const Text('Search DB'),
                                   style: OutlinedButton.styleFrom(
                                     visualDensity: VisualDensity.compact,
                                   ),
