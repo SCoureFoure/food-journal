@@ -130,20 +130,6 @@ class StorageService {
     return rows.map(_mealFromRow).toList();
   }
 
-  Future<List<MealEntry>> getMealsForWeek(DateTime weekStart) async {
-    final start = DateTime(weekStart.year, weekStart.month, weekStart.day);
-    final end = start.add(const Duration(days: 7));
-    final rows = await (_db.select(_db.meals)
-          ..where(
-            (t) =>
-                t.date.isBiggerOrEqualValue(start) &
-                t.date.isSmallerThanValue(end),
-          )
-          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
-        .get();
-    return rows.map(_mealFromRow).toList();
-  }
-
   Future<List<({FoodItem item, List<Ingredient> ingredients})>> getFoodItemsWithIngredients(int mealId) async {
     final items = await getFoodItemsForMeal(mealId);
     return Future.wait(
@@ -556,7 +542,8 @@ class StorageService {
   }
 
   /// Toggles whether a `(check-in, symptom)` episode counts toward
-  /// `getSuspicionScores`. Idempotent: dismissing an already-dismissed episode
+  /// `getBlameHistory` (the SQL path) and the pure `excludeDismissedSuspicions`
+  /// spec. Idempotent: dismissing an already-dismissed episode
   /// or restoring an active one is a no-op beyond the row flip. See
   /// specs/blame_history.spec.md.
   Future<void> toggleSuspicionExclusion({
@@ -641,44 +628,6 @@ class StorageService {
       if (seen.add(r.targetName)) names.add(r.targetName);
     }
     return names;
-  }
-
-  /// All ledger rows for one check-in (newest source-agnostic). Test/inspection.
-  Future<List<FoodSuspicion>> getSuspicionsForLog(int logId) async {
-    final rows = await (_db.select(_db.foodSuspicions)
-          ..where((t) => t.reactionLogId.equals(logId)))
-        .get();
-    return rows.map(_suspicionFromRow).toList();
-  }
-
-  /// Aggregated suspicion per `(targetName, symptom)` across all check-ins,
-  /// highest first. Effective weight = baseWeight × source multiplier ×
-  /// decay(age); decay is the identity (1.0) for now — see food_blame spec.
-  /// Episodes the user dismissed via the blame-history dashboard
-  /// (`suspicion_exclusions` — see specs/blame_history.spec.md) are excluded
-  /// from the sum entirely, regardless of source.
-  Future<List<SuspicionScore>> getSuspicionScores() async {
-    final rows = await _db.customSelect(
-      '''
-      SELECT target_name, symptom,
-             SUM(base_weight * CASE source WHEN 'manual' THEN $kManualWeightMultiplier ELSE 1.0 END) AS score
-      FROM food_suspicions fs
-      WHERE NOT EXISTS (
-        SELECT 1 FROM suspicion_exclusions se
-        WHERE se.reaction_log_id = fs.reaction_log_id AND se.symptom = fs.symptom
-      )
-      GROUP BY target_name, symptom
-      ORDER BY score DESC
-      ''',
-      readsFrom: {_db.foodSuspicions, _db.suspicionExclusions},
-    ).get();
-    return rows
-        .map((r) => SuspicionScore(
-              targetName: r.read<String>('target_name'),
-              symptom: r.read<String>('symptom'),
-              score: r.read<double>('score'),
-            ))
-        .toList();
   }
 
   static String _trimDouble(double v) =>
@@ -846,34 +795,6 @@ class StorageService {
     });
   }
 
-  Future<void> upsertFoodMemory(String foodName, ReactionLevel reaction) async {
-    await _db.transaction(() async {
-      final existing = await (_db.select(_db.foodMemories)
-            ..where((t) => t.foodName.equals(foodName)))
-          .getSingleOrNull();
-
-      if (existing != null) {
-        await (_db.update(_db.foodMemories)
-              ..where((t) => t.foodName.equals(foodName)))
-            .write(
-          db.FoodMemoriesCompanion(
-            occurrences: Value(existing.occurrences + 1),
-            lastSeen: Value(DateTime.now()),
-            reactionPattern: Value(reaction.label),
-          ),
-        );
-      } else {
-        await _db.into(_db.foodMemories).insert(
-          db.FoodMemoriesCompanion.insert(
-            foodName: foodName,
-            reactionPattern: Value(reaction.label),
-            lastSeen: DateTime.now(),
-          ),
-        );
-      }
-    });
-  }
-
   // ── Water ────────────────────────────────────────────────────────────────────
 
   Future<int> saveWaterLog(WaterLog log) async {
@@ -901,16 +822,6 @@ class StorageService {
 
   Future<void> deleteWaterLog(int id) async {
     await (_db.delete(_db.waterLogs)..where((t) => t.id.equals(id))).go();
-  }
-
-  Future<List<WaterLog>> getWaterLogsForDay(DateTime date) async {
-    final start = DateTime(date.year, date.month, date.day);
-    final end = start.add(const Duration(days: 1));
-    final rows = await (_db.select(_db.waterLogs)
-          ..where((t) => t.date.isBiggerOrEqualValue(start) & t.date.isSmallerThanValue(end))
-          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
-        .get();
-    return rows.map(_waterLogFromRow).toList();
   }
 
   Future<List<WaterLog>> getAllWaterLogs() async {
@@ -952,16 +863,6 @@ class StorageService {
 
   Future<void> deleteWeightLog(int id) async {
     await (_db.delete(_db.weightLogs)..where((t) => t.id.equals(id))).go();
-  }
-
-  Future<List<WeightLog>> getWeightLogsForDay(DateTime date) async {
-    final start = DateTime(date.year, date.month, date.day);
-    final end = start.add(const Duration(days: 1));
-    final rows = await (_db.select(_db.weightLogs)
-          ..where((t) => t.date.isBiggerOrEqualValue(start) & t.date.isSmallerThanValue(end))
-          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
-        .get();
-    return rows.map(_weightLogFromRow).toList();
   }
 
   Future<List<WeightLog>> getAllWeightLogs() async {

@@ -8,7 +8,7 @@ import '../../widgets/reaction_badge.dart';
 /// Lists every `(check-in, symptom)` episode the suspicion ledger has accrued
 /// — both quietly auto-blamed and deliberately manual-blamed — so the user can
 /// dismiss the ones a 3rd party (illness, etc.) actually caused. Dismissing
-/// excludes the whole episode from `getSuspicionScores` aggregation without
+/// excludes the whole episode from `getBlameHistory` aggregation without
 /// touching the underlying check-in. See specs/blame_history.spec.md.
 ///
 /// Deliberately read-only beyond the toggle: no time editing, no navigation

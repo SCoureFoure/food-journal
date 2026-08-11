@@ -10,7 +10,7 @@ Every AI-powered flow **must have a complete manual fallback**. AI is enhancemen
 ### 2. Schema as Contract
 The SQLite schema is a stable API. Screens and services depend on it the same way a client depends on a REST contract.
 - No column rename or removal without a drift migration.
-- Every new table or migration must have a corresponding integration test in `storage_service_test.dart`.
+- Every new table or migration must have a corresponding integration test in `migration_order_test.dart`.
 - AI-parsed JSON output must also be validated against a schema before being written to DB.
 
 ### 3. Services as Tool Interface
@@ -79,7 +79,7 @@ All three share: `id`, `date`, `time`, `created_at`, `notes`. Each has its own t
         ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                       EXPORTS                               │
-│  CSV (meals + macros)   |   Grocery list (ingredients)      │
+│  JSON (all entry types)   |   Grocery list (planned)        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -107,7 +107,7 @@ lib/
 │   ├── settings_service.dart        # AI toggle (shared_preferences)
 │   ├── seed_service.dart            # debug seed data
 │   ├── database/
-│   │   ├── app_database.dart        # drift schema (v12) + migration strategy
+│   │   ├── app_database.dart        # drift schema (v14) + migration strategy
 │   │   └── app_database.g.dart      # generated
 │   └── meal_memory/
 │       ├── meal_memory_service.dart # isReferential / buildContextSnippet / recordFingerprint
@@ -135,7 +135,7 @@ lib/
 
 ## Database Schema
 
-Schema version: **12**. Managed by drift with an explicit `MigrationStrategy`. Migration history in `app_database.dart`; each step is verified in `migration_order_test.dart`.
+Schema version: **14**. Managed by drift with an explicit `MigrationStrategy`. Migration history in `app_database.dart`; each step is verified in `migration_order_test.dart`.
 
 ```
 ┌─────────────────────┐       ┌──────────────────────────┐
@@ -193,6 +193,15 @@ Schema version: **12**. Managed by drift with an explicit `MigrationStrategy`. M
 └──────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────┐
+│  suspicion_exclusions  (user-dismissed suspicions)   │
+├──────────────────────────────────────────────────────┤
+│ id (PK)                                              │
+│ reaction_log_id (FK → reaction_logs CASCADE)         │
+│ symptom (text)  created_at                           │
+│ UNIQUE (reaction_log_id, symptom)                    │
+└──────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────┐
 │  medications                                         │
 ├──────────────────────────────────────────────────────┤
 │ id (PK)  date  time  name                           │
@@ -225,7 +234,7 @@ Schema version: **12**. Managed by drift with an explicit `MigrationStrategy`. M
 
 **canonical_name** (v12) — every `food_items` and `medications` row stores a normalized entity key (`canonicalize()`: lowercase → strip punct → collapse whitespace). Blame ledger groups on this key so the same food re-entered with different spelling/casing accumulates in one suspicion bucket. Backfilled for all existing rows on migration.
 
-> **body_outputs** is NOT implemented. It is listed as a stretch feature in FEATURES.md.
+> **body_outputs** is NOT implemented (no table at schema v14, no model). It is specified as **F10** in `docs/FEATURES.md` — a core feature, not a stretch item.
 
 ---
 
@@ -233,7 +242,7 @@ Schema version: **12**. Managed by drift with an explicit `MigrationStrategy`. M
 
 Two implementations behind a common `AiService` interface:
 
-**WorkerAiService** (primary — `MEAL_PARSER_URL` in `.env`):
+**WorkerAiService** (primary — `MEAL_PARSER_URL` in `.env`), backed by a JavaScript Cloudflare Worker (entry point `worker/src/index.js`):
 
 ```
 parseMeal(text?, imageBytes?, mealType?, mealContext?) async

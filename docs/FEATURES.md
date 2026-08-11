@@ -1,5 +1,7 @@
 # Food Journal — Feature Spec
 
+Status: ✅ Built · 🟡 Partial · ⬜ Planned — verified against the codebase at schema v14.
+
 ---
 
 ## Design Constraints (apply to all features)
@@ -12,7 +14,7 @@
 
 ## Core Features
 
-### F1 — Meal Logging (text + photo + camera)
+### F1 — Meal Logging (text + photo + camera) — ✅ Built
 
 - User describes meal in free text and/or attaches a photo
 - "Add photo" opens camera directly (ImageSource.camera); gallery fallback also available
@@ -22,7 +24,7 @@
 - Multiple food items per meal entry
 - On save: push notification scheduled for check-in (configurable delay, default 90 min). If notification permission not yet granted, prompt user at this point.
 
-### F2 — Journal View
+### F2 — Journal View — ✅ Built
 
 - Chronological list of meals, grouped by day
 - Day filter: tap a date to see only that day
@@ -31,7 +33,7 @@
 - Weekly totals summary card
 - Reaction badges on foods flagged in food memory
 
-### F3 — Reaction Tracking (check-in)
+### F3 — Reaction Tracking (check-in) — ✅ Built
 
 - Push notification fires ~90 min after each saved meal (configurable)
 - Check-in screen:
@@ -41,7 +43,7 @@
 - Reaction saved to `reaction_logs` table
 - Per-food-item reaction can also be logged directly in meal detail
 
-### F4 — Reaction Tracking & Pattern Detection
+### F4 — Reaction Tracking & Pattern Detection — ✅ Built
 
 - **Blame ledger** — on any check-in with ≥1 symptom, every food/med logged in the
   prior 16h is auto-suspected (`auto` rows). User can manually blame specific items
@@ -58,33 +60,33 @@
   symptoms. "Blamed" items surface on the home-feed feeling tile (manual only —
   auto suspicions are a discreet background signal).
 
-### F5 — Ingredients Tracking
+### F5 — Ingredients Tracking — 🟡 Partial (no grocery list export, F7)
 
 - Each food item has an ingredients list (populated by AI, editable)
 - Standard: "sweet potato", "honey", "olive oil", "feta cheese"
 - Used for grocery list export (F7)
 - Cross-reference with food memory for ingredient-level reaction patterns (stretch)
 
-### F6 — CSV Export
+### F6 — CSV Export — 🟡 Partial (export exists but produces JSON, not CSV)
 
 - Exports full journal to CSV
 - Columns: date, time, meal type, food, portion, prep, calories, P, C, F, reaction, notes
 - Filename: `food_journal_YYYY-MM-DD.csv`
 - Shareable via OS share sheet (doctor, nutritionist, etc.)
 
-### F7 — Grocery List Export
+### F7 — Grocery List Export — ⬜ Planned
 
 - Aggregates ingredients from selected date range (this week / custom)
 - Deduplicates and sorts alphabetically
 - Exports as plain text or shares via OS share sheet
 - Format: one ingredient per line, optionally grouped by category (stretch)
 
-### F8 — Notes
+### F8 — Notes — 🟡 Partial (notes field is per food item, not per meal; no CSV export)
 
 - Freeform notes field per meal (AI-populated from description, editable)
 - Notes visible in journal view and CSV export
 
-### F9 — Medication Tracking
+### F9 — Medication Tracking — 🟡 Partial (no CSV export/entry_type column; JSON only)
 
 - Same entry flow as meal logging: text/photo input → AI parses → manual review/edit form
 - AI-optional: manual entry form always available
@@ -94,7 +96,7 @@
 - Reaction check-in notification scheduled same as meals (configurable, same delay setting)
 - Exported in CSV alongside meals with entry_type column
 
-### F10 — Body Output Tracking (WC Log)
+### F10 — Body Output Tracking (WC Log) — ⬜ Planned
 
 - Quick-log entry, minimal fields
 - Fields: output_type (bowel movement / urine / other), time, urgency (low/medium/high), consistency (for BM: Bristol scale 1–7), notes
@@ -102,7 +104,7 @@
 - Appears in journal feed with distinct icon
 - Correlates with food_memory over time (stretch: flag foods that precede urgent BM within N hours)
 
-### F11 — Entity Resolution & Reuse Nudge
+### F11 — Entity Resolution & Reuse Nudge — ✅ Built
 
 - **Canonical identity** — every saved food item and medication gets a
   `canonical_name` (lowercase, punctuation stripped, whitespace collapsed). Blame
@@ -124,34 +126,34 @@
 
 ## Stretch Features
 
-### S1 — Ingredient-level reaction memory
+### S1 — Ingredient-level reaction memory — ⬜ Planned
 
 - Cross-reference reaction logs with ingredient list
 - Flag specific ingredients (e.g., "feta cheese" rather than just "salad")
 - Requires enough data to infer (3+ occurrences)
 
-### S2 — Weekly summary / insights
+### S2 — Weekly summary / insights — ⬜ Planned
 
 - "This week you ate X meals, felt good after Y%"
 - Most common flagged foods this week
 - Trend: is severity improving over time?
 
-### S3 — Grocery list categories
+### S3 — Grocery list categories — ⬜ Planned
 
 - AI groups ingredients: produce, dairy, proteins, pantry
 - Displayed grouped in grocery list export
 
-### S4 — Offline-first AI fallback
+### S4 — Offline-first AI fallback — 🟡 Partial (AI failure falls back to manual form; no queued retry when network returns)
 
 - If no network: show manual entry form (no AI parsing)
 - Queue AI parse for when network returns
 
-### S5 — Body-output / food correlation
+### S5 — Body-output / food correlation — ⬜ Planned
 
 - Flag foods in food_memory that frequently precede urgent BM within configurable window
 - Requires enough logged entries to infer (5+ occurrences)
 
-### S6 — Biometrics / smart device sync
+### S6 — Biometrics / smart device sync — ⬜ Planned
 
 - Capture or sync biometric data from wearables (heart rate, HRV, glucose, sleep)
 - Correlate with meal and reaction entries

@@ -153,25 +153,34 @@ The modes above are executed by concrete tooling — use it, don't reinvent it.
 - **AI-optional (top-level)**: every AI-powered flow has a complete manual fallback. AI pre-fills; it never blocks. If API unavailable, key missing, or user skips — manual entry form shows directly. Applies to meal logging, medication logging, and all future AI features.
 - **Schema = contract**: SQLite schema is a stable API. No breaking changes without a drift migration + integration test. AI-parsed JSON validated before DB write.
 - **Services as tool interface**: service methods designed to be exposable as Claude tool-use (function calling). Clear typed inputs/outputs, single responsibility. Forward-compatible for AI calling services as tools.
-- **Entry types**: journal tracks `meal` | `medication` | `body_output`. All appear in same chronological feed. Each has its own table; all share date/time/notes/created_at.
+- **Entry types**: journal tracks `meal`, `medication`, `water`, `weight`, and standalone `feeling` check-ins (a `ReactionLogs` row with `mealId` NULL). All appear in same chronological feed. Each has its own table; all share date/time/notes/created_at. `body_output` is planned, not current.
 - **AI input parsing**: Cloudflare Worker + Gemini (`MEAL_PARSER_URL`) — text + image → structured JSON (meals + medications). App talks only to the Worker; no direct LLM key in the app binary
-- **Local storage**: SQLite via `drift` — meals, food_items, ingredients, reactions, food_memory, medications, body_outputs
+- **Local storage**: SQLite via `drift` — meals, food_items, ingredients, reaction_logs, food_memories, food_suspicions, suspicion_exclusions, medications, meal_fingerprints, water_logs, weight_logs, saved_items
 - **Notifications**: `flutter_local_notifications` — check-in scheduled on save of any entry that warrants follow-up (configurable delay, default 90 min); permission prompt on first save if not yet granted
 - **Camera**: `image_picker` with `ImageSource.camera` as primary; gallery as secondary option on photo attach
-- **Export**: CSV for all entry types (entry_type column), separate grocery list from ingredient aggregation
+- **Export**: JSON snapshot of all entry types (timestamped `.json` file, shared via system share sheet). Grocery list feature is planned, not yet implemented.
 - **No backend**: all data local on device
 
 ## Data model (core)
 
+Schema version **14** (`AppDatabase.currentSchemaVersion`). Ground truth: `app/lib/services/database/app_database.dart`.
+
 ```text
-MealEntry     { id, date, time, mealType, overallSymptoms, rawInput, imageData }
-FoodItem      { id, mealId, name, portion, prep, calories, protein, carbs, fat, reaction, notes }
-Ingredient    { id, foodItemId, name, quantity, unit }
-ReactionLog   { id, mealId, checkinTime, symptoms[], severity, notes }
-FoodMemory    { id, foodName, reactionPattern, occurrences, lastSeen }
-Medication    { id, date, time, name, dose, unit, route, notes }
-BodyOutput    { id, date, time, outputType, urgency, consistency, notes }
+Meals         { id, date, time, mealType, overallSymptoms, rawInput, createdAt, imageData }
+FoodItems     { id, mealId, name, portion, prep, calories, protein, carbs, fat, reaction, notes, servings }
+Ingredients   { id, foodItemId, name, quantity, unit }
+ReactionLogs  { id, mealId, checkinTime, symptoms, severity, mood, symptomLevels, notes }
+FoodMemories  { id, foodName, reactionPattern, occurrences, lastSeen, flagged, favorited }
+FoodSuspicions { id, reactionLogId, symptom, targetType, targetId, targetName, baseWeight, source, createdAt }
+SuspicionExclusions { id, reactionLogId, symptom, createdAt }
+Medications   { id, date, time, name, dose, unit, route, checkinDelayMinutes, rawInput, notes, imageData, createdAt }
+MealFingerprints { id, mealId, date, mealType, foodsSummary, totalCals, totalProtein, createdAt }
+WaterLogs     { id, date, time, amountMl, notes, createdAt }
+WeightLogs    { id, date, time, weightValue, unit, notes, createdAt }
+SavedItems    { id, name, calories, protein, carbs, fat, componentsJson, createdAt }
 ```
+
+**Planned, not implemented:** BodyOutput { id, date, time, outputType, urgency, consistency, notes } — no table, no model as of schema v14.
 
 ## Dev commands
 

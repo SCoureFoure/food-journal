@@ -207,13 +207,15 @@ FoodSuspicion _row(int logId, String symptom, BlameCandidate c, double weight,
     );
 
 /// Aggregates ledger rows by `(targetName, symptom)`, summing effective weight,
-/// highest score first. Mirrors the SQL in `StorageService.getSuspicionScores`
-/// (which is the runtime path; this is the spec of the math).
+/// highest score first. Tested spec of the aggregation math — the live SQL
+/// path used by the UI is `StorageService.getBlameHistory`.
 List<SuspicionScore> aggregateSuspicions(List<FoodSuspicion> rows) {
   final sums = <String, double>{};
   final keyParts = <String, ({String name, String symptom})>{};
   for (final r in rows) {
-    final key = '${r.targetName} ${r.symptom}';
+    // NUL separator, written as the \u0000 escape (not a raw NUL byte) so this
+    // file stays plain text — a raw NUL makes ripgrep skip it silently.
+    final key = '${r.targetName}\u0000${r.symptom}';
     sums[key] = (sums[key] ?? 0) +
         effectiveSuspicionWeight(baseWeight: r.baseWeight, source: r.source);
     keyParts[key] = (name: r.targetName, symptom: r.symptom);
@@ -231,8 +233,8 @@ List<SuspicionScore> aggregateSuspicions(List<FoodSuspicion> rows) {
 
 /// Filters out ledger rows whose `(reactionLogId, symptom)` the user has
 /// dismissed (see [BlameHistoryEntry]/`suspicion_exclusions`). [dismissedKeys]
-/// holds [blameHistoryKey] strings. Mirrors the `WHERE NOT EXISTS` clause added
-/// to `StorageService.getSuspicionScores` — this is the spec of that filter.
+/// holds [blameHistoryKey] strings. This is the tested spec of that filter —
+/// the live SQL path used by the UI is `StorageService.getBlameHistory`.
 List<FoodSuspicion> excludeDismissedSuspicions(
   List<FoodSuspicion> rows,
   Set<String> dismissedKeys,

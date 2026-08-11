@@ -322,7 +322,7 @@ void main() {
     // testTheory: invariant — dismissing (log, symptom) removes EVERY row for
     // that pair regardless of source/target, leaves siblings (same log, other
     // symptom; other logs, same symptom) untouched.
-    // contract: excludeDismissedSuspicions mirrors getSuspicionScores' anti-join.
+    // contract: excludeDismissedSuspicions mirrors getBlameHistory's anti-join.
     // implication: dismissing "Nausea" from a flu episode can't accidentally
     // also suppress that log's real "Bloating" signal, or another day's Nausea.
     test('AC3: dismissing (logA, Nausea) drops auto+manual rows for it only', () {

@@ -7,7 +7,8 @@
 //   - searchFoodHistory correctly forwards favoritesOnly flag
 //   - insertFoodMemory preserves favorited from the FoodMemory model
 //
-// Full SQL correctness is covered by on-device integration tests.
+// Note: These tests validate only the in-memory fake's logic. The real drift/SQL
+// code path is not covered by any test.
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:food_journal/models/food_item.dart';
