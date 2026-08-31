@@ -28,8 +28,8 @@ touches and links back here; it does not redefine meaning or fallback.
 | Blame history| `blame-history-item-<logId>-<symptom-slug>` | Episode-symptom row: date, severity, blamed item names. `symptom-slug` = lowercase, spaces→dashes (e.g. "Stomach pain" → `stomach-pain`) (blame_history) |
 | Blame history| `btn-blame-history-toggle-<logId>-<symptom-slug>` | Dismiss/restore control on a row — toggles its exclusion (blame_history) |
 | App shell    | `app-shell`                     | Two-tab shell root at route `/` — owns the AppBar, the folder tabs, and the lined-paper background (meal_planning) |
-| App shell    | `tab-food-journal`              | Folder tab 0 — selects the journal. ✱ likely absorbed by the enclosing bar; fallback `content-desc="Food Journal"` (meal_planning) |
-| App shell    | `tab-meal-planning`             | Folder tab 1 — selects the planning surface. ✱ likely absorbed; fallback `content-desc="Meal Planning"` (meal_planning) |
+| App shell    | `tab-food-journal`              | Folder tab 0 — selects the journal. Verified on device 2026-08-30: surfaces its own resource-id, directly ADB-tappable (content-desc "Food Journal") (meal_planning) |
+| App shell    | `tab-meal-planning`             | Folder tab 1 — selects the planning surface. Verified on device 2026-08-30: surfaces its own resource-id, directly ADB-tappable (content-desc "Meal Planning") (meal_planning) |
 | App shell    | `btn-settings`                  | Settings icon in the app-shell app bar — shell-level, present on BOTH tabs (meal_planning) |
 | Meal Planning| `meal-planning-screen`          | Meal Planning tab body root (meal_planning) |
 | Meal Planning| `planner-stub-card`             | Inert "This week's meals" placeholder — copy only, no controls; the planner itself is a later slice (meal_planning) |

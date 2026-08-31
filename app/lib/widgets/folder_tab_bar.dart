@@ -23,12 +23,20 @@ class FolderTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The bar shares the app bar's title slot with the action icons, so its
+    // intrinsic width can exceed what it is given (it overflowed by 9px on a
+    // 1080px device with three actions). Scrolling horizontally is the safety
+    // valve: no overflow stripe, and a third tab later degrades gracefully
+    // instead of clipping.
     return SizedBox(
       height: 44,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: _buildTabs(),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: _buildTabs(),
+        ),
       ),
     );
   }
@@ -52,7 +60,7 @@ class FolderTabBar extends StatelessWidget {
               clipper: const _FolderTabClipper(),
               child: Container(
                 height: isSelected ? 44 : 36,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
                 alignment: Alignment.center,
                 color: isSelected ? kFolderTabSelected : kFolderTabUnselected,
                 child: Text(
