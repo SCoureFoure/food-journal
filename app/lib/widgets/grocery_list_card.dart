@@ -5,6 +5,8 @@ import '../models/grocery.dart';
 import '../services/export_service.dart';
 import '../services/settings_service.dart';
 import '../services/storage_service.dart';
+import 'folder_palette.dart';
+import 'panel_container.dart';
 
 class GroceryListCard extends StatefulWidget {
   /// Test seam — inject a fake-backed service. Null in production.
@@ -85,7 +87,8 @@ class _GroceryListCardState extends State<GroceryListCard> {
   @override
   Widget build(BuildContext context) {
     final hasList = _controller.text.trim().isNotEmpty;
-    return Card(
+    return PanelContainer(
+      accentColor: kTabMealPlanning,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 
-/// Food Journal — a soft sage drawn from the app's seed green (0xFF42725C),
-/// desaturated so it sits on cream paper rather than shouting like an
-/// office-supply tab.
-const Color kTabFoodJournal = Color(0xFF8FB79C);
+import 'folder_palette.dart';
 
-/// Meal Planning — the slate blue counterpart, echoing the green/blue pairing
-/// on a real folder set.
-const Color kTabMealPlanning = Color(0xFF93AFC6);
+export 'folder_palette.dart';
 
-/// The manila the unselected tabs are mixed toward, so a deselected tab keeps
-/// its identity while receding into the folder body.
-const Color kFolderTabRecess = Color(0xFFDCCFB8);
+/// Tab geometry. The raised height is the bar's own height, so a selected tab
+/// fills it and a recessed one sits lower with the folder edge over its base.
+const double kTabRaisedHeight = 44;
+const double kTabRecessedHeight = 36;
 
-/// The fill actually painted for a tab in the given state.
-Color folderTabFill(Color base, {required bool selected}) =>
-    selected ? base : Color.lerp(base, kFolderTabRecess, 0.55)!;
+/// Where a tab's base line falls inside a [kToolbarHeight] toolbar. The AppBar
+/// centres its title slot vertically, so the base is NOT the toolbar's bottom
+/// edge — anything that has to meet the tabs (the folder body, its leading
+/// edge) must measure from here or it lands several pixels low.
+const double kTabBaseInToolbar = (kToolbarHeight + kTabRaisedHeight) / 2;
+
+/// How long a tab takes to rise out of / drop back into the folder.
+const Duration kTabPopDuration = Duration(milliseconds: 220);
 
 class FolderTab {
   final String label;
@@ -48,7 +49,7 @@ class FolderTabBar extends StatelessWidget {
     // valve: no overflow stripe, and a third tab later degrades gracefully
     // instead of clipping.
     return SizedBox(
-      height: 44,
+      height: kTabRaisedHeight,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
@@ -67,32 +68,47 @@ class FolderTabBar extends StatelessWidget {
         children.add(const SizedBox(width: 3));
       }
       final isSelected = i == selectedIndex;
+      final tab = tabs[i];
       children.add(
         Semantics(
-          identifier: tabs[i].semanticsId,
+          identifier: tab.semanticsId,
           button: true,
           selected: isSelected,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => onSelected(i),
-            child: ClipPath(
-              clipper: const _FolderTabClipper(),
-              child: Container(
-                height: isSelected ? 44 : 36,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                alignment: Alignment.center,
-                color: folderTabFill(tabs[i].color, selected: isSelected),
-                child: Text(
-                  tabs[i].label,
-                  style: TextStyle(
-                    fontSize: isSelected ? 15 : 14,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected
-                        ? const Color(0xFF2E2A22)
-                        : const Color(0xFF6F6455),
+            // The row is bottom-aligned and the folder's leading edge is drawn
+            // over the tab bases, so growing the height lifts the tab up out of
+            // the folder and shrinking it drops it back in — the pop.
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(end: isSelected ? 1.0 : 0.0),
+              duration: kTabPopDuration,
+              curve: Curves.easeOutCubic,
+              builder: (context, t, _) {
+                final fill = folderTabFillAt(tab.color, t);
+                return ClipPath(
+                  clipper: const _FolderTabClipper(),
+                  child: Container(
+                    height: kTabRecessedHeight +
+                        (kTabRaisedHeight - kTabRecessedHeight) * t,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    alignment: Alignment.center,
+                    color: fill,
+                    child: Text(
+                      tab.label,
+                      style: TextStyle(
+                        fontSize: 14 + t,
+                        // Weight cannot be interpolated; flip it at the
+                        // half-way point where the size change is least
+                        // noticeable.
+                        fontWeight:
+                            t >= 0.5 ? FontWeight.w600 : FontWeight.w500,
+                        color: folderTabInk(fill, selected: t >= 0.5),
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
         ),

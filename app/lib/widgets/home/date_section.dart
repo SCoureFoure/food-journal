@@ -9,6 +9,7 @@ import '../../models/weight_log.dart';
 import '../../services/storage_service.dart';
 import '../../utils/date_time_utils.dart';
 import '../day_totals_bar.dart';
+import '../panel_container.dart';
 import 'feeling_tile.dart';
 import 'meal_tile.dart';
 import 'medication_tile.dart';
@@ -118,18 +119,10 @@ class _DateSectionState extends State<DateSection> {
 
     return Semantics(
       identifier: 'date-section-${widget.date.toIso8601String().substring(0, 10)}',
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.90),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withAlpha(18), offset: const Offset(0, 1), blurRadius: 2),
-            BoxShadow(color: Colors.black.withAlpha(38), offset: const Offset(0, 5), blurRadius: 10),
-            BoxShadow(color: Colors.black.withAlpha(60), offset: const Offset(0, 12), blurRadius: 20),
-          ],
-        ),
+      child: PanelContainer(
+        margin: PanelContainer.nestedMargin,
+        backgroundColor:
+            theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.90),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

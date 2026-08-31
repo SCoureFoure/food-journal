@@ -51,19 +51,16 @@ class _AppShellState extends State<AppShell> {
                 backgroundColor: Colors.transparent,
                 scrolledUnderElevation: 0,
                 titleSpacing: 8,
-                // Bottom-aligned so the tab's base line sits exactly on the
-                // top edge of the folder body below it. Centred in the toolbar
-                // it floated, with a strip of bare paper between the tab and
-                // the block it is supposed to be attached to.
-                title: Align(
-                  alignment: Alignment.bottomLeft,
-                  child: FolderTabBar(
-                    tabs: _tabs,
-                    selectedIndex: _index,
-                    onSelected: (i) {
-                      if (i != _index) setState(() => _index = i);
-                    },
-                  ),
+                // The AppBar centres its title slot, so the bar's base line
+                // lands at kTabBaseInToolbar rather than at the toolbar's
+                // bottom edge. The folder measures from that constant — it is
+                // the tabs the folder has to meet, not the app bar.
+                title: FolderTabBar(
+                  tabs: _tabs,
+                  selectedIndex: _index,
+                  onSelected: (i) {
+                    if (i != _index) setState(() => _index = i);
+                  },
                 ),
                 actions: _actions(),
               ),
@@ -88,34 +85,34 @@ class _AppShellState extends State<AppShell> {
   // both tabs. The journal-only actions come before it and appear/disappear to
   // its left, so switching tabs never makes the gear jump under your thumb.
   List<Widget> _actions() => [
-        if (_index == 0) ...[
-          Semantics(
-            identifier: 'btn-export',
-            child: IconButton(
-              icon: const Icon(Icons.download),
-              onPressed: () => _homeKey.currentState?.navigateAndReload('/export'),
-              tooltip: 'Export',
-            ),
-          ),
-          Semantics(
-            identifier: 'btn-blame-history',
-            child: IconButton(
-              icon: const Icon(Icons.history_outlined),
-              onPressed: () =>
-                  _homeKey.currentState?.navigateAndReload('/blame-history'),
-              tooltip: 'Blame history',
-            ),
-          ),
-        ],
-        Semantics(
-          identifier: 'btn-settings',
-          child: IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: _showSettings,
-            tooltip: 'Settings',
-          ),
+    if (_index == 0) ...[
+      Semantics(
+        identifier: 'btn-export',
+        child: IconButton(
+          icon: const Icon(Icons.download),
+          onPressed: () => _homeKey.currentState?.navigateAndReload('/export'),
+          tooltip: 'Export',
         ),
-      ];
+      ),
+      Semantics(
+        identifier: 'btn-blame-history',
+        child: IconButton(
+          icon: const Icon(Icons.history_outlined),
+          onPressed: () =>
+              _homeKey.currentState?.navigateAndReload('/blame-history'),
+          tooltip: 'Blame history',
+        ),
+      ),
+    ],
+    Semantics(
+      identifier: 'btn-settings',
+      child: IconButton(
+        icon: const Icon(Icons.settings_outlined),
+        onPressed: _showSettings,
+        tooltip: 'Settings',
+      ),
+    ),
+  ];
 
   Future<void> _showSettings() async {
     await showDialog<void>(
@@ -126,9 +123,15 @@ class _AppShellState extends State<AppShell> {
   }
 }
 
-/// A soft band of the active tab's colour across the top of the page, fading
-/// out about a third of the way down, so the page reads as belonging to the
-/// tab standing above it.
+/// Where the folder's top edge falls: the status bar plus the tab bar's own
+/// base line inside the toolbar.
+///
+/// This lands the edge exactly on the tabs' bottoms. Pulling it any higher puts
+/// a coloured band ACROSS the tabs — the folder stops reading as the thing they
+/// are attached to and becomes a stripe cutting through them.
+double _folderTopInset(BuildContext context) =>
+    MediaQuery.of(context).padding.top + kTabBaseInToolbar;
+
 /// The folder body the tabs are attached to: a block of the active tab's colour
 /// that begins at the tab's base line and runs down behind the page content,
 /// fading out toward the bottom.
@@ -140,18 +143,9 @@ class _FolderBody extends StatelessWidget {
   final Color color;
   const _FolderBody({required this.color});
 
-  /// How far the body is pulled up past the tab's base line. Butting the two
-  /// edges together left a hairline of bare paper between them, so the body
-  /// tucks up behind the tabs instead — the tabs are opaque and drawn over it,
-  /// so the overlap only ever shows as the body's own top edge.
-  static const double _tabOverlap = 10;
-
   @override
   Widget build(BuildContext context) {
-    // Where the tab's base line falls: the status bar plus the toolbar the
-    // bottom-aligned tab sits in, less the overlap.
-    final topInset =
-        MediaQuery.of(context).padding.top + kToolbarHeight - _tabOverlap;
+    final topInset = _folderTopInset(context);
 
     return IgnorePointer(
       child: Padding(

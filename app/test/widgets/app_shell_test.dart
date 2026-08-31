@@ -352,4 +352,56 @@ void main() {
       );
     });
   });
+
+  /// [INV] AppShell folder alignment — holds the contract that the folder's top
+  /// edge lands exactly on the tabs' base line and that nothing is painted over
+  /// the tabs. The AppBar centres its title slot, so the base is 6px above the
+  /// app bar's bottom edge; measuring from the wrong one leaves either a strip
+  /// of bare paper under the tabs or a coloured band cutting across them. Both
+  /// have shipped and both were reported by eye — no functional test catches
+  /// either, which is why the edge is pinned to the tab bar's own geometry here.
+  group('[INV] AppShell folder alignment', () {
+    Finder washFinder() => find.byWidgetPredicate((w) =>
+        w is Container &&
+        w.decoration is BoxDecoration &&
+        (w.decoration as BoxDecoration).gradient is LinearGradient);
+
+    testWidgets('the folder edge meets the tab bases exactly', (tester) async {
+      await tester.pumpWidget(_shell());
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getTopLeft(washFinder()).dy,
+        tester.getBottomLeft(find.byType(FolderTabBar)).dy,
+      );
+    });
+
+    testWidgets('the folder edge sits above the app bar bottom, not on it',
+        (tester) async {
+      await tester.pumpWidget(_shell());
+      await tester.pumpAndSettle();
+
+      // The gap the centred title slot creates. Anchoring to the app bar
+      // instead of the tabs drops the folder this far below them.
+      final washTop = tester.getTopLeft(washFinder()).dy;
+      final appBarBottom = tester.getBottomLeft(find.byType(AppBar)).dy;
+      expect(washTop, lessThan(appBarBottom));
+      expect(appBarBottom - washTop, (kToolbarHeight - kTabRaisedHeight) / 2);
+    });
+
+    testWidgets('nothing is painted over the tabs', (tester) async {
+      await tester.pumpWidget(_shell());
+      await tester.pumpAndSettle();
+
+      final children = tester
+          .widget<Stack>(find
+              .descendant(of: find.byType(AppShell), matching: find.byType(Stack))
+              .first)
+          .children;
+
+      // The tabs live in the Scaffold's AppBar. Anything after it in the Stack
+      // lands on top of them — which is what put a band across the tabs once.
+      expect(children.last, isA<Scaffold>());
+    });
+  });
 }

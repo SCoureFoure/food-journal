@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../widgets/folder_palette.dart';
 import '../../widgets/grocery_list_card.dart';
+import '../../widgets/panel_container.dart';
 
 class MealPlanningScreen extends StatelessWidget {
   const MealPlanningScreen({super.key});
@@ -11,11 +13,12 @@ class MealPlanningScreen extends StatelessWidget {
       identifier: 'meal-planning-screen',
       child: Scaffold(
         backgroundColor: Colors.transparent,
+        // Horizontal inset comes from each panel's own margin, so the cards
+        // land at the same width as the journal's week/day panels.
         body: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+          padding: const EdgeInsets.only(top: 8, bottom: 100),
           children: const [
             _PlannerStubCard(),
-            SizedBox(height: 16),
             GroceryListCard(),
           ],
         ),
@@ -31,7 +34,8 @@ class _PlannerStubCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       identifier: 'planner-stub-card',
-      child: Card(
+      child: PanelContainer(
+        accentColor: kTabMealPlanning,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
           child: Column(

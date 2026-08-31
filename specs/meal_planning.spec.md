@@ -219,6 +219,42 @@ widgets.
 28. **AC28** — Given the Export/Import screen renders, Then its date range, include
     toggles, `btn-export-json`, and `btn-import-json` behave exactly as before.
 
+**Panel chrome parity across tabs**
+
+29. **AC29** — Given tab 1 renders, Then every top-level section (planner stub, grocery
+    card) is a `PanelContainer` carrying `PanelContainer.sectionMargin` and a non-null
+    `accentColor` — the same chrome the journal's week panels use.
+30. **AC30** — Given either tab renders, Then each top-level panel's painted surface starts
+    at `PanelContainer.horizontalMargin` from the left and spans
+    `screenWidth - 2 * horizontalMargin` — the hosting scroll view adds no horizontal
+    padding of its own, so panel widths cannot drift between the two tabs.
+
+31. **AC31** — Given tab 1 renders, Then every panel's `accentColor` is
+    `kTabMealPlanning`; given the journal's week panel renders, Then its `accentColor` is
+    `kTabFoodJournal`. Panels read their spine from the folder palette, never from
+    `ColorScheme`, so tab / folder body / spine cannot drift apart.
+32. **AC32** — Given any tab colour in the palette, Then `folderTabInk` returns ink of the
+    opposite brightness to the fill it is drawn on, selected or recessed —
+    `kTabFoodJournal` is dark enough to need light ink, `kTabMealPlanning` is not.
+
+**Folder alignment and tab motion**
+
+33. **AC33** — Given the shell renders, Then the folder body's top edge equals the tab
+    bar's bottom edge exactly — the edge meets the tabs' bases, so no strip of bare paper
+    shows under them and no coloured band cuts across them.
+34. **AC34** — Given the shell renders, Then that edge sits `(kToolbarHeight -
+    kTabRaisedHeight) / 2` ABOVE the app bar's bottom, because the AppBar centres its
+    title slot. Anything measuring from the app bar's bottom edge is wrong by that gap.
+35. **AC35** — Given the shell renders, Then the `Scaffold` is the LAST child of the
+    shell's `Stack` — nothing paints over the tabs.
+36. **AC36** — Given the active tab changes, Then both tabs pass through heights strictly
+    between `kTabRecessedHeight` and `kTabRaisedHeight` over `kTabPopDuration` before
+    settling on their final values — the tab rises out of / drops back into the folder
+    rather than snapping.
+37. **AC37** — Given a tab bar's first build, Then each tab renders at its final height
+    immediately (no entry animation), and after any pop the fills are exactly
+    `kTab*` / `folderTabFill(..., selected: false)` — endpoints are snapped, not lerped.
+
 ## Anchors (explore rig)
 
 <!-- A view: ids this feature touches. Canonical row (screen · meaning · ✱/fallback)
@@ -248,7 +284,10 @@ declared regardless — Dart `integration_test` reads them in-process and is una
   `app/test/widgets/folder_tab_bar_test.dart`,
   `app/test/widgets/meal_planning_screen_test.dart`,
   `app/test/widgets/grocery_list_card_test.dart`,
-  `app/test/widgets/export_screen_test.dart` (AC27/AC28)
+  `app/test/widgets/export_screen_test.dart` (AC27/AC28),
+  `app/test/widgets/panel_container_test.dart` (AC29–AC32),
+  `app/test/widgets/app_shell_test.dart` (AC33–AC35),
+  `app/test/widgets/folder_tab_bar_test.dart` (AC36/AC37)
 - Grocery pipeline (unchanged, still green): `app/test/models/grocery_test.dart`,
   `app/test/services/export_grocery_test.dart`,
   `app/test/integration/ai/tidy_grocery_list_integration_test.dart`

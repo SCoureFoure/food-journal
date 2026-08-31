@@ -287,4 +287,93 @@ void main() {
       expect(scrollView.scrollDirection, Axis.horizontal);
     });
   });
+
+  /// [MFT] FolderTabBar pop animation — holds the contract that a tab RISES out
+  /// of the folder over [kTabPopDuration] instead of snapping to its new height.
+  /// The folder's leading edge is painted over the tab bases, so a snap reads as
+  /// the label teleporting out from under the card; the interpolation is what
+  /// makes it read as a tab being pulled forward. If this regresses the tabs
+  /// still end up the right size, so every other test in this file stays green
+  /// and only the motion is lost.
+  group('[MFT] FolderTabBar pop animation', () {
+    double heightOf(WidgetTester tester, String label) => tester
+        .getSize(find
+            .ancestor(of: find.text(label), matching: find.byType(ClipPath))
+            .first)
+        .height;
+
+    Widget switchable() => _wrap(const _SwitchableBar());
+
+    testWidgets('a newly selected tab passes through intermediate heights',
+        (tester) async {
+      await tester.pumpWidget(switchable());
+      await tester.pumpAndSettle();
+      expect(heightOf(tester, 'Meal Planning'), kTabRecessedHeight);
+
+      await tester.tap(find.text('Meal Planning'));
+      await tester.pump();
+      await tester.pump(kTabPopDuration ~/ 2);
+
+      final midRise = heightOf(tester, 'Meal Planning');
+      final midFall = heightOf(tester, 'Food Journal');
+      expect(midRise, greaterThan(kTabRecessedHeight));
+      expect(midRise, lessThan(kTabRaisedHeight));
+      expect(midFall, greaterThan(kTabRecessedHeight));
+      expect(midFall, lessThan(kTabRaisedHeight));
+
+      await tester.pumpAndSettle();
+      expect(heightOf(tester, 'Meal Planning'), kTabRaisedHeight);
+      expect(heightOf(tester, 'Food Journal'), kTabRecessedHeight);
+    });
+
+    testWidgets('the animation lands on exactly the declared fills',
+        (tester) async {
+      await tester.pumpWidget(switchable());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Meal Planning'));
+      await tester.pumpAndSettle();
+
+      Container tabBox(String label) => tester.widget<Container>(
+            find
+                .ancestor(of: find.text(label), matching: find.byType(Container))
+                .first,
+          );
+
+      // Endpoint exactness matters: a float lerp that lands a bit off would
+      // paint a colour that is not in the palette at all.
+      expect(tabBox('Meal Planning').color, kTabMealPlanning);
+      expect(tabBox('Food Journal').color,
+          folderTabFill(kTabFoodJournal, selected: false));
+    });
+
+    testWidgets('a tab renders at its final size on first build, unanimated',
+        (tester) async {
+      await tester.pumpWidget(switchable());
+      await tester.pump();
+
+      expect(heightOf(tester, 'Food Journal'), kTabRaisedHeight);
+      expect(heightOf(tester, 'Meal Planning'), kTabRecessedHeight);
+    });
+  });
+}
+
+/// A two-tab bar that owns its own selection, so a test can tap one tab and
+/// watch the other settle.
+class _SwitchableBar extends StatefulWidget {
+  const _SwitchableBar();
+
+  @override
+  State<_SwitchableBar> createState() => _SwitchableBarState();
+}
+
+class _SwitchableBarState extends State<_SwitchableBar> {
+  int _index = 0;
+
+  @override
+  Widget build(BuildContext context) => FolderTabBar(
+        tabs: const [_foodJournalTab, _mealPlanningTab],
+        selectedIndex: _index,
+        onSelected: (i) => setState(() => _index = i),
+      );
 }
