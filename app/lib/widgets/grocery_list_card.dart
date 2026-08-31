@@ -16,13 +16,18 @@ class GroceryListCard extends StatefulWidget {
   State<GroceryListCard> createState() => _GroceryListCardState();
 }
 
+/// Which long-running call is in flight, so the spinner lands on the button
+/// that started it. `_BusyAction.none` means idle.
+enum _BusyAction { none, generating, tidying }
+
 class _GroceryListCardState extends State<GroceryListCard> {
   StorageService? _ownedStorage;
   late final ExportService _export;
   late final SettingsService _settings;
 
   final _controller = TextEditingController();
-  bool _busy = false;
+  _BusyAction _busy = _BusyAction.none;
+  bool get _isBusy => _busy != _BusyAction.none;
   bool _aiEnabled = true;
   GroceryWindowMode _groceryMode = kDefaultGroceryWindowMode;
   int _groceryMealWindow = kDefaultGroceryMealWindow;
@@ -164,24 +169,27 @@ class _GroceryListCardState extends State<GroceryListCard> {
     );
   }
 
+  static const _spinner = SizedBox(
+    width: 18,
+    height: 18,
+    child: CircularProgressIndicator(strokeWidth: 2),
+  );
+
   Widget _buildGenerateButton() {
+    final generating = _busy == _BusyAction.generating;
     return Semantics(
       identifier: 'btn-generate-grocery-list',
       child: FilledButton.icon(
-        onPressed: _busy ? null : _generate,
-        icon: _busy
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : const Icon(Icons.shopping_cart_outlined),
-        label: const Text('Generate list'),
+        onPressed: _isBusy ? null : _generate,
+        icon: generating ? _spinner : const Icon(Icons.shopping_cart_outlined),
+        label: Text(generating ? 'Generating…' : 'Generate list'),
       ),
     );
   }
 
   Widget _buildListSection() {
+    final tidying = _busy == _BusyAction.tidying;
+    final generating = _busy == _BusyAction.generating;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -189,6 +197,7 @@ class _GroceryListCardState extends State<GroceryListCard> {
           identifier: 'grocery-list-field',
           child: TextField(
             controller: _controller,
+            enabled: !_isBusy,
             maxLines: null,
             minLines: 6,
             keyboardType: TextInputType.multiline,
@@ -207,7 +216,7 @@ class _GroceryListCardState extends State<GroceryListCard> {
             Semantics(
               identifier: 'btn-copy-grocery-list',
               child: FilledButton.icon(
-                onPressed: _busy ? null : _copy,
+                onPressed: _isBusy ? null : _copy,
                 icon: const Icon(Icons.copy),
                 label: const Text('Copy'),
               ),
@@ -215,7 +224,7 @@ class _GroceryListCardState extends State<GroceryListCard> {
             Semantics(
               identifier: 'btn-share-grocery-list',
               child: OutlinedButton.icon(
-                onPressed: _busy ? null : _share,
+                onPressed: _isBusy ? null : _share,
                 icon: const Icon(Icons.ios_share),
                 label: const Text('Share'),
               ),
@@ -224,23 +233,23 @@ class _GroceryListCardState extends State<GroceryListCard> {
               Semantics(
                 identifier: 'btn-tidy-grocery-list',
                 child: OutlinedButton.icon(
-                  onPressed: _busy ? null : _tidy,
-                  icon: const Icon(Icons.auto_awesome),
-                  label: const Text('Tidy with AI'),
+                  onPressed: _isBusy ? null : _tidy,
+                  icon: tidying ? _spinner : const Icon(Icons.auto_awesome),
+                  label: Text(tidying ? 'Tidying…' : 'Tidy with AI'),
                 ),
               ),
             Semantics(
               identifier: 'btn-retry-grocery-list',
               child: TextButton.icon(
-                onPressed: _busy ? null : _retry,
-                icon: const Icon(Icons.refresh),
+                onPressed: _isBusy ? null : _retry,
+                icon: generating ? _spinner : const Icon(Icons.refresh),
                 label: const Text('Retry'),
               ),
             ),
             Semantics(
               identifier: 'btn-clear-grocery-list',
               child: TextButton.icon(
-                onPressed: _busy ? null : _clear,
+                onPressed: _isBusy ? null : _clear,
                 icon: const Icon(Icons.close),
                 label: const Text('Clear'),
               ),
@@ -252,7 +261,7 @@ class _GroceryListCardState extends State<GroceryListCard> {
   }
 
   Future<void> _generate() async {
-    setState(() => _busy = true);
+    setState(() => _busy = _BusyAction.generating);
     try {
       final text = await _export.buildGroceryListText(
         mode: _groceryMode,
@@ -262,21 +271,21 @@ class _GroceryListCardState extends State<GroceryListCard> {
     } catch (e) {
       _showError('Grocery list failed: ${_errorText(e)}');
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) setState(() => _busy = _BusyAction.none);
     }
   }
 
   Future<void> _retry() async => _generate();
 
   Future<void> _tidy() async {
-    setState(() => _busy = true);
+    setState(() => _busy = _BusyAction.tidying);
     try {
       final text = await _export.tidyGroceryListText(_controller.text);
       _controller.text = text;
     } catch (e) {
       _showError('Tidy failed: ${_errorText(e)}');
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) setState(() => _busy = _BusyAction.none);
     }
   }
 

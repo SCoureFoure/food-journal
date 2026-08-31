@@ -25,6 +25,11 @@ class _FakeExportService extends ExportService {
   GroceryWindowMode? lastMode;
   int? lastSize;
 
+  /// When set, `buildGroceryListText` blocks on this until the test completes
+  /// it — which is how the in-flight (busy) state is held still long enough
+  /// to assert on.
+  Completer<String>? buildGate;
+
   /// When set, `tidyGroceryListText` blocks on this until the test completes
   /// it — which is how the in-flight (busy) state is held still long enough to
   /// assert on.
@@ -49,6 +54,7 @@ class _FakeExportService extends ExportService {
     buildCalls++;
     lastMode = mode;
     lastSize = size;
+    if (buildGate != null) return buildGate!.future;
     if (buildError != null) throw buildError!;
     return buildResult;
   }
@@ -510,8 +516,9 @@ void main() {
       expect(filledWithText(tester, 'Copy').onPressed, isNotNull);
     });
 
-    testWidgets('while a tidy is in flight the actions are disabled',
-        (tester) async {
+    testWidgets(
+        'while a tidy is in flight the actions and field are disabled and '
+        'the tidy button shows its spinner (AC2/AC3/AC4/AC5)', (tester) async {
       SharedPreferences.setMockInitialValues({'grocery_draft': '- salt'});
       final fake = _FakeExportService()..tidyGate = Completer<String>();
       await pumpCard(tester, export: fake);
@@ -523,14 +530,113 @@ void main() {
       await tester.pump(); // start the call; do NOT settle — it is still open
 
       expect(fake.tidyCalls, 1);
-      expect(filledWithText(tester, 'Copy').onPressed, isNull);
+      expect(filledWithText(tester, 'Copy').onPressed, isNull); // AC4
+
+      // AC2: the spinner and "…ing" label land on the button that started it.
+      expect(find.text('Tidying…'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: byId('btn-tidy-grocery-list'),
+          matching: find.byType(CircularProgressIndicator),
+        ),
+        findsOneWidget,
+      );
+
+      // AC5: the field is locked while the tidy pass could replace its text.
+      expect(groceryField(tester).enabled, isFalse);
 
       fake.tidyGate!.complete('Grocery list\nGenerated 2026-08-30\n\nPantry\n- Salt');
       await tester.pumpAndSettle();
 
-      // ...and enabled again once it lands, so the card cannot get stuck.
+      // AC3: ...and enabled again once it lands, so the card cannot get stuck.
       expect(filledWithText(tester, 'Copy').onPressed, isNotNull);
       expect(fake.tidyCalls, 1);
+      expect(find.text('Tidying…'), findsNothing);
+      expect(find.text('Tidy with AI'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(groceryField(tester).enabled, isTrue);
+      expect(groceryField(tester).controller!.text,
+          'Grocery list\nGenerated 2026-08-30\n\nPantry\n- Salt');
+    });
+  });
+
+  /// [DIR] GroceryListCard progress feedback — holds the contract that the
+  /// spinner and the "…ing" label land on the button whose call is actually
+  /// in flight, and clear again when it lands or fails. If this regresses:
+  /// the tidy pass, which crosses the network and waits on the model, gives
+  /// no sign it is running, so the card looks frozen and the user taps again
+  /// — or worse, the card is left permanently disabled after an error.
+  group('[DIR] GroceryListCard progress feedback', () {
+    FilledButton filledWithText(WidgetTester tester, String text) =>
+        tester.widget<FilledButton>(find.ancestor(
+          of: find.text(text),
+          matching: find.byWidgetPredicate((w) => w is FilledButton),
+        ));
+
+    testWidgets('AC1: at rest the tidy button shows no spinner', (tester) async {
+      SharedPreferences.setMockInitialValues({'grocery_draft': '- salt'});
+      await pumpCard(tester, export: _FakeExportService());
+
+      expect(find.text('Tidy with AI'), findsOneWidget);
+      expect(find.text('Tidying…'), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    });
+
+    testWidgets(
+        'AC6: the spinner lands only on the button that started the call',
+        (tester) async {
+      SharedPreferences.setMockInitialValues({'grocery_draft': '- salt'});
+      final fake = _FakeExportService()..tidyGate = Completer<String>();
+      await pumpCard(tester, export: fake);
+
+      final tidy = find.text('Tidy with AI');
+      await tester.ensureVisible(tidy);
+      await tester.pumpAndSettle();
+      await tester.tap(tidy);
+      await tester.pump();
+
+      expect(find.text('Generating…'), findsNothing);
+
+      fake.tidyGate!.complete('Grocery list\nGenerated 2026-08-30\n\nPantry\n- Salt');
+      await tester.pumpAndSettle();
+    });
+
+    // The symmetric half lives in its own test on purpose: pumping a second
+    // GroceryListCard into the same tester reuses the existing State (same
+    // widget type, no key), so initState never re-reads the draft and the card
+    // stays in whichever state the first half left it in.
+    testWidgets('AC6 control: mid-generate only the generate button says so',
+        (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final fake = _FakeExportService()..buildGate = Completer<String>();
+      await pumpCard(tester, export: fake);
+
+      final generate = find.text('Generate list');
+      await tester.ensureVisible(generate);
+      await tester.pumpAndSettle();
+      await tester.tap(generate);
+      await tester.pump(); // start the call; do NOT settle — it is still open
+
+      expect(find.text('Generating…'), findsOneWidget);
+      expect(find.text('Tidying…'), findsNothing);
+
+      fake.buildGate!.complete('- salt (x1)');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Generating…'), findsNothing);
+    });
+
+    testWidgets('AC7: a tidy failure clears the busy state', (tester) async {
+      SharedPreferences.setMockInitialValues({'grocery_draft': '- salt'});
+      final fake = _FakeExportService()..tidyError = Exception('tidy boom');
+      await pumpCard(tester, export: fake);
+
+      await tapText(tester, 'Tidy with AI');
+
+      expect(find.textContaining('tidy boom'), findsOneWidget);
+      expect(find.text('Tidy with AI'), findsOneWidget);
+      expect(find.text('Tidying…'), findsNothing);
+      expect(filledWithText(tester, 'Copy').onPressed, isNotNull);
     });
   });
 }

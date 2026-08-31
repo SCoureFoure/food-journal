@@ -20,6 +20,19 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
+  static const _tabs = [
+    FolderTab(
+      label: 'Food Journal',
+      semanticsId: 'tab-food-journal',
+      color: kTabFoodJournal,
+    ),
+    FolderTab(
+      label: 'Meal Planning',
+      semanticsId: 'tab-meal-planning',
+      color: kTabMealPlanning,
+    ),
+  ];
+
   final _homeKey = GlobalKey<HomeScreenState>();
   final _settings = SettingsService();
   int _index = 0;
@@ -29,34 +42,36 @@ class _AppShellState extends State<AppShell> {
     return Semantics(
       identifier: 'app-shell',
       child: LinedPaperBackground(
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            scrolledUnderElevation: 0,
-            titleSpacing: 8,
-            title: FolderTabBar(
-              tabs: const [
-                FolderTab(label: 'Food Journal', semanticsId: 'tab-food-journal'),
-                FolderTab(label: 'Meal Planning', semanticsId: 'tab-meal-planning'),
-              ],
-              selectedIndex: _index,
-              onSelected: (i) {
-                if (i != _index) setState(() => _index = i);
-              },
-            ),
-            actions: _actions(),
-          ),
-          body: IndexedStack(
-            index: _index,
-            children: [
-              HomeScreen(
-                key: _homeKey,
-                storageOverride: widget.journalStorageOverride,
+        child: Stack(
+          children: [
+            Positioned.fill(child: _TabWash(color: _tabs[_index].color)),
+            Scaffold(
+              backgroundColor: Colors.transparent,
+              appBar: AppBar(
+                backgroundColor: Colors.transparent,
+                scrolledUnderElevation: 0,
+                titleSpacing: 8,
+                title: FolderTabBar(
+                  tabs: _tabs,
+                  selectedIndex: _index,
+                  onSelected: (i) {
+                    if (i != _index) setState(() => _index = i);
+                  },
+                ),
+                actions: _actions(),
               ),
-              const MealPlanningScreen(),
-            ],
-          ),
+              body: IndexedStack(
+                index: _index,
+                children: [
+                  HomeScreen(
+                    key: _homeKey,
+                    storageOverride: widget.journalStorageOverride,
+                  ),
+                  const MealPlanningScreen(),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -98,5 +113,37 @@ class _AppShellState extends State<AppShell> {
       builder: (_) => SettingsDialog(settings: _settings),
     );
     await _homeKey.currentState?.reloadSettings();
+  }
+}
+
+/// A soft band of the active tab's colour across the top of the page, fading
+/// out about a third of the way down, so the page reads as belonging to the
+/// tab standing above it.
+class _TabWash extends StatelessWidget {
+  final Color color;
+  const _TabWash({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: FractionallySizedBox(
+          heightFactor: 0.34,
+          widthFactor: 1,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [color.withAlpha(90), color.withAlpha(0)],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

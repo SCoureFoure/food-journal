@@ -160,4 +160,126 @@ void main() {
       expect(identical(stateBefore, stateAfter), isTrue);
     });
   });
+
+  /// [DIR] AppShell tab wash — holds the contract that the band across the top of the page
+  /// carries the ACTIVE tab's colour and fades to fully transparent, and that it never
+  /// intercepts a pointer. If this regresses: either the page stops belonging to the tab
+  /// standing above it (cosmetic), or the wash swallows every tap in the top third of the
+  /// screen — the week cards, the grocery controls — which looks like the app has frozen.
+  group('[DIR] AppShell tab wash', () {
+    testWidgets('wash gradient starts with the active tab colour and fades to alpha 0',
+        (tester) async {
+      await tester.pumpWidget(_shell());
+      await tester.pumpAndSettle();
+
+      final washContainer = tester.widget<Container>(
+        find.byWidgetPredicate((w) =>
+            w is Container &&
+            w.decoration is BoxDecoration &&
+            (w.decoration as BoxDecoration).gradient is LinearGradient),
+      );
+      final gradient =
+          (washContainer.decoration as BoxDecoration).gradient as LinearGradient;
+
+      expect(gradient.colors.first, kTabFoodJournal.withAlpha(90));
+      expect(gradient.colors.last, kTabFoodJournal.withAlpha(0));
+    });
+
+    testWidgets('wash gradient switches colour with the active tab', (tester) async {
+      await tester.pumpWidget(_shell());
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Meal Planning'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Meal Planning'));
+      await tester.pumpAndSettle();
+
+      final washContainer = tester.widget<Container>(
+        find.byWidgetPredicate((w) =>
+            w is Container &&
+            w.decoration is BoxDecoration &&
+            (w.decoration as BoxDecoration).gradient is LinearGradient),
+      );
+      final gradient =
+          (washContainer.decoration as BoxDecoration).gradient as LinearGradient;
+
+      expect(gradient.colors.first, kTabMealPlanning.withAlpha(90));
+    });
+
+    testWidgets('an IgnorePointer sits above the wash so it never eats a tap',
+        (tester) async {
+      await tester.pumpWidget(_shell());
+      await tester.pumpAndSettle();
+
+      final gradientFinder = find.byWidgetPredicate((w) =>
+          w is Container &&
+          w.decoration is BoxDecoration &&
+          (w.decoration as BoxDecoration).gradient is LinearGradient);
+
+      expect(
+        find.ancestor(
+          of: gradientFinder,
+          matching: find.byType(IgnorePointer),
+        ),
+        findsAtLeastNWidgets(1),
+      );
+    });
+  });
+
+  /// [INV] AppShell contract survives the wash restructure — holds the invariant that
+  /// wrapping the Scaffold in a Stack for the wash did not disturb the shell's existing
+  /// chrome contract. If this regresses: the wash implementation silently broke tab
+  /// switching, the action visibility rule, or the journal's preserved State.
+  group('[INV] AppShell contract survives the wash restructure', () {
+    testWidgets('shell contract intact: one AppBar, index toggling, actions, state',
+        (tester) async {
+      await tester.pumpWidget(_shell());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AppBar), findsOneWidget);
+      expect(
+        tester.widget<IndexedStack>(find.byType(IndexedStack)).index,
+        0,
+      );
+      expect(_anchor('btn-settings'), findsOneWidget);
+      expect(_anchor('btn-export'), findsOneWidget);
+      expect(_anchor('btn-blame-history'), findsOneWidget);
+
+      final stateBefore =
+          tester.state<HomeScreenState>(find.byType(HomeScreen));
+
+      await tester.ensureVisible(find.text('Meal Planning'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Meal Planning'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AppBar), findsOneWidget);
+      expect(
+        tester.widget<IndexedStack>(find.byType(IndexedStack)).index,
+        1,
+      );
+      expect(_anchor('btn-settings'), findsOneWidget);
+      expect(_anchor('btn-export'), findsNothing);
+      expect(_anchor('btn-blame-history'), findsNothing);
+
+      await tester.ensureVisible(find.text('Food Journal'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Food Journal'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<IndexedStack>(find.byType(IndexedStack)).index,
+        0,
+      );
+      final stateAfter =
+          tester.state<HomeScreenState>(find.byType(HomeScreen));
+      expect(identical(stateBefore, stateAfter), isTrue);
+
+      expect(find.byType(HomeScreen, skipOffstage: false), findsOneWidget);
+      expect(
+        find.byType(MealPlanningScreen, skipOffstage: false),
+        findsOneWidget,
+      );
+    });
+  });
 }

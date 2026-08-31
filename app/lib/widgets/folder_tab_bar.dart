@@ -1,12 +1,31 @@
 import 'package:flutter/material.dart';
 
-const Color kFolderTabSelected = Color(0xFFF7F3EC);   // matches LinedPaperBackground base
-const Color kFolderTabUnselected = Color(0xFFDCCFB8); // darker manila
+/// Food Journal — a soft sage drawn from the app's seed green (0xFF42725C),
+/// desaturated so it sits on cream paper rather than shouting like an
+/// office-supply tab.
+const Color kTabFoodJournal = Color(0xFF8FB79C);
+
+/// Meal Planning — the slate blue counterpart, echoing the green/blue pairing
+/// on a real folder set.
+const Color kTabMealPlanning = Color(0xFF93AFC6);
+
+/// The manila the unselected tabs are mixed toward, so a deselected tab keeps
+/// its identity while receding into the folder body.
+const Color kFolderTabRecess = Color(0xFFDCCFB8);
+
+/// The fill actually painted for a tab in the given state.
+Color folderTabFill(Color base, {required bool selected}) =>
+    selected ? base : Color.lerp(base, kFolderTabRecess, 0.55)!;
 
 class FolderTab {
   final String label;
   final String semanticsId;
-  const FolderTab({required this.label, required this.semanticsId});
+  final Color color;
+  const FolderTab({
+    required this.label,
+    required this.semanticsId,
+    required this.color,
+  });
 }
 
 class FolderTabBar extends StatelessWidget {
@@ -62,14 +81,14 @@ class FolderTabBar extends StatelessWidget {
                 height: isSelected ? 44 : 36,
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 alignment: Alignment.center,
-                color: isSelected ? kFolderTabSelected : kFolderTabUnselected,
+                color: folderTabFill(tabs[i].color, selected: isSelected),
                 child: Text(
                   tabs[i].label,
                   style: TextStyle(
                     fontSize: isSelected ? 15 : 14,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                     color: isSelected
-                        ? const Color(0xFF3E3529)
+                        ? const Color(0xFF2E2A22)
                         : const Color(0xFF6F6455),
                   ),
                 ),
@@ -86,18 +105,21 @@ class FolderTabBar extends StatelessWidget {
 class _FolderTabClipper extends CustomClipper<Path> {
   const _FolderTabClipper();
 
-  static const double _slant = 9.0;
-  static const double _radius = 8.0;
+  static const double _slant = 12.0;
+  static const double _radius = 14.0;
 
   @override
   Path getClip(Size size) {
+    final w = size.width;
+    final h = size.height;
     return Path()
-      ..moveTo(0, size.height)
-      ..lineTo(_slant, _radius)
+      ..moveTo(0, h)
+      // soft shoulder flaring up out of the folder body
+      ..cubicTo(_slant * 0.55, h - 2, _slant * 0.35, _radius + 2, _slant, _radius)
       ..quadraticBezierTo(_slant, 0, _slant + _radius, 0)
-      ..lineTo(size.width - _slant - _radius, 0)
-      ..quadraticBezierTo(size.width - _slant, 0, size.width - _slant, _radius)
-      ..lineTo(size.width, size.height)
+      ..lineTo(w - _slant - _radius, 0)
+      ..quadraticBezierTo(w - _slant, 0, w - _slant, _radius)
+      ..cubicTo(w - _slant * 0.35, _radius + 2, w - _slant * 0.55, h - 2, w, h)
       ..close();
   }
 
