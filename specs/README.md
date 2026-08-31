@@ -67,3 +67,4 @@ Run the loop with the **`/spec`** skill (`.claude/skills/spec/SKILL.md`):
 | [log_meal_ai_parse](log_meal_ai_parse.spec.md) | AI autofill on Log Meal — parse, replace, title-fill, context injection, AI-off fallback | active |
 | [log_feeling](log_feeling.spec.md) | Standalone feeling check-in — create/edit/delete, mood, symptom intensity, accumulation, feed surfacing | active |
 | [groceries](groceries.spec.md) | Grocery list export — frequency-ranked ingredients from recent meals, shared as plain text | active |
+| [meal_planning](meal_planning.spec.md) | Two-tab app shell — index-folder tabs, Meal Planning surface, grocery list relocated off Export | active |

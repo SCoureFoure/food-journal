@@ -389,6 +389,35 @@ class ExportService {
     await Share.share(text, subject: 'Grocery list');
   }
 
+  /// Tidies an already-rendered (and possibly hand-edited) grocery list: parses the
+  /// item names back out of [rawText], sends those to the AI tidy pass, and returns
+  /// the section-grouped list as plain text.
+  ///
+  /// This is the "tidy what the user is looking at" path — unlike
+  /// [buildTidiedGroceryListText], it never re-reads the journal, so hand edits are
+  /// respected. Throws [Exception] carrying the AI error message when the pass fails.
+  Future<String> tidyGroceryListText(String rawText, {DateTime? now}) async {
+    final anchor = now ?? DateTime.now();
+    final items = parseGroceryListItems(rawText);
+
+    if (items.isEmpty) {
+      return formatTidiedGroceryList(const [], windowLabel: '', generatedAt: anchor);
+    }
+
+    final tidy = await _ai.tidyGroceryList(items.join('\n'));
+    if (!tidy.success || tidy.sections == null) {
+      throw Exception(tidy.errorMessage ?? 'Tidy failed.');
+    }
+
+    return formatTidiedGroceryList(tidy.sections!, windowLabel: '', generatedAt: anchor);
+  }
+
+  /// Hands an arbitrary already-built list to the OS share sheet. The inline card
+  /// calls this after the user has read and edited the text, so sharing is a choice
+  /// rather than a side effect of generating.
+  Future<void> shareText(String text) =>
+      Share.share(text, subject: 'Grocery list');
+
   Future<void> _shareJson(Map<String, dynamic> payload, String namePrefix) async {
     final jsonStr = jsonEncode(payload);
     final timestamp = DateTime.now().millisecondsSinceEpoch;

@@ -8,11 +8,11 @@ import 'models/weight_log.dart';
 import 'screens/blame_history/blame_history_screen.dart';
 import 'screens/checkin/checkin_screen.dart';
 import 'screens/export/export_screen.dart';
-import 'screens/home/home_screen.dart';
 import 'screens/log_meal/log_meal_screen.dart';
 import 'screens/log_medication/log_medication_screen.dart';
 import 'screens/log_weight/log_weight_screen.dart';
 import 'screens/meal_detail/meal_detail_screen.dart';
+import 'screens/shell/app_shell.dart';
 import 'services/notification_service.dart';
 import 'services/seed_service.dart';
 import 'services/storage_service.dart';
@@ -45,7 +45,7 @@ class FoodJournalApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (_) => const HomeScreen(),
+        '/': (_) => const AppShell(),
         '/log': (_) => const LogMealScreen(),
         '/log_medication': (_) => const LogMedicationScreen(),
         '/log_weight': (_) => const LogWeightScreen(),

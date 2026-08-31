@@ -7,6 +7,8 @@ import '../../models/reaction_log.dart';
 import '../../models/water_log.dart';
 import '../../models/weight_log.dart';
 import '../../services/storage_service.dart';
+import '../folder_palette.dart';
+import '../panel_container.dart';
 import 'date_section.dart';
 
 typedef MacroFetcher = Future<({int cal, double prot, double carbs, double fat})>
@@ -81,7 +83,9 @@ class _WeekSummarySectionState extends State<WeekSummarySection> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = theme.colorScheme.secondary;
+    // The journal tab's colour, not the theme's — the spine has to agree with
+    // the tab standing above it.
+    const color = kTabFoodJournal;
 
     final totalMeals = widget.dates
         .expand<MealEntry>((d) => widget.mealsByDate[d] ?? [])
@@ -97,26 +101,15 @@ class _WeekSummarySectionState extends State<WeekSummarySection> {
 
     return Semantics(
       identifier: 'week-section-${widget.weekStart.toIso8601String().substring(0, 10)}',
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHigh.withValues(alpha: 0.95),
-          borderRadius: BorderRadius.circular(12),
-          border: Border(left: BorderSide(color: color, width: 3)),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withAlpha(18), offset: const Offset(0, 1), blurRadius: 2),
-            BoxShadow(color: Colors.black.withAlpha(38), offset: const Offset(0, 5), blurRadius: 10),
-            BoxShadow(color: Colors.black.withAlpha(60), offset: const Offset(0, 12), blurRadius: 20),
-          ],
-        ),
+      child: PanelContainer(
+        accentColor: color,
         child: ExpansionTile(
           initiallyExpanded: false,
           shape: const Border(),
           collapsedShape: const Border(),
           title: Row(
             children: [
-              Icon(Icons.calendar_view_week_rounded, size: 14, color: color),
+              const Icon(Icons.calendar_view_week_rounded, size: 14, color: color),
               const SizedBox(width: 6),
               Text(
                 _weekLabel(),
@@ -159,7 +152,7 @@ class _WeekMacroBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = theme.colorScheme.secondary;
+    const color = kTabFoodJournal;
     final labelStyle = theme.textTheme.labelSmall?.copyWith(
       color: theme.colorScheme.outline,
       letterSpacing: 0.6,

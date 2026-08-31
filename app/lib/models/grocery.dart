@@ -223,3 +223,45 @@ String formatTidiedGroceryList(
 
   return '$header\n\n${sectionLines.join('\n')}';
 }
+
+/// Reads item names back out of a rendered (and possibly hand-edited) grocery
+/// list, so an edited list can be fed to the AI tidy pass.
+///
+/// Drops the two header lines, blank lines, parenthetical placeholders, and any
+/// line that is exactly one of [kGrocerySections] (a heading from an earlier
+/// tidy). Everything else is an item, with a leading "- " removed if present.
+List<String> parseGroceryListItems(String text) {
+  final result = <String>[];
+  final lines = text.split('\n');
+
+  for (final line in lines) {
+    var trimmed = line.trim();
+
+    // Rule 1: Empty after trimming → drop
+    if (trimmed.isEmpty) continue;
+
+    // Rule 2: Starts with "Grocery list" → drop
+    if (trimmed.startsWith('Grocery list')) continue;
+
+    // Rule 3: Starts with "Generated " → drop
+    if (trimmed.startsWith('Generated ')) continue;
+
+    // Rule 4: Starts with "(" and ends with ")" → drop
+    if (trimmed.startsWith('(') && trimmed.endsWith(')')) continue;
+
+    // Rule 5: Exactly equals one of kGrocerySections → drop
+    if (kGrocerySections.contains(trimmed)) continue;
+
+    // Rule 6: Otherwise it's an item. Remove "- " prefix if present, then trim.
+    if (trimmed.startsWith('- ')) {
+      trimmed = trimmed.substring(2).trim();
+    }
+
+    // Only add if non-empty after processing
+    if (trimmed.isNotEmpty) {
+      result.add(trimmed);
+    }
+  }
+
+  return result;
+}

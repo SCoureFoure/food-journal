@@ -58,10 +58,15 @@ no pantry, no persisted list, and no reaction filtering in this scope — see
 
 ## Decisions (pinned 2026-08-29)
 
-1. **It lives on the Export screen**, not a new home app-bar icon and not a new
-   route. That screen already owns "pick a window → generate → share sheet", the
-   home app bar already carries three icons, and reusing the screen means zero new
-   navigation surface. *(fiat)*
+1. ~~**It lives on the Export screen**, not a new home app-bar icon and not a new
+   route.~~ **SUPERSEDED 2026-08-30 — the grocery list lives on the Meal Planning
+   tab.** The original reasoning (Export already owned "pick a window → generate →
+   share sheet", and reusing it meant zero new navigation surface) was a placement
+   of convenience, and the fiat was called correctly: the user ruled the other way.
+   Planning is where a shopping list belongs. The UI now lives in the self-contained
+   `GroceryListCard` widget mounted by `MealPlanningScreen`; Export/Import keeps JSON
+   export and import only. `ExportService`'s grocery methods did not move. See
+   [meal_planning.spec.md](meal_planning.spec.md) decisions 9-12. *(ruled)*
 2. **Ingredients are the grain, food-item name is the fallback.** A food item with
    ingredients contributes its ingredient names ("feta cheese", "olive oil"); one
    with none contributes its own name ("Oatmeal"). A dish name is useless in a
@@ -142,6 +147,46 @@ no pantry, no persisted list, and no reaction filtering in this scope — see
     SnackBar is scroll-independent. The JSON export keeps the inline text, which
     sits directly above its own button and is visible there. The `Exception: `
     prefix is stripped before display. *(fiat)*
+25. **The list renders inline in an editable text field; sharing is a choice, not a
+    side effect.** (pinned 2026-08-30) Generating fills a multiline `TextField` in the
+    card. Nothing leaves the app until the user asks. Rationale: the share sheet fired
+    before the user had seen the list, so a wrong window or a bad parse was only
+    discoverable after a full share round trip, and the only remedy was to run it again.
+    *(ruled)*
+26. **The list is editable, and edits are what the other actions act on.** Copy, Share
+    and Tidy all operate on the box contents, not on a regenerated list. Striking the
+    things already in the cupboard and then grouping what is left is the intended
+    workflow. *(ruled)*
+27. **Copy is the primary action, Share is secondary.** Clipboard first, share sheet
+    still available. Removing Share entirely was declined — it is how the list reaches a
+    messaging app or notes. *(ruled)*
+28. **The draft is persisted** in `SharedPreferences` under `grocery_draft`, via
+    `SettingsService.groceryDraft` / `setGroceryDraft` / `clearGroceryDraft`. The list is
+    generated at home and read in the shop, which is exactly where there may be no signal
+    to regenerate. It is not a user preference; it lives on `SettingsService` only because
+    that is the app's single SharedPreferences wrapper. No schema change — still v14.
+    *(fiat: the storage location, not the persistence itself)*
+29. **No redundant actions.** With an empty box there is exactly one control,
+    `Generate list`. Tidy, Copy, Share, Retry and Clear appear only once a list exists,
+    because there is nothing to tidy, copy, share or clear before then. *(ruled — the
+    user asked specifically that a second generate button not sit alongside the first)*
+30. **"Tidy with AI" is a transform, not a second generate.** It sends the box contents
+    to the Worker and replaces the box with the grouped result; it never re-reads the
+    journal, so hand edits survive it. Regenerating is `Retry`, which is a separate,
+    explicitly-labelled action. *(ruled)*
+31. **`parseGroceryListItems` is the round-trip seam.** A rendered list — plain or
+    tidied, hand-edited or not — reads back as bare item names: header lines, blank lines,
+    parenthetical placeholders and any line exactly matching `kGrocerySections` drop out;
+    everything else is an item with a leading `- ` stripped. A line is a section heading
+    only on an exact whole-line match, so a hand-typed `Produce from the market` stays an
+    item. *(fiat: the exact-match rule)*
+
+**Superseded 2026-08-30.** The original "generate and share in one step" flow
+(`ExportService.exportGroceryList` / `exportTidiedGroceryList`) is no longer what the UI
+calls — the card builds the text, shows it, and shares only on request. Those two service
+methods remain, unchanged and still tested: they are the tool-callable interface, and
+"build a list and share it" stays a legitimate single operation for a caller that is not
+the UI.
 
 ## Output format
 
@@ -347,7 +392,9 @@ queued.
 
 These were decided arbitrarily to make the slices buildable. Each is cheap to flip.
 
-- **F1** — Export screen vs. a new home app-bar icon (decision 1).
+- ~~**F1** — Export screen vs. a new home app-bar icon (decision 1).~~ **RULED
+  2026-08-30: neither — the grocery list moved to its own Meal Planning tab.** See
+  [meal_planning.spec.md](meal_planning.spec.md) decision 9.
 - **F2** — count = distinct meals rather than raw occurrences (decision 3).
 - **F3** — preset sizes 10/30/60 meals and 7/14/30 days (decision 7).
 - **F4** — each mode remembers its own size instead of sharing one number
@@ -368,12 +415,22 @@ These were decided arbitrarily to make the slices buildable. Each is cheap to fl
 
 <!-- A view: ids this feature touches. Canonical rows live in specs/anchors.md. -->
 
-- `export-screen` — screen root (existing)
+- `meal-planning-screen` — screen root (the grocery card's home since 2026-08-30;
+  it previously lived under `export-screen`)
 - `chip-grocery-mode-meals` / `chip-grocery-mode-days` — window mode
 - `chip-grocery-meals-10` / `-30` / `-60` — meal-count presets (meals mode only)
 - `chip-grocery-days-7` / `-14` / `-30` — day presets (days mode only)
-- `btn-generate-grocery-list` — generate + share (plain)
-- `btn-tidy-grocery-list` — AI tidy + share; present only when AI is enabled
+- `grocery-list-field` — the editable list itself
+- `btn-copy-grocery-list` — copy the box contents to the clipboard
+- `btn-share-grocery-list` — hand the box contents to the OS share sheet
+- `btn-retry-grocery-list` — regenerate from the journal, replacing the box
+- `btn-clear-grocery-list` — empty the box and drop the saved draft
+- `btn-generate-grocery-list` — generate into the box; present only when the box is empty
+- `btn-tidy-grocery-list` — tidy the box contents in place; present only when a list exists and AI is on
+
+Relocated 2026-08-30: these ids moved from the Export screen to the Meal Planning tab
+along with the widgets. The canonical rows in [anchors.md](anchors.md) carry the new
+screen. See [meal_planning.spec.md](meal_planning.spec.md).
 
 **✱ All ten of these are absorbed under UIAutomator** — verified on the emulator
 2026-08-29. Flutter merges each `Semantics(identifier:)` onto the **grocery card
@@ -399,6 +456,8 @@ registry rows carry the same note.
 - Widget: [app/test/widgets/export_screen_test.dart](../app/test/widgets/export_screen_test.dart)
   — AC24–AC30 and AC42–AC43, driving the AI gate through
   `SharedPreferences.setMockInitialValues`.
+- Card widget: [app/test/widgets/grocery_list_card_test.dart](../app/test/widgets/grocery_list_card_test.dart)
+  — inline editing, copy/share/retry/clear actions, persistence of drafts (decisions 25–31).
 - e2e: the plain path is blocked by nothing (no worker, no AI); the tidy path is
   worker-dependent. Explore-rig journey: seed via import, open `btn-export`, tap
   `chip-grocery-mode-days`, tap `chip-grocery-days-7`, tap

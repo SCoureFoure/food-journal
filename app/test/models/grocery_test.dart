@@ -419,4 +419,103 @@ void main() {
       expect(result.indexOf('- Rice'), lessThan(result.indexOf('- Butter')));
     });
   });
+
+  group('[MFT] parseGroceryListItems', () {
+    // testTheory: direct behavior — a rendered grocery list, in either the plain
+    // or the AI-tidied format and after arbitrary hand edits, reads back as
+    // exactly its item names. Headers, blank lines, placeholders, and section
+    // headings drop out; hand-typed bare lines survive; order is preserved.
+    // contract: split on \n, trim each line, then apply rules: (1) empty → drop,
+    //   (2) starts with "Grocery list" → drop, (3) starts with "Generated " → drop,
+    //   (4) starts/ends with parens → drop, (5) exactly equals a section name → drop,
+    //   (6) otherwise is an item, with "- " prefix removed and trimmed again.
+    // implication: if this regresses, the AI tidy pass receives header junk or
+    //   loses the user's own added lines, so the tidied list silently differs
+    //   from what the user was looking at when they pressed the button. Nothing
+    //   else in the suite reads this format back.
+
+    test('AC1: freshly generated plain list', () {
+      final result = parseGroceryListItems(
+        'Grocery list - from your last 30 meals\n'
+        'Generated 2026-08-30\n'
+        '\n'
+        '- salt (x6)\n'
+        '- potatoes (x3)\n',
+      );
+
+      expect(result, ['salt (x6)', 'potatoes (x3)']);
+    });
+
+    test('AC2: tidied list with section headings', () {
+      final result = parseGroceryListItems(
+        'Grocery list\n'
+        'Generated 2026-08-30\n'
+        '\n'
+        'Produce\n'
+        '- Potato\n'
+        '\n'
+        'Dairy & Eggs\n'
+        '- Butter\n',
+      );
+
+      expect(result, ['Potato', 'Butter']);
+    });
+
+    test('AC3: hand-typed bare lines survive', () {
+      final result = parseGroceryListItems('- Potato\neggs\nmilk');
+      expect(result, ['Potato', 'eggs', 'milk']);
+    });
+
+    test('AC4: line starting with section name but not exactly matching is an item', () {
+      final result = parseGroceryListItems('Produce from the market\nProduce');
+      expect(result, ['Produce from the market']);
+    });
+
+    test('AC5: placeholders dropped', () {
+      final result = parseGroceryListItems(
+        'Grocery list\nGenerated 2026-08-30\n\n(no meals logged yet)',
+      );
+
+      expect(result, isEmpty);
+    });
+
+    test('AC6a: empty input', () {
+      final result = parseGroceryListItems('');
+      expect(result, isEmpty);
+    });
+
+    test('AC6b: whitespace-only input', () {
+      final result = parseGroceryListItems('   \n\n  \t ');
+      expect(result, isEmpty);
+    });
+
+    test('AC7: order and duplicates preserved', () {
+      final result = parseGroceryListItems('- butter\n- Butter\n- butter');
+      expect(result, ['butter', 'Butter', 'butter']);
+    });
+
+    test('AC8: header without window label still dropped', () {
+      final result = parseGroceryListItems('Grocery list\nGenerated 2026-08-30\n\n- salt');
+      expect(result, ['salt']);
+    });
+
+    test('AC9: surrounding whitespace trimmed', () {
+      final result = parseGroceryListItems('  -   salt (x6)   ');
+      expect(result, ['salt (x6)']);
+    });
+
+    test('AC10: round-trip stability', () {
+      const rendered = 'Grocery list - test\n'
+          'Generated 2026-08-30\n'
+          '\n'
+          '- Item A\n'
+          '- Item B (x2)\n'
+          'Item C\n';
+
+      final once = parseGroceryListItems(rendered);
+      final twice = parseGroceryListItems(once.join('\n'));
+
+      expect(twice, once);
+    });
+  });
 }
