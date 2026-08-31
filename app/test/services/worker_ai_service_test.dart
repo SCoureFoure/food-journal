@@ -68,4 +68,33 @@ void main() {
       expect(result.errorMessage, isNotNull);
     });
   });
+
+  // ── Grocery tidy guards ──────────────────────────────────────────────────
+  // Contract: blank input is rejected before the URL is even consulted, and
+  // every failure path returns a result rather than throwing. If this
+  // regresses, a blank grocery list could either slip through to the Worker
+  // (wasted network call) or throw instead of surfacing a friendly message.
+
+  group('[BVA] WorkerAiService — grocery tidy guards', () {
+    test('blank input is rejected before anything else, even with a URL configured', () async {
+      final svc = WorkerAiService(workerUrl: 'https://example.workers.dev', authToken: null);
+      final result = await svc.tidyGroceryList('   ');
+      expect(result.success, isFalse);
+      expect(result.errorMessage, contains('tidy'));
+    });
+
+    test('empty URL guard', () async {
+      final svc = WorkerAiService(workerUrl: '', authToken: null);
+      final result = await svc.tidyGroceryList('onions (x3)');
+      expect(result.success, isFalse);
+      expect(result.errorMessage, contains('MEAL_PARSER_URL'));
+    });
+
+    test('blank guard beats the empty-URL guard', () async {
+      final svc = WorkerAiService(workerUrl: '', authToken: null);
+      final result = await svc.tidyGroceryList('');
+      expect(result.errorMessage, contains('tidy'));
+      expect(result.errorMessage, isNot(contains('MEAL_PARSER_URL')));
+    });
+  });
 }

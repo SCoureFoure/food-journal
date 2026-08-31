@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import '../models/food_item.dart';
+import '../models/grocery.dart';
 import 'ai_service.dart';
 
 class WorkerAiService implements AiService {
@@ -160,6 +161,40 @@ class WorkerAiService implements AiService {
       );
     } catch (e) {
       return MedicationParseResult(success: false, errorMessage: e.toString());
+    }
+  }
+
+  @override
+  Future<GroceryTidyResult> tidyGroceryList(String rawList) async {
+    final raw = rawList.trim();
+    if (raw.isEmpty) {
+      return GroceryTidyResult(success: false, errorMessage: 'Nothing to tidy.');
+    }
+    if (_resolvedUrl.isEmpty) {
+      return GroceryTidyResult(success: false, errorMessage: 'MEAL_PARSER_URL not set in .env');
+    }
+
+    try {
+      final response = await _post({'task': 'tidy_grocery_list', 'text': raw});
+
+      if (response.statusCode != 200) {
+        return GroceryTidyResult(
+          success: false,
+          errorMessage: 'Worker error ${response.statusCode}: ${response.body}',
+        );
+      }
+
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      final sections = (json['sections'] as List)
+          .map((entry) => GrocerySection(
+                name: entry['name'] as String,
+                items: (entry['items'] as List).map((e) => e as String).toList(),
+              ))
+          .toList();
+
+      return GroceryTidyResult(success: true, sections: sections);
+    } catch (e) {
+      return GroceryTidyResult(success: false, errorMessage: e.toString());
     }
   }
 

@@ -65,6 +65,10 @@ class _FakeAi implements AiService {
   @override
   Future<FoodDbSearchResult> searchFoodDatabase(String query) async =>
       throw UnimplementedError();
+
+  @override
+  Future<GroceryTidyResult> tidyGroceryList(String rawList) async =>
+      GroceryTidyResult(success: false, errorMessage: 'not used');
 }
 
 // Fake memory: pure overrides, no DB. Referential when text contains "leftover".

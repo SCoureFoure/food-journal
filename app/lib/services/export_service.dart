@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../models/food_item.dart';
+import '../models/grocery.dart';
 import '../models/ingredient.dart';
 import '../models/meal_entry.dart';
 import '../models/medication.dart';
@@ -12,7 +13,21 @@ import '../models/reaction_log.dart';
 import '../models/saved_item.dart';
 import '../models/water_log.dart';
 import '../models/weight_log.dart';
+import 'ai_service.dart';
 import 'storage_service.dart';
+
+/// Meal-count windows offered by the grocery-list export.
+const List<int> kGroceryMealWindows = [10, 30, 60];
+
+/// Day windows offered by the grocery-list export.
+const List<int> kGroceryDayWindows = [7, 14, 30];
+
+/// The window mode the Export screen starts on.
+const GroceryWindowMode kDefaultGroceryWindowMode = GroceryWindowMode.meals;
+
+/// Default size for each mode.
+const int kDefaultGroceryMealWindow = 30;
+const int kDefaultGroceryDayWindow = 30;
 
 class ExportTypes {
   final bool meals;
@@ -39,8 +54,9 @@ class ExportTypes {
 
 class ExportService {
   final StorageService _storage;
+  final AiService _ai;
 
-  ExportService(this._storage);
+  ExportService(this._storage, {AiService? ai}) : _ai = ai ?? AiService.fromEnv();
 
   Future<void> exportJson({
     DateTime? from,
@@ -265,6 +281,113 @@ class ExportService {
         'components': item.components,
         'created_at': item.createdAt.toIso8601String(),
       };
+
+  /// Grocery candidates for the chosen window, plus how many meals actually
+  /// fed them (which the header reports). [now] is injectable for tests.
+  Future<({List<GroceryCandidate> candidates, int mealsUsed})> buildGroceryCandidates({
+    required GroceryWindowMode mode,
+    required int size,
+    DateTime? now,
+  }) async {
+    List<MealEntry> meals;
+    if (mode == GroceryWindowMode.meals) {
+      final all = await _storage.getAllMeals();
+      final withId = all.where((m) => m.id != null).toList();
+      withId.sort((a, b) {
+        final byDate = b.date.compareTo(a.date);
+        if (byDate != 0) return byDate;
+        return b.createdAt.compareTo(a.createdAt);
+      });
+      meals = withId.take(size).toList();
+    } else {
+      final anchor = now ?? DateTime.now();
+      final today = DateTime(anchor.year, anchor.month, anchor.day);
+      final from = today.subtract(Duration(days: size - 1));
+      final all = await _storage.getMealsInRange(from: from, to: anchor);
+      meals = all.where((m) => m.id != null).toList();
+    }
+
+    final inputs = <MealGroceryInput>[];
+    for (final meal in meals) {
+      final rows = await _storage.getFoodItemsWithIngredients(meal.id!);
+      final names = <String>[];
+      for (final row in rows) {
+        if (row.ingredients.isNotEmpty) {
+          for (final ingredient in row.ingredients) {
+            names.add(ingredient.name);
+          }
+        } else {
+          names.add(row.item.name);
+        }
+      }
+      inputs.add(MealGroceryInput(mealId: meal.id!, names: names));
+    }
+
+    return (candidates: buildGroceryList(inputs), mealsUsed: meals.length);
+  }
+
+  /// The shareable plain-text grocery list for the chosen window.
+  Future<String> buildGroceryListText({
+    required GroceryWindowMode mode,
+    required int size,
+    DateTime? now,
+  }) async {
+    final anchor = now ?? DateTime.now();
+    final r = await buildGroceryCandidates(mode: mode, size: size, now: anchor);
+    return formatGroceryList(
+      r.candidates,
+      windowLabel: groceryWindowLabel(mode: mode, size: size, mealsUsed: r.mealsUsed),
+      mealsUsed: r.mealsUsed,
+      generatedAt: anchor,
+    );
+  }
+
+  /// Builds the list and hands it to the OS share sheet as plain text.
+  Future<void> exportGroceryList({
+    required GroceryWindowMode mode,
+    required int size,
+  }) async {
+    final text = await buildGroceryListText(mode: mode, size: size);
+    await Share.share(text, subject: 'Grocery list');
+  }
+
+  /// The raw list handed to the AI tidy pass: one `name (xN)` line per candidate,
+  /// in the ranked order they were generated.
+  static String buildTidyPromptInput(List<GroceryCandidate> candidates) =>
+      candidates.map((c) => '${c.name} (x${c.mealCount})').join('\n');
+
+  /// The AI-tidied, section-grouped grocery list as shareable plain text.
+  /// Throws [Exception] carrying the AI error message when the tidy pass fails —
+  /// the caller surfaces it; the plain (non-AI) list is unaffected.
+  Future<String> buildTidiedGroceryListText({
+    required GroceryWindowMode mode,
+    required int size,
+    DateTime? now,
+  }) async {
+    final anchor = now ?? DateTime.now();
+    final r = await buildGroceryCandidates(mode: mode, size: size, now: anchor);
+    final label = groceryWindowLabel(mode: mode, size: size, mealsUsed: r.mealsUsed);
+
+    if (r.candidates.isEmpty) {
+      return formatTidiedGroceryList(const [], windowLabel: label, generatedAt: anchor);
+    }
+
+    final tidy = await _ai.tidyGroceryList(buildTidyPromptInput(r.candidates));
+    if (!tidy.success || tidy.sections == null) {
+      throw Exception(tidy.errorMessage ?? 'Tidy failed.');
+    }
+
+    return formatTidiedGroceryList(tidy.sections!, windowLabel: label, generatedAt: anchor);
+  }
+
+  /// Builds the tidied list and hands it to the OS share sheet as plain text.
+  Future<void> exportTidiedGroceryList({
+    required GroceryWindowMode mode,
+    required int size,
+  }) async {
+    final text = await buildTidiedGroceryListText(mode: mode, size: size);
+    await Share.share(text, subject: 'Grocery list');
+  }
 
   Future<void> _shareJson(Map<String, dynamic> payload, String namePrefix) async {
     final jsonStr = jsonEncode(payload);

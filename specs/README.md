@@ -66,3 +66,4 @@ Run the loop with the **`/spec`** skill (`.claude/skills/spec/SKILL.md`):
 | [log_medication](log_medication.spec.md) | Log/autofill/edit/delete medication + check-in scheduling | active |
 | [log_meal_ai_parse](log_meal_ai_parse.spec.md) | AI autofill on Log Meal — parse, replace, title-fill, context injection, AI-off fallback | active |
 | [log_feeling](log_feeling.spec.md) | Standalone feeling check-in — create/edit/delete, mood, symptom intensity, accumulation, feed surfacing | active |
+| [groceries](groceries.spec.md) | Grocery list export — frequency-ranked ingredients from recent meals, shared as plain text | active |

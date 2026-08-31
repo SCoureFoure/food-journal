@@ -125,7 +125,7 @@ function Save-Logs {
 # Each scenario: navigate from home to target, return anchor to wait for
 
 function Go-LogMeal {
-    Tap-Element "btn-log-meal"
+    Tap-Element "btn-log-entry"
     Wait-Element "log-meal-input" | Out-Null   # anchor: text input on log meal screen
 }
 
@@ -259,7 +259,7 @@ Log-Step "LAUNCH ($Scenario)..."
 
 # ── wait for home (always baseline) ──────────────────────────────────────────
 Wait-Foreground $PKG | Out-Null
-$homeReady = (Wait-Element "btn-log-meal") -or (Wait-Element "home-empty-state" -TimeoutSec 5)
+$homeReady = (Wait-Element "btn-log-entry") -or (Wait-Element "home-empty-state" -TimeoutSec 5)
 if (-not $homeReady) { Log-Warn "home anchors not detected" }
 Wait-SplashGone
 

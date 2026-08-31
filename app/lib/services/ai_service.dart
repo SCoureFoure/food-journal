@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import '../models/food_item.dart';
+import '../models/grocery.dart';
 import 'worker_ai_service.dart';
 
 class MealParseResult {
@@ -39,6 +40,14 @@ class MedicationParseResult {
   });
 }
 
+class GroceryTidyResult {
+  final bool success;
+  final List<GrocerySection>? sections;
+  final String? errorMessage;
+
+  GroceryTidyResult({required this.success, this.sections, this.errorMessage});
+}
+
 abstract class AiService {
   Future<MealParseResult> parseMeal({
     String? text,
@@ -51,6 +60,10 @@ abstract class AiService {
   /// Searches an external open food database (USDA FoodData Central) via the
   /// Worker. Returns drafts with name + estimated macros for one-tap insert.
   Future<FoodDbSearchResult> searchFoodDatabase(String query);
+
+  /// Turns a raw frequency-ranked food list into a merged, section-grouped
+  /// shopping list. See specs/groceries.spec.md.
+  Future<GroceryTidyResult> tidyGroceryList(String rawList);
 
   factory AiService.fromEnv() => WorkerAiService();
 }

@@ -60,11 +60,11 @@ Status: ✅ Built · 🟡 Partial · ⬜ Planned — verified against the codeba
   symptoms. "Blamed" items surface on the home-feed feeling tile (manual only —
   auto suspicions are a discreet background signal).
 
-### F5 — Ingredients Tracking — 🟡 Partial (no grocery list export, F7)
+### F5 — Ingredients Tracking — ✅ Built
 
 - Each food item has an ingredients list (populated by AI, editable)
 - Standard: "sweet potato", "honey", "olive oil", "feta cheese"
-- Used for grocery list export (F7)
+- Feeds the grocery list export (F7) — ingredients are its primary grain
 - Cross-reference with food memory for ingredient-level reaction patterns (stretch)
 
 ### F6 — CSV Export — 🟡 Partial (export exists but produces JSON, not CSV)
@@ -74,12 +74,35 @@ Status: ✅ Built · 🟡 Partial · ⬜ Planned — verified against the codeba
 - Filename: `food_journal_YYYY-MM-DD.csv`
 - Shareable via OS share sheet (doctor, nutritionist, etc.)
 
-### F7 — Grocery List Export — ⬜ Planned
+### F7 — Grocery List Export — ✅ Built
 
-- Aggregates ingredients from selected date range (this week / custom)
-- Deduplicates and sorts alphabetically
-- Exports as plain text or shares via OS share sheet
-- Format: one ingredient per line, optionally grouped by category (stretch)
+- Lives on the Export screen: pick a window, tap **Generate & share**
+- Two window modes. **By meals** (default) takes the N most recently logged meals
+  — 10 / 30 / 60, default 30 — so the list is never empty while any meal exists.
+  **By days** takes every meal in the last N calendar days — 7 / 14 / 30,
+  default 30, counting today
+- Aggregates ingredient names from meals in that window; a food item with no
+  ingredients contributes its own name instead
+- Groups on the shared `canonicalize()` key, so casing and punctuation variants
+  collapse to one line — the same key the blame ledger uses
+- Ranked by how many distinct meals each item appeared in (a repeat inside one
+  meal counts once), ties broken alphabetically
+- Shared as plain text via the OS share sheet, one item per line as
+  `- Chicken breast (x4)`, under a header naming the window
+  (`from your last 12 meals` / `last 30 days`)
+- The meals-mode header reports the meals actually found, not the size asked for
+- **Tidy with AI & share** — a second button, present only when AI is enabled in
+  Settings, sends the generated list to the Worker's `tidy_grocery_list` task
+  (Gemini). It merges duplicates and variants into one shopping item, drops the
+  occurrence counts, and groups the result into supermarket sections
+- Section vocabulary is fixed: Produce, Meat & Seafood, Dairy & Eggs, Bakery,
+  Pantry, Frozen, Beverages, Other — rendered in that order
+- AI-optional holds: with AI off the button is absent and the plain export is
+  unaffected. A failed tidy surfaces an error and shares nothing; it never
+  silently substitutes the plain list
+- The plain path stays AI-free and offline-capable. No schema change, read-only
+- This closes S3 (grocery list categories) for the AI path
+- See [specs/groceries.spec.md](../specs/groceries.spec.md)
 
 ### F8 — Notes — 🟡 Partial (notes field is per food item, not per meal; no CSV export)
 
@@ -138,7 +161,7 @@ Status: ✅ Built · 🟡 Partial · ⬜ Planned — verified against the codeba
 - Most common flagged foods this week
 - Trend: is severity improving over time?
 
-### S3 — Grocery list categories — ⬜ Planned
+### S3 — Grocery list categories — ✅ Built (via the F7 AI tidy pass)
 
 - AI groups ingredients: produce, dairy, proteins, pantry
 - Displayed grouped in grocery list export

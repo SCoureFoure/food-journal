@@ -1,6 +1,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import worker from './index.js';
 import { buildFdcQuery, rankFoods } from './fdc.js';
+import prompts from './prompts.json' assert { type: 'json' };
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -906,6 +907,87 @@ describe('[BVA] Malformed body guard', () => {
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.error).toMatch(/JSON/i);
+  });
+});
+
+// ── Grocery tidy routing ───────────────────────────────────────────────────
+
+describe('[DIR] Grocery tidy routing', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test('AC1: task routes and passes JSON through', async () => {
+    stubGeminiFetch('{"sections":[{"name":"Produce","items":["Onions"]}]}');
+    const res = await worker.fetch(
+      makeRequest('POST', { task: 'tidy_grocery_list', text: 'onions (x3)' }),
+      ENV,
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toEqual({
+      sections: [{ name: 'Produce', items: ['Onions'] }],
+    });
+  });
+
+  test('AC2: task is known (not 400 and not unknown task error)', async () => {
+    stubGeminiFetch('{"sections":[]}');
+    const res = await worker.fetch(
+      makeRequest('POST', { task: 'tidy_grocery_list', text: 'butter' }),
+      ENV,
+    );
+    expect(res.status).not.toBe(400);
+    const body = await res.json();
+    expect(body).not.toEqual({ error: 'Unknown task: tidy_grocery_list' });
+  });
+
+  test('AC3: no-input guard returns 400 without calling fetch', async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy);
+    const res = await worker.fetch(
+      makeRequest('POST', { task: 'tidy_grocery_list' }),
+      ENV,
+    );
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toMatch(/text or image/i);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  test('AC4: system prompt is forwarded', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ candidates: [{ content: { parts: [{ text: '{}' }] } }] }),
+    });
+    vi.stubGlobal('fetch', fetchSpy);
+    await worker.fetch(
+      makeRequest('POST', { task: 'tidy_grocery_list', text: 'butter (x2)' }),
+      ENV,
+    );
+    const body = JSON.parse(fetchSpy.mock.calls[0][1].body);
+    expect(body.system_instruction.parts[0].text).toBe(
+      prompts.tidy_grocery_list.systemPrompt,
+    );
+  });
+
+  test('AC5: Gemini errors pass through', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 429,
+        text: async () => 'rate limited',
+      }),
+    );
+    const res = await worker.fetch(
+      makeRequest('POST', { task: 'tidy_grocery_list', text: 'items' }),
+      ENV,
+    );
+    expect(res.status).toBe(429);
   });
 });
 

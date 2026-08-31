@@ -39,6 +39,10 @@ class _FakeAi implements AiService {
   @override
   Future<MedicationParseResult> parseMedication({String? text, Uint8List? imageBytes}) async =>
       throw UnimplementedError();
+
+  @override
+  Future<GroceryTidyResult> tidyGroceryList(String rawList) async =>
+      GroceryTidyResult(success: false, errorMessage: 'not used');
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
