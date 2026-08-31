@@ -23,4 +23,24 @@ class SettingsService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyLeftHanded, value);
   }
+
+  static const _keyGroceryDraft = 'grocery_draft';
+
+  /// The saved grocery list the user is working on. Not a preference — it lives
+  /// here because this is the app's only SharedPreferences wrapper. Empty string
+  /// means "no list yet".
+  Future<String> get groceryDraft async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyGroceryDraft) ?? '';
+  }
+
+  Future<void> setGroceryDraft(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyGroceryDraft, value);
+  }
+
+  Future<void> clearGroceryDraft() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keyGroceryDraft);
+  }
 }

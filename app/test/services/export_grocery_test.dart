@@ -20,7 +20,9 @@ import 'package:food_journal/models/ingredient.dart';
 import 'package:food_journal/models/meal_entry.dart';
 import 'package:food_journal/services/ai_service.dart';
 import 'package:food_journal/services/export_service.dart';
+import 'package:food_journal/services/settings_service.dart';
 import 'package:food_journal/services/storage_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // ── Fake StorageService ───────────────────────────────────────────────────────
 //
@@ -675,4 +677,172 @@ void main() {
           expect(text.startsWith('Grocery list - last 7 days\n'), isTrue);
         });
       });
+
+  /// [MFT] ExportService.tidyGroceryListText — holds the contract that the AI tidy pass
+  /// receives exactly the item names the user is looking at, hand edits included, and is
+  /// not called at all for an empty list. If this regresses: the tidied list silently
+  /// diverges from the box the user pressed the button on, or an empty box costs a
+  /// network round trip and returns AI-shaped noise.
+  group('[MFT] ExportService.tidyGroceryListText', () {
+    // Contract: the AI receives the parsed item names, not the raw rendered
+    // text — headers and blank lines must not leak into the tidy prompt.
+    test('sends the parsed items, not the raw text (AC1)', () async {
+      final storage = _FakeStorage();
+      final ai = _FakeAiService(
+        GroceryTidyResult(
+          success: true,
+          sections: [const GrocerySection(name: 'Pantry', items: ['Salt'])],
+        ),
+      );
+      final service = ExportService(storage, ai: ai);
+
+      await service.tidyGroceryListText(
+        'Grocery list\nGenerated 2026-08-30\n\n- salt (x6)\n- potatoes (x3)',
+      );
+
+      expect(ai.capturedRawList, 'salt (x6)\npotatoes (x3)');
+    });
+
+    // Contract: hand edits (bare lines with no leading dash) are respected —
+    // the parse reads back whatever is on screen, not just AI-rendered lines.
+    test('hand edits are respected (AC2)', () async {
+      final storage = _FakeStorage();
+      final ai = _FakeAiService(
+        GroceryTidyResult(
+          success: true,
+          sections: [const GrocerySection(name: 'Pantry', items: ['Salt'])],
+        ),
+      );
+      final service = ExportService(storage, ai: ai);
+
+      await service.tidyGroceryListText('- salt\neggs');
+
+      expect(ai.capturedRawList, 'salt\neggs');
+    });
+
+    // Contract: the returned string is formatTidiedGroceryList output for
+    // whatever sections the AI returns, with a bare "Grocery list" header
+    // (no window label — it is no longer meaningful once hand-edited).
+    test('returns formatTidiedGroceryList output for the AI\'s sections (AC3)',
+        () async {
+      final storage = _FakeStorage();
+      final ai = _FakeAiService(
+        GroceryTidyResult(
+          success: true,
+          sections: [
+            const GrocerySection(name: 'Pantry', items: ['Salt', 'Potatoes']),
+          ],
+        ),
+      );
+      final service = ExportService(storage, ai: ai);
+
+      final text = await service.tidyGroceryListText('- salt\n- potatoes');
+      final lines = text.split('\n');
+
+      expect(lines.first, 'Grocery list');
+      expect(lines[1].startsWith('Generated '), isTrue);
+      expect(text.contains('Pantry'), isTrue);
+      expect(text.contains('Salt'), isTrue);
+      expect(text.contains('Potatoes'), isTrue);
+    });
+
+    // Contract: `now` is honoured — passing a fixed DateTime makes the test
+    // clock-independent instead of racing DateTime.now().
+    test('now is honoured in the Generated header (AC7)', () async {
+      final storage = _FakeStorage();
+      final ai = _FakeAiService(
+        GroceryTidyResult(
+          success: true,
+          sections: [const GrocerySection(name: 'Pantry', items: ['Salt'])],
+        ),
+      );
+      final service = ExportService(storage, ai: ai);
+
+      final text = await service.tidyGroceryListText(
+        '- salt',
+        now: DateTime(2026, 1, 2),
+      );
+
+      expect(text.split('\n')[1], 'Generated 2026-01-02');
+    });
+  });
+
+  /// [BVA] ExportService.tidyGroceryListText — empty input and AI-failure
+  /// boundaries. If this regresses: an empty box burns a network round trip,
+  /// or a failed/malformed AI response is rendered as if it had succeeded.
+  group('[BVA] ExportService.tidyGroceryListText — empty and failure', () {
+    // Contract: empty input short-circuits before ever calling the AI — a
+    // doer that always calls the AI burns a network round trip on an empty box.
+    test('empty text never calls the AI (AC4)', () async {
+      final storage = _FakeStorage();
+      final ai = _FakeAiService(GroceryTidyResult(success: true, sections: const []));
+      final service = ExportService(storage, ai: ai);
+
+      final text = await service.tidyGroceryListText('');
+
+      expect(ai.tidyGroceryListCalled, isFalse);
+      expect(text.startsWith('Grocery list'), isTrue);
+    });
+
+    // Contract: a text with only headers and a placeholder line (no real
+    // items) also parses to nothing, so it must also skip the AI call.
+    test('headers-and-placeholder-only text never calls the AI (AC4)', () async {
+      final storage = _FakeStorage();
+      final ai = _FakeAiService(GroceryTidyResult(success: true, sections: const []));
+      final service = ExportService(storage, ai: ai);
+
+      final text = await service.tidyGroceryListText(
+        'Grocery list\nGenerated 2026-08-30\n\n(no meals logged yet)',
+      );
+
+      expect(ai.tidyGroceryListCalled, isFalse);
+      expect(text.startsWith('Grocery list'), isTrue);
+    });
+
+    // Contract: an AI failure surfaces as a thrown Exception carrying the
+    // AI's own error message, not a silent fallback.
+    test('AI failure surfaces as an Exception with the message (AC5)', () async {
+      final storage = _FakeStorage();
+      final ai = _FakeAiService(
+        GroceryTidyResult(success: false, errorMessage: 'Worker error 429: busy'),
+      );
+      final service = ExportService(storage, ai: ai);
+
+      await expectLater(
+        () => service.tidyGroceryListText('- salt'),
+        throwsA(predicate((e) => e.toString().contains('Worker error 429: busy'))),
+      );
+    });
+
+    // Contract: success:true with sections:null is still a failure — the
+    // success flag alone is not sufficient to trust the response.
+    test('success with null sections still throws (AC6)', () async {
+      final storage = _FakeStorage();
+      final ai = _FakeAiService(GroceryTidyResult(success: true, sections: null));
+      final service = ExportService(storage, ai: ai);
+
+      await expectLater(
+        () => service.tidyGroceryListText('- salt'),
+        throwsException,
+      );
+    });
+  });
+
+  /// [MFT] SettingsService.groceryDraft — the draft round-trips through
+  /// SharedPreferences and clears cleanly. If this regresses: the list the
+  /// user built at home is gone (or stale) by the time they reach the shop.
+  group('[MFT] SettingsService.groceryDraft', () {
+    test('round-trips: default empty, set, clear (AC8)', () async {
+      SharedPreferences.setMockInitialValues({});
+      final settings = SettingsService();
+
+      expect(await settings.groceryDraft, '');
+
+      await settings.setGroceryDraft('- salt');
+      expect(await settings.groceryDraft, '- salt');
+
+      await settings.clearGroceryDraft();
+      expect(await settings.groceryDraft, '');
+    });
+  });
 }
