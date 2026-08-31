@@ -77,15 +77,10 @@ class _AppShellState extends State<AppShell> {
     );
   }
 
+  // Settings is LAST so it pins to the far right and holds that position on
+  // both tabs. The journal-only actions come before it and appear/disappear to
+  // its left, so switching tabs never makes the gear jump under your thumb.
   List<Widget> _actions() => [
-        Semantics(
-          identifier: 'btn-settings',
-          child: IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: _showSettings,
-            tooltip: 'Settings',
-          ),
-        ),
         if (_index == 0) ...[
           Semantics(
             identifier: 'btn-export',
@@ -105,6 +100,14 @@ class _AppShellState extends State<AppShell> {
             ),
           ),
         ],
+        Semantics(
+          identifier: 'btn-settings',
+          child: IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: _showSettings,
+            tooltip: 'Settings',
+          ),
+        ),
       ];
 
   Future<void> _showSettings() async {
@@ -138,7 +141,7 @@ class _TabWash extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [color.withAlpha(90), color.withAlpha(0)],
+                colors: [color.withAlpha(150), color.withAlpha(0)],
               ),
             ),
           ),

@@ -161,6 +161,44 @@ void main() {
     });
   });
 
+  /// [INV] AppShell settings position — holds the invariant that the settings gear sits at
+  /// the far right and does not move when tabs change. The journal-only actions appear and
+  /// disappear to its LEFT, so the control that is present on every tab is the one that
+  /// stays put. If this regresses: the gear slides sideways the moment you switch tabs and
+  /// a thumb heading for it lands on Export or Blame history instead — a presence-only
+  /// assertion (which the other groups make) would never catch it, because all three
+  /// buttons are still there.
+  group('[INV] AppShell settings position', () {
+    Finder anchor(String id) => find.byWidgetPredicate(
+          (w) => w is Semantics && w.properties.identifier == id,
+        );
+
+    testWidgets('the gear holds its x position across a tab switch',
+        (tester) async {
+      await tester.pumpWidget(_shell());
+      await tester.pumpAndSettle();
+
+      final onJournal = tester.getTopRight(anchor('btn-settings'));
+
+      await tester.ensureVisible(find.text('Meal Planning'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Meal Planning'));
+      await tester.pumpAndSettle();
+
+      expect(tester.getTopRight(anchor('btn-settings')).dx, onJournal.dx);
+    });
+
+    testWidgets('the gear is the right-most action on the journal tab',
+        (tester) async {
+      await tester.pumpWidget(_shell());
+      await tester.pumpAndSettle();
+
+      final gear = tester.getTopRight(anchor('btn-settings')).dx;
+      expect(tester.getTopRight(anchor('btn-export')).dx, lessThan(gear));
+      expect(tester.getTopRight(anchor('btn-blame-history')).dx, lessThan(gear));
+    });
+  });
+
   /// [DIR] AppShell tab wash — holds the contract that the band across the top of the page
   /// carries the ACTIVE tab's colour and fades to fully transparent, and that it never
   /// intercepts a pointer. If this regresses: either the page stops belonging to the tab
@@ -181,8 +219,14 @@ void main() {
       final gradient =
           (washContainer.decoration as BoxDecoration).gradient as LinearGradient;
 
-      expect(gradient.colors.first, kTabFoodJournal.withAlpha(90));
-      expect(gradient.colors.last, kTabFoodJournal.withAlpha(0));
+      // Assert the hue and the fade, not one exact alpha: how strong the wash
+      // reads is a look-and-feel dial that gets tuned against a real screen,
+      // and pinning its value here turns every such tweak into a test failure
+      // that means nothing. What must hold is that the band is the tab's own
+      // colour, visible at the top, and gone by the bottom.
+      expect(gradient.colors.first.withAlpha(255), kTabFoodJournal.withAlpha(255));
+      expect(gradient.colors.first.a, greaterThan(0));
+      expect(gradient.colors.last.a, 0);
     });
 
     testWidgets('wash gradient switches colour with the active tab', (tester) async {
@@ -203,7 +247,8 @@ void main() {
       final gradient =
           (washContainer.decoration as BoxDecoration).gradient as LinearGradient;
 
-      expect(gradient.colors.first, kTabMealPlanning.withAlpha(90));
+      expect(gradient.colors.first.withAlpha(255), kTabMealPlanning.withAlpha(255));
+      expect(gradient.colors.first.a, greaterThan(0));
     });
 
     testWidgets('an IgnorePointer sits above the wash so it never eats a tap',

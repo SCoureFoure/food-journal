@@ -44,14 +44,16 @@ class _LinedPaperPainter extends CustomPainter {
         ..strokeWidth = 1.2,
     );
 
-    // Vignette — top (strongest for status bar contrast)
+    // Vignette — top. Kept light: the shell paints the active tab's colour
+    // across this same band, and a heavy black gradient underneath turned that
+    // wash into grey mud instead of a tinted page.
     canvas.drawRect(
       Offset.zero & Size(size.width, 120),
       Paint()
         ..shader = const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0x55000000), Colors.transparent],
+          colors: [Color(0x1A000000), Colors.transparent],
         ).createShader(Rect.fromLTWH(0, 0, size.width, 120)),
     );
 
