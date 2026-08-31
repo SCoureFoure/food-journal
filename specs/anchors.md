@@ -23,12 +23,18 @@ touches and links back here; it does not redefine meaning or fallback.
 | Home         | `btn-log-entry`                 | FAB — toggles speed-dial. ✱ absorbed; tap via bounds |
 | Home         | `btn-fab-<slug>`                | Speed-dial option (feeling/medication/weighin/water/food). ✱ absorbed |
 | Home         | `home-empty-state`              | No meals — home screen ready                   |
-| Home         | `btn-blame-history`             | App-bar button → blame history dashboard (blame_history) |
+| App shell    | `btn-blame-history`             | App-bar button → blame history dashboard (blame_history) — app-shell app bar, journal tab only (absent on Meal Planning) |
 | Blame history| `blame-history-screen`          | Dashboard screen root (blame_history)          |
 | Blame history| `blame-history-item-<logId>-<symptom-slug>` | Episode-symptom row: date, severity, blamed item names. `symptom-slug` = lowercase, spaces→dashes (e.g. "Stomach pain" → `stomach-pain`) (blame_history) |
 | Blame history| `btn-blame-history-toggle-<logId>-<symptom-slug>` | Dismiss/restore control on a row — toggles its exclusion (blame_history) |
+| App shell    | `app-shell`                     | Two-tab shell root at route `/` — owns the AppBar, the folder tabs, and the lined-paper background (meal_planning) |
+| App shell    | `tab-food-journal`              | Folder tab 0 — selects the journal. ✱ likely absorbed by the enclosing bar; fallback `content-desc="Food Journal"` (meal_planning) |
+| App shell    | `tab-meal-planning`             | Folder tab 1 — selects the planning surface. ✱ likely absorbed; fallback `content-desc="Meal Planning"` (meal_planning) |
+| App shell    | `btn-settings`                  | Settings icon in the app-shell app bar — shell-level, present on BOTH tabs (meal_planning) |
+| Meal Planning| `meal-planning-screen`          | Meal Planning tab body root (meal_planning) |
+| Meal Planning| `planner-stub-card`             | Inert "This week's meals" placeholder — copy only, no controls; the planner itself is a later slice (meal_planning) |
 | Home         | `home-meal-list`                | Has meals — home screen ready                  |
-| Home         | `btn-export`                    | Export icon in app bar                         |
+| App shell    | `btn-export`                    | Export icon in app bar — app-shell app bar, journal tab only (absent on Meal Planning) |
 | Home         | `home-loading`                  | Still loading                                  |
 | Home         | `home-error`                    | Error state                                    |
 | Home         | `week-section-YYYY-MM-DD`       | Week summary header + its day sections         |
@@ -60,16 +66,16 @@ touches and links back here; it does not redefine meaning or fallback.
 | Export       | `toggle-include-photos`         | "Photos" switch — embed base64 images in export. Default **off** (export_import_size). ✱ absorbed (Switch); Dart: ancestor `SwitchListTile` of title "Photos" |
 | Export       | `btn-export-json`               | Export as JSON button                          |
 | Export       | `btn-import-json`               | Import-from-JSON button — opens OS file picker |
-| Export       | `chip-grocery-mode-meals`       | Grocery window mode — last N logged meals, the default (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "By meals" (verified on emulator 2026-08-29) |
-| Export       | `chip-grocery-mode-days`        | Grocery window mode — last N calendar days (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "By days" (verified on emulator 2026-08-29) |
-| Export       | `chip-grocery-meals-10`         | Meal-count window preset — 10 meals; present only in meals mode (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "10 meals" (verified on emulator 2026-08-29) |
-| Export       | `chip-grocery-meals-30`         | Meal-count window preset — 30 meals, the default; present only in meals mode (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "30 meals" (verified on emulator 2026-08-29) |
-| Export       | `chip-grocery-meals-60`         | Meal-count window preset — 60 meals; present only in meals mode (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "60 meals" (verified on emulator 2026-08-29) |
-| Export       | `chip-grocery-days-7`           | Day window preset — 7 days; present only in days mode (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "7 days" (verified on emulator 2026-08-29) |
-| Export       | `chip-grocery-days-14`          | Day window preset — 14 days; present only in days mode (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "14 days" (verified on emulator 2026-08-29) |
-| Export       | `chip-grocery-days-30`          | Day window preset — 30 days, the default; present only in days mode (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "30 days" (verified on emulator 2026-08-29) |
-| Export       | `btn-generate-grocery-list`     | Builds the frequency-ranked grocery list and opens the share sheet (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "Generate & share" (verified on emulator 2026-08-29) |
-| Export       | `btn-tidy-grocery-list`         | Sends the generated list to the AI tidy pass and shares the grouped result. Present only when AI is enabled in Settings (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "Tidy with AI & share" (verified on emulator 2026-08-29) |
+| Meal Planning| `chip-grocery-mode-meals`       | Grocery window mode — last N logged meals, the default (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "By meals" (verified on emulator 2026-08-29) |
+| Meal Planning| `chip-grocery-mode-days`        | Grocery window mode — last N calendar days (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "By days" (verified on emulator 2026-08-29) |
+| Meal Planning| `chip-grocery-meals-10`         | Meal-count window preset — 10 meals; present only in meals mode (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "10 meals" (verified on emulator 2026-08-29) |
+| Meal Planning| `chip-grocery-meals-30`         | Meal-count window preset — 30 meals, the default; present only in meals mode (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "30 meals" (verified on emulator 2026-08-29) |
+| Meal Planning| `chip-grocery-meals-60`         | Meal-count window preset — 60 meals; present only in meals mode (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "60 meals" (verified on emulator 2026-08-29) |
+| Meal Planning| `chip-grocery-days-7`           | Day window preset — 7 days; present only in days mode (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "7 days" (verified on emulator 2026-08-29) |
+| Meal Planning| `chip-grocery-days-14`          | Day window preset — 14 days; present only in days mode (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "14 days" (verified on emulator 2026-08-29) |
+| Meal Planning| `chip-grocery-days-30`          | Day window preset — 30 days, the default; present only in days mode (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "30 days" (verified on emulator 2026-08-29) |
+| Meal Planning| `btn-generate-grocery-list`     | Builds the frequency-ranked grocery list and opens the share sheet (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "Generate & share" (verified on emulator 2026-08-29) |
+| Meal Planning| `btn-tidy-grocery-list`         | Sends the generated list to the AI tidy pass and shares the grouped result. Present only when AI is enabled in Settings (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "Tidy with AI & share" (verified on emulator 2026-08-29) |
 | Import       | `import-wizard-screen`          | Import wizard root (per-record selection)      |
 | Import       | `btn-import-confirm`            | Confirm import of selected records. ✱ absorbed (ElevatedButton); tap via bounds/label |
 | Check-in     | `checkin-screen`                | Feeling check-in screen root                   |

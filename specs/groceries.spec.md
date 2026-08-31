@@ -58,10 +58,15 @@ no pantry, no persisted list, and no reaction filtering in this scope — see
 
 ## Decisions (pinned 2026-08-29)
 
-1. **It lives on the Export screen**, not a new home app-bar icon and not a new
-   route. That screen already owns "pick a window → generate → share sheet", the
-   home app bar already carries three icons, and reusing the screen means zero new
-   navigation surface. *(fiat)*
+1. ~~**It lives on the Export screen**, not a new home app-bar icon and not a new
+   route.~~ **SUPERSEDED 2026-08-30 — the grocery list lives on the Meal Planning
+   tab.** The original reasoning (Export already owned "pick a window → generate →
+   share sheet", and reusing it meant zero new navigation surface) was a placement
+   of convenience, and the fiat was called correctly: the user ruled the other way.
+   Planning is where a shopping list belongs. The UI now lives in the self-contained
+   `GroceryListCard` widget mounted by `MealPlanningScreen`; Export/Import keeps JSON
+   export and import only. `ExportService`'s grocery methods did not move. See
+   [meal_planning.spec.md](meal_planning.spec.md) decisions 9-12. *(ruled)*
 2. **Ingredients are the grain, food-item name is the fallback.** A food item with
    ingredients contributes its ingredient names ("feta cheese", "olive oil"); one
    with none contributes its own name ("Oatmeal"). A dish name is useless in a
@@ -347,7 +352,9 @@ queued.
 
 These were decided arbitrarily to make the slices buildable. Each is cheap to flip.
 
-- **F1** — Export screen vs. a new home app-bar icon (decision 1).
+- ~~**F1** — Export screen vs. a new home app-bar icon (decision 1).~~ **RULED
+  2026-08-30: neither — the grocery list moved to its own Meal Planning tab.** See
+  [meal_planning.spec.md](meal_planning.spec.md) decision 9.
 - **F2** — count = distinct meals rather than raw occurrences (decision 3).
 - **F3** — preset sizes 10/30/60 meals and 7/14/30 days (decision 7).
 - **F4** — each mode remembers its own size instead of sharing one number
@@ -368,12 +375,17 @@ These were decided arbitrarily to make the slices buildable. Each is cheap to fl
 
 <!-- A view: ids this feature touches. Canonical rows live in specs/anchors.md. -->
 
-- `export-screen` — screen root (existing)
+- `meal-planning-screen` — screen root (the grocery card's home since 2026-08-30;
+  it previously lived under `export-screen`)
 - `chip-grocery-mode-meals` / `chip-grocery-mode-days` — window mode
 - `chip-grocery-meals-10` / `-30` / `-60` — meal-count presets (meals mode only)
 - `chip-grocery-days-7` / `-14` / `-30` — day presets (days mode only)
 - `btn-generate-grocery-list` — generate + share (plain)
 - `btn-tidy-grocery-list` — AI tidy + share; present only when AI is enabled
+
+Relocated 2026-08-30: these ids moved from the Export screen to the Meal Planning tab
+along with the widgets. The canonical rows in [anchors.md](anchors.md) carry the new
+screen. See [meal_planning.spec.md](meal_planning.spec.md).
 
 **✱ All ten of these are absorbed under UIAutomator** — verified on the emulator
 2026-08-29. Flutter merges each `Semantics(identifier:)` onto the **grocery card

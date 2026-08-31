@@ -12,17 +12,19 @@ import '../../services/settings_service.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/error_display.dart';
 import '../../widgets/home/week_summary_section.dart';
-import '../../widgets/lined_paper_background.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final StorageService? storageOverride; // test seam — fake storage
+
+  const HomeScreen({super.key, this.storageOverride});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  final _storage = StorageService();
+class HomeScreenState extends State<HomeScreen> {
+  late final StorageService _storage =
+      widget.storageOverride ?? StorageService();
   final _settings = SettingsService();
 
   Map<DateTime, List<MealEntry>> _mealsByDate = {};
@@ -50,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    _storage.dispose();
+    if (widget.storageOverride == null) _storage.dispose();
     super.dispose();
   }
 
@@ -172,72 +174,41 @@ class _HomeScreenState extends State<HomeScreen> {
     unawaited(_load());
   }
 
-  Future<void> _showSettings() async {
+  /// Called by the shell after the settings dialog closes — left-handed mode
+  /// moves the FAB, so the journal must re-read settings.
+  Future<void> reloadSettings() async {
     _closeFab();
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => _SettingsDialog(settings: _settings),
-    );
-    unawaited(_loadSettings());
+    await _loadSettings();
   }
+
+  /// Called by the shell's journal-only app-bar actions. Mirrors `_navigate`:
+  /// the feed must reload when the user comes back from Export or Import.
+  Future<void> navigateAndReload(String route) => _navigate(route);
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       identifier: 'home-screen',
-      child: LinedPaperBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          scrolledUnderElevation: 0,
-          title: const Text('Food Journal'),
-        actions: [
-          Semantics(
-            identifier: 'btn-settings',
-            child: IconButton(
-              icon: const Icon(Icons.settings_outlined),
-              onPressed: _showSettings,
-              tooltip: 'Settings',
-            ),
-          ),
-          Semantics(
-            identifier: 'btn-export',
-            child: IconButton(
-              icon: const Icon(Icons.download),
-              onPressed: () => _navigate('/export'),
-              tooltip: 'Export',
-            ),
-          ),
-          Semantics(
-            identifier: 'btn-blame-history',
-            child: IconButton(
-              icon: const Icon(Icons.history_outlined),
-              onPressed: () => Navigator.pushNamed(context, '/blame-history'),
-              tooltip: 'Blame history',
-            ),
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          _buildBody(),
-          if (_fabOpen)
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: _closeFab,
-                behavior: HitTestBehavior.opaque,
-                child: const SizedBox.expand(),
+        body: Stack(
+          children: [
+            _buildBody(),
+            if (_fabOpen)
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: _closeFab,
+                  behavior: HitTestBehavior.opaque,
+                  child: const SizedBox.expand(),
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
+        floatingActionButton: _buildFab(context),
+        floatingActionButtonLocation: _leftHanded
+            ? FloatingActionButtonLocation.startFloat
+            : FloatingActionButtonLocation.endFloat,
       ),
-      floatingActionButton: _buildFab(context),
-      floatingActionButtonLocation: _leftHanded
-          ? FloatingActionButtonLocation.startFloat
-          : FloatingActionButtonLocation.endFloat,
-    ),
-    ),
     );
   }
 
@@ -429,76 +400,6 @@ class _MiniFabOption extends StatelessWidget {
       children: leftHanded
           ? [fab, const SizedBox(width: 8), chip]
           : [chip, const SizedBox(width: 8), fab],
-    );
-  }
-}
-
-// ── Settings dialog ───────────────────────────────────────────────────────────
-
-class _SettingsDialog extends StatefulWidget {
-  final SettingsService settings;
-  const _SettingsDialog({required this.settings});
-
-  @override
-  State<_SettingsDialog> createState() => _SettingsDialogState();
-}
-
-class _SettingsDialogState extends State<_SettingsDialog> {
-  bool? _aiEnabled;
-  bool? _leftHanded;
-
-  @override
-  void initState() {
-    super.initState();
-    Future.wait([
-      widget.settings.isAiEnabled,
-      widget.settings.isLeftHanded,
-    ]).then((values) {
-      if (mounted) {
-        setState(() {
-          _aiEnabled = values[0];
-          _leftHanded = values[1];
-        });
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final loading = _aiEnabled == null || _leftHanded == null;
-    return AlertDialog(
-      title: const Text('Settings'),
-      content: loading
-          ? const SizedBox(height: 48, child: Center(child: CircularProgressIndicator()))
-          : Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SwitchListTile(
-                  title: const Text('AI features'),
-                  subtitle: const Text('Autofill with AI on log screens'),
-                  value: _aiEnabled!,
-                  onChanged: (v) async {
-                    await widget.settings.setAiEnabled(v);
-                    if (mounted) setState(() => _aiEnabled = v);
-                  },
-                ),
-                SwitchListTile(
-                  title: const Text('Left-handed mode'),
-                  subtitle: const Text('Move + button to left side'),
-                  value: _leftHanded!,
-                  onChanged: (v) async {
-                    await widget.settings.setLeftHanded(v);
-                    if (mounted) setState(() => _leftHanded = v);
-                  },
-                ),
-              ],
-            ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Done'),
-        ),
-      ],
     );
   }
 }
