@@ -140,11 +140,18 @@ class _FolderBody extends StatelessWidget {
   final Color color;
   const _FolderBody({required this.color});
 
+  /// How far the body is pulled up past the tab's base line. Butting the two
+  /// edges together left a hairline of bare paper between them, so the body
+  /// tucks up behind the tabs instead — the tabs are opaque and drawn over it,
+  /// so the overlap only ever shows as the body's own top edge.
+  static const double _tabOverlap = 10;
+
   @override
   Widget build(BuildContext context) {
     // Where the tab's base line falls: the status bar plus the toolbar the
-    // bottom-aligned tab sits in.
-    final topInset = MediaQuery.of(context).padding.top + kToolbarHeight;
+    // bottom-aligned tab sits in, less the overlap.
+    final topInset =
+        MediaQuery.of(context).padding.top + kToolbarHeight - _tabOverlap;
 
     return IgnorePointer(
       child: Padding(

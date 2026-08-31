@@ -270,7 +270,10 @@ void main() {
       final appBarBottom = tester.getBottomLeft(find.byType(AppBar)).dy;
 
       expect(bodyTop, greaterThan(0));
-      expect(bodyTop, closeTo(appBarBottom, 1.0));
+      // At the tab base, or tucked just behind it — never butted below it
+      // (which leaves a hairline of paper) and never up at the screen top.
+      expect(bodyTop, lessThanOrEqualTo(appBarBottom));
+      expect(bodyTop, greaterThan(appBarBottom - 24));
     });
 
     testWidgets('an IgnorePointer sits above the wash so it never eats a tap',
