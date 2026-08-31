@@ -251,6 +251,28 @@ void main() {
       expect(gradient.colors.first.a, greaterThan(0));
     });
 
+    testWidgets('the folder body starts at the tab base, not the screen top',
+        (tester) async {
+      await tester.pumpWidget(_shell());
+      await tester.pumpAndSettle();
+
+      final gradientFinder = find.byWidgetPredicate((w) =>
+          w is Container &&
+          w.decoration is BoxDecoration &&
+          (w.decoration as BoxDecoration).gradient is LinearGradient);
+
+      // The block is the folder the tabs are attached to, so its top edge sits
+      // at the bottom of the app bar — level with the tab's base line. If it
+      // starts at the top of the screen instead, colour appears above and
+      // beside the tabs and they read as floating in a tint rather than being
+      // part of a folder, which is the whole complaint this fixed.
+      final bodyTop = tester.getTopLeft(gradientFinder).dy;
+      final appBarBottom = tester.getBottomLeft(find.byType(AppBar)).dy;
+
+      expect(bodyTop, greaterThan(0));
+      expect(bodyTop, closeTo(appBarBottom, 1.0));
+    });
+
     testWidgets('an IgnorePointer sits above the wash so it never eats a tap',
         (tester) async {
       await tester.pumpWidget(_shell());

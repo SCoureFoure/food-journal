@@ -44,19 +44,26 @@ class _AppShellState extends State<AppShell> {
       child: LinedPaperBackground(
         child: Stack(
           children: [
-            Positioned.fill(child: _TabWash(color: _tabs[_index].color)),
+            Positioned.fill(child: _FolderBody(color: _tabs[_index].color)),
             Scaffold(
               backgroundColor: Colors.transparent,
               appBar: AppBar(
                 backgroundColor: Colors.transparent,
                 scrolledUnderElevation: 0,
                 titleSpacing: 8,
-                title: FolderTabBar(
-                  tabs: _tabs,
-                  selectedIndex: _index,
-                  onSelected: (i) {
-                    if (i != _index) setState(() => _index = i);
-                  },
+                // Bottom-aligned so the tab's base line sits exactly on the
+                // top edge of the folder body below it. Centred in the toolbar
+                // it floated, with a strip of bare paper between the tab and
+                // the block it is supposed to be attached to.
+                title: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: FolderTabBar(
+                    tabs: _tabs,
+                    selectedIndex: _index,
+                    onSelected: (i) {
+                      if (i != _index) setState(() => _index = i);
+                    },
+                  ),
                 ),
                 actions: _actions(),
               ),
@@ -122,26 +129,47 @@ class _AppShellState extends State<AppShell> {
 /// A soft band of the active tab's colour across the top of the page, fading
 /// out about a third of the way down, so the page reads as belonging to the
 /// tab standing above it.
-class _TabWash extends StatelessWidget {
+/// The folder body the tabs are attached to: a block of the active tab's colour
+/// that begins at the tab's base line and runs down behind the page content,
+/// fading out toward the bottom.
+///
+/// It deliberately starts BELOW the app bar rather than at the top of the
+/// screen. A tab sticks up out of its folder — colour above and beside it made
+/// the tabs read as floating in a tint instead of being attached to anything.
+class _FolderBody extends StatelessWidget {
   final Color color;
-  const _TabWash({required this.color});
+  const _FolderBody({required this.color});
 
   @override
   Widget build(BuildContext context) {
+    // Where the tab's base line falls: the status bar plus the toolbar the
+    // bottom-aligned tab sits in.
+    final topInset = MediaQuery.of(context).padding.top + kToolbarHeight;
+
     return IgnorePointer(
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: FractionallySizedBox(
-          heightFactor: 0.34,
-          widthFactor: 1,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [color.withAlpha(150), color.withAlpha(0)],
+      child: Padding(
+        padding: EdgeInsets.only(top: topInset),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: FractionallySizedBox(
+            heightFactor: 0.42,
+            widthFactor: 1,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  // Near-solid where it meets the tab so the two read as one
+                  // piece of card, then away to nothing.
+                  colors: [
+                    color.withAlpha(190),
+                    color.withAlpha(165),
+                    color.withAlpha(0),
+                  ],
+                  stops: const [0.0, 0.4, 1.0],
+                ),
               ),
             ),
           ),
