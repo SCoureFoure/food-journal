@@ -17,17 +17,17 @@ void main() {
   // tests.  This file covers what we CAN verify at pure-Dart level.
 
   group('[REGRESSION] AppDatabase schema version', () {
-    test('schemaVersion is 14 after v14 fractional-servings migration', () {
+    test('schemaVersion is 15 after v15 lookup-indexes migration', () {
       // AppDatabase is a singleton — we can't instantiate it in tests without
       // native sqlite3.  We verify the declared schemaVersion constant instead.
       // If this breaks, the DB won't open at all on first launch.
-      // v14 widens food_items.servings int → double (fractional servings).
-      expect(AppDatabase.currentSchemaVersion, 14);
+      // v15 adds lookup indexes (data-preserving).
+      expect(AppDatabase.currentSchemaVersion, 15);
     });
 
-    test('migrationStepVersions includes the v14 step', () {
-      expect(AppDatabase.migrationStepVersions.last, 14,
-          reason: 'fractional-servings migration step must be declared');
+    test('migrationStepVersions includes the v15 step', () {
+      expect(AppDatabase.migrationStepVersions.last, 15,
+          reason: 'lookup-indexes migration step must be declared');
     });
   });
 

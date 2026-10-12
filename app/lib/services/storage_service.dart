@@ -21,8 +21,11 @@ import 'meal_memory/meal_memory_service.dart';
 class StorageService {
   // lazy so test subclasses that never touch the DB don't trigger the
   // native sqlite3 connection during construction.
-  late final _db = db.AppDatabase();
-  late final _memory = MealMemoryService();
+  StorageService({db.AppDatabase? database}) : _injectedDb = database;
+
+  final db.AppDatabase? _injectedDb;
+  late final _db = _injectedDb ?? db.AppDatabase();
+  late final _memory = MealMemoryService(database: _injectedDb);
 
   // ── Meals ────────────────────────────────────────────────────────────────────
 
@@ -87,20 +90,6 @@ class StorageService {
     return row == null ? null : _mealFromRow(row);
   }
 
-  Future<List<MealEntry>> getMealsForDay(DateTime date) async {
-    final start = DateTime(date.year, date.month, date.day);
-    final end = start.add(const Duration(days: 1));
-    final rows = await (_db.select(_db.meals)
-          ..where(
-            (t) =>
-                t.date.isBiggerOrEqualValue(start) &
-                t.date.isSmallerThanValue(end),
-          )
-          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
-        .get();
-    return rows.map(_mealFromRow).toList();
-  }
-
   Future<List<MealEntry>> getAllMeals() async {
     final rows = await (_db.select(_db.meals)
           ..orderBy([
@@ -132,14 +121,22 @@ class StorageService {
 
   Future<List<({FoodItem item, List<Ingredient> ingredients})>> getFoodItemsWithIngredients(int mealId) async {
     final items = await getFoodItemsForMeal(mealId);
-    return Future.wait(
-      items.map((item) async {
-        final ings = item.id != null
-            ? await getIngredientsForFoodItem(item.id!)
-            : <Ingredient>[];
-        return (item: item, ingredients: ings);
-      }),
-    );
+    if (items.isEmpty) return [];
+    final itemIds = items.where((i) => i.id != null).map((i) => i.id!).toList();
+    final byItem = <int, List<Ingredient>>{};
+    if (itemIds.isNotEmpty) {
+      final rows = await (_db.select(_db.ingredients)
+            ..where((t) => t.foodItemId.isIn(itemIds))
+            ..orderBy([(t) => OrderingTerm.asc(t.id)]))
+          .get();
+      for (final row in rows) {
+        (byItem[row.foodItemId] ??= []).add(_ingredientFromRow(row));
+      }
+    }
+    return [
+      for (final item in items)
+        (item: item, ingredients: byItem[item.id] ?? <Ingredient>[]),
+    ];
   }
 
   Future<List<FoodItem>> getFoodItemsForMeal(int mealId) async {
@@ -180,9 +177,10 @@ class StorageService {
       final oldItems = await (_db.select(_db.foodItems)
             ..where((t) => t.mealId.equals(meal.id!)))
           .get();
-      for (final old in oldItems) {
+      final oldIds = oldItems.map((o) => o.id).toList();
+      if (oldIds.isNotEmpty) {
         await (_db.delete(_db.ingredients)
-              ..where((t) => t.foodItemId.equals(old.id)))
+              ..where((t) => t.foodItemId.isIn(oldIds)))
             .go();
       }
       await (_db.delete(_db.foodItems)..where((t) => t.mealId.equals(meal.id!))).go();
@@ -224,8 +222,9 @@ class StorageService {
       final items = await (_db.select(_db.foodItems)
             ..where((t) => t.mealId.equals(mealId)))
           .get();
-      for (final item in items) {
-        await (_db.delete(_db.ingredients)..where((t) => t.foodItemId.equals(item.id))).go();
+      if (items.isNotEmpty) {
+        final itemIds = items.map((i) => i.id).toList();
+        await (_db.delete(_db.ingredients)..where((t) => t.foodItemId.isIn(itemIds))).go();
       }
       await (_db.delete(_db.foodItems)..where((t) => t.mealId.equals(mealId))).go();
       await (_db.delete(_db.reactionLogs)..where((t) => t.mealId.equals(mealId))).go();
@@ -239,15 +238,21 @@ class StorageService {
     if (mealIds.isEmpty) return (cal: 0, prot: 0.0, carbs: 0.0, fat: 0.0);
     double cal = 0.0;
     double prot = 0.0, carbs = 0.0, fat = 0.0;
-    for (final id in mealIds) {
-      final rows = await (_db.select(_db.foodItems)..where((t) => t.mealId.equals(id))).get();
-      for (final row in rows) {
-        final s = row.servings;
-        cal += (row.calories ?? 0) * s;
-        prot += (row.protein ?? 0) * s;
-        carbs += (row.carbs ?? 0) * s;
-        fat += (row.fat ?? 0) * s;
+    final rows = await (_db.select(_db.foodItems)..where((t) => t.mealId.isIn(mealIds))).get();
+    final hasDuplicates = mealIds.toSet().length != mealIds.length;
+    final counts = <int, int>{};
+    if (hasDuplicates) {
+      for (final id in mealIds) {
+        counts[id] = (counts[id] ?? 0) + 1;
       }
+    }
+    for (final row in rows) {
+      final m = hasDuplicates ? counts[row.mealId]! : 1;
+      final s = row.servings;
+      cal += (row.calories ?? 0) * s * m;
+      prot += (row.protein ?? 0) * s * m;
+      carbs += (row.carbs ?? 0) * s * m;
+      fat += (row.fat ?? 0) * s * m;
     }
     return (cal: cal.round(), prot: prot, carbs: carbs, fat: fat);
   }
@@ -303,11 +308,6 @@ class StorageService {
           ]))
         .get();
     return rows.map(_medicationFromRow).toList();
-  }
-
-  Future<Medication?> getMedicationById(int id) async {
-    final row = await (_db.select(_db.medications)..where((t) => t.id.equals(id))).getSingleOrNull();
-    return row == null ? null : _medicationFromRow(row);
   }
 
   /// Distinct past medications for the reuse nudge — one row per canonical
@@ -422,14 +422,27 @@ class StorageService {
               t.date.isBiggerOrEqualValue(dayStart) &
               t.date.isSmallerThanValue(dayEnd)))
         .get();
+    final inWindow = <({db.Meal meal, DateTime ts})>[];
     for (final meal in meals) {
       final ts = combine(meal.date, meal.time);
       if (!isWithinBlameWindow(timestamp: ts, anchor: anchor, window: window)) {
         continue;
       }
-      final items = await (_db.select(_db.foodItems)
-            ..where((t) => t.mealId.equals(meal.id)))
+      inWindow.add((meal: meal, ts: ts));
+    }
+    final itemsByMeal = <int, List<db.FoodItem>>{};
+    if (inWindow.isNotEmpty) {
+      final allItems = await (_db.select(_db.foodItems)
+            ..where((t) => t.mealId.isIn(inWindow.map((e) => e.meal.id).toList()))
+            ..orderBy([(t) => OrderingTerm.asc(t.id)]))
           .get();
+      for (final item in allItems) {
+        (itemsByMeal[item.mealId] ??= []).add(item);
+      }
+    }
+    for (final entry in inWindow) {
+      final ts = entry.ts;
+      final items = itemsByMeal[entry.meal.id] ?? const <db.FoodItem>[];
       for (final item in items) {
         candidates.add(BlameCandidate(
           type: SuspicionTargetType.food,
