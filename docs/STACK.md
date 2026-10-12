@@ -92,7 +92,7 @@ lib/
 
 | Package | Purpose | Notes |
 | ------- | ------- | ----- |
-| `drift` | SQLite ORM, type-safe queries | Schema v4; migrations in `app_database.dart` |
+| `drift` | SQLite ORM, type-safe queries | Schema v15; migrations in `app_database.dart` |
 | `drift_flutter` | drift Flutter integration | |
 | `flutter_local_notifications` | Post-entry check-in reminders | Pinned `^18.0.1`; v21+ requires Dart ≥3.10 |
 | `flutter_timezone` | Timezone for scheduled notifs | v5 returns `TimezoneInfo`; use `.identifier` |

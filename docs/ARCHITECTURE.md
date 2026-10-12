@@ -79,7 +79,7 @@ All three share: `id`, `date`, `time`, `created_at`, `notes`. Each has its own t
         ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                       EXPORTS                               │
-│  JSON (all entry types)   |   Grocery list (planned)        │
+│  JSON (all entry types)  |  Grocery list (Meal Planning tab)│
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -107,7 +107,7 @@ lib/
 │   ├── settings_service.dart        # AI toggle (shared_preferences)
 │   ├── seed_service.dart            # debug seed data
 │   ├── database/
-│   │   ├── app_database.dart        # drift schema (v14) + migration strategy
+│   │   ├── app_database.dart        # drift schema (v15) + migration strategy
 │   │   └── app_database.g.dart      # generated
 │   └── meal_memory/
 │       ├── meal_memory_service.dart # isReferential / buildContextSnippet / recordFingerprint
@@ -127,7 +127,6 @@ lib/
     ├── home/                        # meal_tile, medication_tile, feeling_tile, week_summary_section
     ├── macro_totals_bar.dart
     ├── reaction_badge.dart
-    ├── food_memory_card.dart
     └── ...
 ```
 
@@ -135,7 +134,7 @@ lib/
 
 ## Database Schema
 
-Schema version: **14**. Managed by drift with an explicit `MigrationStrategy`. Migration history in `app_database.dart`; each step is verified in `migration_order_test.dart`.
+Schema version: **15**. Managed by drift with an explicit `MigrationStrategy`. Migration history in `app_database.dart`; each step is verified in `migration_order_test.dart`.
 
 ```
 ┌─────────────────────┐       ┌──────────────────────────┐
@@ -234,7 +233,7 @@ Schema version: **14**. Managed by drift with an explicit `MigrationStrategy`. M
 
 **canonical_name** (v12) — every `food_items` and `medications` row stores a normalized entity key (`canonicalize()`: lowercase → strip punct → collapse whitespace). Blame ledger groups on this key so the same food re-entered with different spelling/casing accumulates in one suspicion bucket. Backfilled for all existing rows on migration.
 
-> **body_outputs** is NOT implemented (no table at schema v14, no model). It is specified as **F10** in `docs/FEATURES.md` — a core feature, not a stretch item.
+> **body_outputs** is NOT implemented (no table at schema v15, no model). It is specified as **F10** in `docs/FEATURES.md` — a core feature, not a stretch item.
 
 ---
 
