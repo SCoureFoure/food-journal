@@ -158,29 +158,29 @@ The modes above are executed by concrete tooling — use it, don't reinvent it.
 - **Local storage**: SQLite via `drift` — meals, food_items, ingredients, reaction_logs, food_memories, food_suspicions, suspicion_exclusions, medications, meal_fingerprints, water_logs, weight_logs, saved_items
 - **Notifications**: `flutter_local_notifications` — check-in scheduled on save of any entry that warrants follow-up (configurable delay, default 90 min); permission prompt on first save if not yet granted
 - **Camera**: `image_picker` with `ImageSource.camera` as primary; gallery as secondary option on photo attach
-- **Export**: JSON snapshot of all entry types (timestamped `.json` file, shared via system share sheet). Grocery list feature is planned, not yet implemented.
+- **Export**: JSON snapshot of all entry types (timestamped `.json` file, shared via system share sheet). Grocery list: frequency-ranked list with an optional AI tidy pass, on the Meal Planning tab (see `specs/groceries.spec.md`).
 - **No backend**: all data local on device
 
 ## Data model (core)
 
-Schema version **14** (`AppDatabase.currentSchemaVersion`). Ground truth: `app/lib/services/database/app_database.dart`.
+Schema version **15** (`AppDatabase.currentSchemaVersion`). Ground truth: `app/lib/services/database/app_database.dart`.
 
 ```text
 Meals         { id, date, time, mealType, overallSymptoms, rawInput, createdAt, imageData }
-FoodItems     { id, mealId, name, portion, prep, calories, protein, carbs, fat, reaction, notes, servings }
+FoodItems     { id, mealId, name, portion, prep, calories, protein, carbs, fat, reaction, notes, servings, canonicalName }
 Ingredients   { id, foodItemId, name, quantity, unit }
 ReactionLogs  { id, mealId, checkinTime, symptoms, severity, mood, symptomLevels, notes }
 FoodMemories  { id, foodName, reactionPattern, occurrences, lastSeen, flagged, favorited }
 FoodSuspicions { id, reactionLogId, symptom, targetType, targetId, targetName, baseWeight, source, createdAt }
 SuspicionExclusions { id, reactionLogId, symptom, createdAt }
-Medications   { id, date, time, name, dose, unit, route, checkinDelayMinutes, rawInput, notes, imageData, createdAt }
+Medications   { id, date, time, name, canonicalName, dose, unit, route, checkinDelayMinutes, rawInput, notes, imageData, createdAt }
 MealFingerprints { id, mealId, date, mealType, foodsSummary, totalCals, totalProtein, createdAt }
 WaterLogs     { id, date, time, amountMl, notes, createdAt }
 WeightLogs    { id, date, time, weightValue, unit, notes, createdAt }
 SavedItems    { id, name, calories, protein, carbs, fat, componentsJson, createdAt }
 ```
 
-**Planned, not implemented:** BodyOutput { id, date, time, outputType, urgency, consistency, notes } — no table, no model as of schema v14.
+**Planned, not implemented:** BodyOutput { id, date, time, outputType, urgency, consistency, notes } — no table, no model as of schema v15.
 
 ## Dev commands
 

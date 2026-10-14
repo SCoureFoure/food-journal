@@ -68,3 +68,7 @@ Run the loop with the **`/spec`** skill (`.claude/skills/spec/SKILL.md`):
 | [log_feeling](log_feeling.spec.md) | Standalone feeling check-in — create/edit/delete, mood, symptom intensity, accumulation, feed surfacing | active |
 | [groceries](groceries.spec.md) | Grocery list export — frequency-ranked ingredients from recent meals, shared as plain text | active |
 | [meal_planning](meal_planning.spec.md) | Two-tab app shell — index-folder tabs, Meal Planning surface, grocery list relocated off Export | active |
+| [export_import_size](export_import_size.spec.md) | Export/Import size control | active |
+| [food_entity_resolution](food_entity_resolution.spec.md) | Food/medication entity resolution (local canonical identity) | active |
+| [food_blame](food_blame.spec.md) | Food/medication blame (symptom→item suspicion ledger) | active |
+| [blame_history](blame_history.spec.md) | Blame history dashboard (review & dismiss accrued suspicion) | active |

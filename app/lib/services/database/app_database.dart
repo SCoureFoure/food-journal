@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import '../../models/food_entity.dart';
 
@@ -166,19 +167,26 @@ class AppDatabase extends _$AppDatabase {
 
   AppDatabase._internal() : super(_openConnection());
 
+  @visibleForTesting
+  AppDatabase.forTesting(super.executor);
+
   // Exposed as a static constant so tests can assert the current version
   // without instantiating the singleton (which requires native sqlite3).
-  static const int currentSchemaVersion = 14;
+  static const int currentSchemaVersion = 15;
 
   // The declared migration ceiling versions in the order they appear in
   // onUpgrade.  Must be non-decreasing — tested in migration_order_test.dart.
-  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
   @override
   int get schemaVersion => currentSchemaVersion;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) async {
+      await m.createAll();
+      await _createIndexes();
+    },
     onUpgrade: (migrator, from, to) async {
       if (from < 2) {
         await migrator.addColumn(meals, meals.imageData);
@@ -349,8 +357,33 @@ class AppDatabase extends _$AppDatabase {
         // via createAll(). This block documents the version bump; the affinity
         // change is a no-op on upgraded databases.
       }
+      if (from < 15) {
+        // v15 adds lookup indexes only and is data-preserving.
+        await _createIndexes();
+      }
     },
   );
+
+  /// Lookup indexes. Idempotent. Run on fresh install (no onCreate previously
+  /// existed, so older upgrade-only indexes are included) and on v15 upgrade.
+  Future<void> _createIndexes() async {
+    const statements = [
+      'CREATE INDEX IF NOT EXISTS idx_food_items_meal ON food_items(meal_id)',
+      'CREATE INDEX IF NOT EXISTS idx_ingredients_food_item ON ingredients(food_item_id)',
+      'CREATE INDEX IF NOT EXISTS idx_meals_date ON meals(date)',
+      'CREATE INDEX IF NOT EXISTS idx_reaction_logs_meal ON reaction_logs(meal_id)',
+      'CREATE INDEX IF NOT EXISTS idx_reaction_logs_checkin ON reaction_logs(checkin_time)',
+      'CREATE INDEX IF NOT EXISTS idx_medications_date ON medications(date)',
+      'CREATE INDEX IF NOT EXISTS idx_fingerprints_date ON meal_fingerprints(date DESC)',
+      'CREATE INDEX IF NOT EXISTS idx_fingerprints_type ON meal_fingerprints(meal_type, date DESC)',
+      'CREATE INDEX IF NOT EXISTS idx_suspicion_target ON food_suspicions(target_name, symptom)',
+      'CREATE INDEX IF NOT EXISTS idx_suspicion_log ON food_suspicions(reaction_log_id)',
+      'CREATE INDEX IF NOT EXISTS idx_exclusion_log ON suspicion_exclusions(reaction_log_id)',
+    ];
+    for (final s in statements) {
+      await customStatement(s);
+    }
+  }
 
   /// Populates [table].canonical_name from its raw `name` using [canonicalize],
   /// so historical rows share buckets with freshly-saved ones (v12 backfill).

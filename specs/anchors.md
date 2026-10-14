@@ -27,6 +27,7 @@ touches and links back here; it does not redefine meaning or fallback.
 | Blame history| `blame-history-screen`          | Dashboard screen root (blame_history)          |
 | Blame history| `blame-history-item-<logId>-<symptom-slug>` | Episode-symptom row: date, severity, blamed item names. `symptom-slug` = lowercase, spaces→dashes (e.g. "Stomach pain" → `stomach-pain`) (blame_history) |
 | Blame history| `btn-blame-history-toggle-<logId>-<symptom-slug>` | Dismiss/restore control on a row — toggles its exclusion (blame_history) |
+| Blame history| `blame-history-empty-state`     | Empty-state message when no blamed episodes exist. Reach unverified. |
 | App shell    | `app-shell`                     | Two-tab shell root at route `/` — owns the AppBar, the folder tabs, and the lined-paper background (meal_planning) |
 | App shell    | `tab-food-journal`              | Folder tab 0 — selects the journal. Verified on device 2026-08-30: surfaces its own resource-id, directly ADB-tappable (content-desc "Food Journal") (meal_planning) |
 | App shell    | `tab-meal-planning`             | Folder tab 1 — selects the planning surface. Verified on device 2026-08-30: surfaces its own resource-id, directly ADB-tappable (content-desc "Meal Planning") (meal_planning) |
@@ -57,6 +58,8 @@ touches and links back here; it does not redefine meaning or fallback.
 | Log Meal     | `btn-servings-edit`             | Servings count in a food-item card header (shared `EditableFoodItemCard`); − / + step by 0.5, tap the count to type an exact value (`servings-input-field` dialog). Snaps to 0.25 grid, min 0.25 |
 | Log Meal     | `food-reuse-suggestion-<i>`     | Reuse-nudge chip under food-item card `i` (Layer B). Appears only on a close history match; tap adopts, `…-dismiss` child × hides. Reach: type a name matching history into card `i` |
 | Log Meal     | `btn-save-meal`                 | Save / Save Changes. ✱ absorbed; tap via bounds |
+| Log Meal     | `btn-favorite-<id>`             | Favorite heart toggle on a food item card. Reach unverified. |
+| Log Meal     | `servings-input-field`          | Exact servings text field in the Servings dialog. Reach unverified. |
 | Food DB      | `food-db-search-sheet`          | Food-database search sheet root (opened from `btn-search-food-db`) |
 | Food DB      | `food-db-search-field`          | Query field; debounced, min 2 chars            |
 | Food DB      | `food-db-item-<i>`              | Result row `i`; tap inserts a food item with estimated macros |
@@ -66,6 +69,9 @@ touches and links back here; it does not redefine meaning or fallback.
 | Export       | `toggle-include-photos`         | "Photos" switch — embed base64 images in export. Default **off** (export_import_size). ✱ absorbed (Switch); Dart: ancestor `SwitchListTile` of title "Photos" |
 | Export       | `btn-export-json`               | Export as JSON button                          |
 | Export       | `btn-import-json`               | Import-from-JSON button — opens OS file picker |
+| Export       | `toggle-include-meals`          | "Meals" switch — includes meal entries in export. Reach unverified. |
+| Export       | `toggle-include-medications`    | "Medications" switch — includes medication entries in export. Reach unverified. |
+| Export       | `toggle-include-memories`       | "Food Memories" switch — includes food memories in export. Reach unverified. |
 | Meal Planning| `chip-grocery-mode-meals`       | Grocery window mode — last N logged meals, the default (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "By meals" (verified on emulator 2026-08-29) |
 | Meal Planning| `chip-grocery-mode-days`        | Grocery window mode — last N calendar days (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "By days" (verified on emulator 2026-08-29) |
 | Meal Planning| `chip-grocery-meals-10`         | Meal-count window preset — 10 meals; present only in meals mode (groceries) ✱ absorbed — the id merges onto the **grocery card container**, not the control; tap via `content-desc` "10 meals" (verified on emulator 2026-08-29) |
@@ -95,6 +101,14 @@ touches and links back here; it does not redefine meaning or fallback.
 | Blame        | `blame-item-<type>-<id>`        | Blamable suspect row (`type` = food\|med, id = item/med id). Tap blames item for current log's symptoms |
 | Blame        | `btn-blame-confirm`             | Confirm/Done button — returns selected suspects. ✱ absorbed (FilledButton) — Dart: `find.widgetWithText(FilledButton, …)`; ADB: content-desc/bounds |
 | Home         | `feeling-blamed-items-<id>`     | "Blamed" section in expanded feeling tile body (food_blame AC13) — manual-blamed item chips, lazy-loaded on expand. Built only when ≥1 manual blame exists |
+| Home         | `med-tile-<id>`                 | Collapsible medication tile (whole tile). Reach unverified. |
+| Home         | `med-tile-header-<id>`          | Medication tile header (name) — tap toggles expansion. Reach unverified. |
+| Home         | `btn-edit-med-<id>`             | Edit icon on medication tile; opens edit medication. Reach unverified. |
+| Home         | `water-row-<id>`                | Water log row in the home water summary. Reach unverified. |
+| Home         | `weight-tile-<id>`              | Collapsible weigh-in tile (whole tile). Reach unverified. |
+| Home         | `weight-tile-header-<id>`       | Weigh-in tile header — tap toggles expansion. Reach unverified. |
+| Home         | `btn-edit-weight-<id>`          | Edit icon on weigh-in tile; opens edit weight. Reach unverified. |
+| Home         | `home-screen`                   | Home screen root. Reach unverified. |
 | Create item  | `saved-item-name-field`         | Saved-item name field                          |
 | Create item  | `saved-item-ai-field`           | AI description field (text → parse)            |
 | Create item  | `btn-parse-saved-item-ai`       | Parse-with-AI button                           |
@@ -113,6 +127,23 @@ touches and links back here; it does not redefine meaning or fallback.
 | Medication   | `log-med-checkin-delay`         | Check-in delay field                           |
 | Medication   | `btn-delete-medication`         | Delete (edit mode)                             |
 | Medication   | `btn-save-medication`           | Save / Save Changes                            |
+| Log Water    | `log-water-sheet`               | Log/edit water sheet root. Reach unverified.   |
+| Log Water    | `btn-water-<ml>ml`              | Water amount preset chip, by millilitres. Reach unverified. |
+| Log Water    | `log-water-custom-oz`           | Custom amount (oz) text field. Reach unverified. |
+| Log Water    | `btn-save-water`                | Save / Save Changes for the water log. Reach unverified. |
+| Log Weight   | `log-weight-value`              | Weight value text field. Reach unverified.     |
+| Log Weight   | `log-weight-unit-toggle`        | lbs/kg segmented unit toggle. Reach unverified. |
+| Log Weight   | `btn-save-weight`               | Save / Save Changes for the weight log. Reach unverified. |
+| Meal Detail  | `btn-share-meal`                | App-bar share icon; shares the meal. Reach unverified. |
+| Food History | `btn-history-filter-all`        | "All" filter chip in the history sheet. Reach unverified. |
+| Food History | `btn-history-filter-favorites`  | "Favorites" filter chip; favorites-only results. Reach unverified. |
+| Food History | `food-history-search-field`     | Search field for past items. Reach unverified. |
+| Food History | `history-item-<i>`              | History result row `i`. Reach unverified.      |
+| Food History | `btn-delete-saved-<name>`       | Delete control on a saved composite history row. Reach unverified. |
+| Food History | `btn-favorite-<name>`           | Star toggle on a non-composite history row. Reach unverified. |
+| Saved Items  | `saved-items-search-field`      | Search field in the My Items sheet. Reach unverified. |
+| Saved Items  | `saved-item-<i>`                | Saved item row `i`. Reach unverified.          |
+| Saved Items  | `btn-delete-saved-item-<i>`     | Delete control on saved item row `i`. Reach unverified. |
 
 Symptom chips have no anchor — tap by `content-desc="<SymptomName>"`.
 
