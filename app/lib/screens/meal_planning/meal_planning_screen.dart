@@ -12,17 +12,22 @@ class MealPlanningScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       identifier: 'meal-planning-screen',
-      child: Scaffold(
+      child: const Scaffold(
         backgroundColor: Colors.transparent,
         // Horizontal inset comes from each panel's own margin, so the cards
         // land at the same width as the journal's week/day panels.
-        body: ListView(
-          padding: const EdgeInsets.only(top: 8, bottom: 100),
-          children: const [
-            _PlannerStubCard(),
-            PantryCard(),
-            GroceryListCard(),
-          ],
+        // Not a lazy ListView: it disposed a card once it left the viewport, so
+        // scrolling back rebuilt it empty, reloaded it, and the page jumped.
+        body: SingleChildScrollView(
+          padding: EdgeInsets.only(top: 8, bottom: 100),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _PlannerStubCard(),
+              PantryCard(),
+              GroceryListCard(),
+            ],
+          ),
         ),
       ),
     );

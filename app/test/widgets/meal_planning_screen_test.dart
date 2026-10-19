@@ -160,4 +160,37 @@ void main() {
       expect(pantryY, lessThan(groceryY));
     });
   });
+
+  /// [INV] Card state survives scrolling — the cards load from storage in
+  /// initState. A lazy list disposed them once they left the viewport, so
+  /// scrolling back rebuilt them empty, reloaded, and the content jumped
+  /// mid-scroll (and the grocery card lost its mode choice). The same State
+  /// objects must still be mounted after scrolling to the bottom and back.
+  group('[INV] MealPlanningScreen card state across scrolling', () {
+    testWidgets('pantry and grocery cards keep their State', (tester) async {
+      // A short viewport stands in for a long pantry on a phone: each card is
+      // then far enough from the other end to leave a lazy list's cache.
+      tester.view.physicalSize = const Size(400, 60);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(const MaterialApp(home: MealPlanningScreen()));
+      await tester.pumpAndSettle();
+
+      State stateOf(Type t) => tester.state(find.byType(t, skipOffstage: false));
+      final scrollable = find.byType(Scrollable).first;
+      Future<void> scrollTo({required bool bottom}) async {
+        await tester.drag(scrollable, Offset(0, bottom ? -5000 : 5000));
+        await tester.pumpAndSettle();
+      }
+
+      final pantry = stateOf(PantryCard);
+      await scrollTo(bottom: true);
+      final grocery = stateOf(GroceryListCard);
+      await scrollTo(bottom: false);
+      expect(identical(stateOf(PantryCard), pantry), isTrue);
+      await scrollTo(bottom: true);
+      expect(identical(stateOf(GroceryListCard), grocery), isTrue);
+    });
+  });
 }
