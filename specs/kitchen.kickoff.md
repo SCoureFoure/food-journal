@@ -150,6 +150,12 @@ carries it, so the list is achievable. Later, insights add:
    deleted once read. Fix the scan speed first (batch recogniser calls, return argmax
    from native code instead of ~6 MB of scores per line, use more CPU threads, measure on
    the phone).
+   *Done 2026-10-19* — `specs/receipt_queue.spec.md`, merged in PR #1. Emulator: 22.9 s
+   down to 9.6 s per receipt. The queue lives on the Meal Planning pantry card until the
+   Kitchen tab exists. Left over: phone timing not measured
+   (`integration_test/receipt_ocr_profile_test.dart`); a receipt that reads but finds no
+   items still opens an empty review (unruled: treat as "couldn't be read", or show a
+   message); `intraOpNumThreads: 4` never measured against the default.
 2. **Kitchen tab + pantry items.** Third tab; pantry as present/not-present items with
    aliases and purchase history; repeat-purchase matching and the "same thing?" prompt
    per *Identity and repeat purchases*, with its regression fixtures; manual add and
