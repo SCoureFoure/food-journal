@@ -243,7 +243,7 @@ void main() {
 
     test('text lines, detector call and recogniser calls match', () async {
       final runner = _FixtureRunner(fixture, prob);
-      final dict = File('assets/ocr/rec_dict.txt').readAsStringSync().split('\n');
+      final dict = parseRecDict(File('assets/ocr/rec_dict.txt').readAsStringSync());
       final lines = await readReceiptLines(image, runner, dict, batchSize: 1);
 
       expect(lines, (fixture['lines'] as List).cast<String>());
@@ -271,7 +271,7 @@ void main() {
       // implication: spec receipt_queue AC4 — batched recognition is a speed
       //   change only.
       final runner = _FixtureRunner(fixture, prob);
-      final dict = File('assets/ocr/rec_dict.txt').readAsStringSync().split('\n');
+      final dict = parseRecDict(File('assets/ocr/rec_dict.txt').readAsStringSync());
       final lines = await readReceiptLines(image, runner, dict);
 
       expect(lines, (fixture['lines'] as List).cast<String>());

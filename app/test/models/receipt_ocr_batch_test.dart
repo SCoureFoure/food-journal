@@ -79,4 +79,21 @@ void main() {
       expect(() => stackRecInputs([]), throwsArgumentError);
     });
   });
+
+  group('[INV] recogniser dictionary parsing', () {
+    // testTheory: invariance — the character list does not depend on the
+    //   file's line endings.
+    // contract: parseRecDict gives the same characters for LF and CRLF text,
+    //   drops one trailing empty line, and keeps a space entry.
+    // implication: a Windows checkout (core.autocrlf) once put '\r' after every
+    //   decoded character on the phone, so every receipt parsed to zero items.
+
+    test('LF and CRLF give the same characters', () {
+      const lf = 'a\nb\n \nc\n';
+      expect(parseRecDict(lf), ['a', 'b', ' ', 'c']);
+      expect(parseRecDict(lf.replaceAll('\n', '\r\n')), ['a', 'b', ' ', 'c']);
+      expect(parseRecDict('a\r\nb'), ['a', 'b']);
+      expect(parseRecDict(''), isEmpty);
+    });
+  });
 }

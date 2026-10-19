@@ -412,6 +412,15 @@ String groupRows(List<List<(double, double)>> boxes, List<String> texts) {
   return (text.toString(), sum / count);
 }
 
+/// Recogniser dictionary [text], one character per line. A Windows checkout with
+/// `core.autocrlf` turns the line endings into CRLF; without stripping the `\r`,
+/// every decoded character would carry one and the text would break into lines.
+List<String> parseRecDict(String text) {
+  final chars = [for (final l in text.split('\n')) l.endsWith('\r') ? l.substring(0, l.length - 1) : l];
+  if (chars.isNotEmpty && chars.last.isEmpty) chars.removeLast();
+  return chars;
+}
+
 /// Batch plan for recogniser inputs of the given [widths]: indices sorted by width
 /// ascending (ties keep input order), cut into chunks of at most [batchSize].
 List<List<int>> recBatches(List<int> widths, {int batchSize = 8}) {

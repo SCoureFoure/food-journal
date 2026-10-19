@@ -77,8 +77,7 @@ void main() {
       await reader.readLines(jpg);
       final coldMs = coldSw.elapsedMilliseconds;
 
-      final ocrChars = (await rootBundle.loadString(OnnxReceiptReader.dictAsset)).split('\n');
-      if (ocrChars.isNotEmpty && ocrChars.last.isEmpty) ocrChars.removeLast();
+      final ocrChars = parseRecDict(await rootBundle.loadString(OnnxReceiptReader.dictAsset));
 
       final decodeSw = Stopwatch()..start();
       final image = decodeRgbImage(jpg);

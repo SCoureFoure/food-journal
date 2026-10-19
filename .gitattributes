@@ -1,0 +1,2 @@
+# OCR model assets are read byte-for-byte on device; never convert line endings.
+app/assets/ocr/** -text

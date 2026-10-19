@@ -37,9 +37,7 @@ class OnnxReceiptReader implements ReceiptReader, OcrModelRunner {
     final options = OrtSessionOptions(intraOpNumThreads: 4);
     _det = await ort.createSessionFromAsset(detAsset, options: options);
     _rec = await ort.createSessionFromAsset(recAsset, options: options);
-    final chars = (await rootBundle.loadString(dictAsset)).split('\n');
-    if (chars.isNotEmpty && chars.last.isEmpty) chars.removeLast();
-    _chars = chars;
+    _chars = parseRecDict(await rootBundle.loadString(dictAsset));
   }
 
   @override
