@@ -24,6 +24,18 @@ class SettingsService {
     await prefs.setBool(_keyLeftHanded, value);
   }
 
+  /// Whether a Meal Planning card ([card] is `pantry` or `grocery`) is collapsed.
+  /// Cards start expanded.
+  Future<bool> isCardCollapsed(String card) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('card_collapsed_$card') ?? false;
+  }
+
+  Future<void> setCardCollapsed(String card, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('card_collapsed_$card', value);
+  }
+
   static const _keyGroceryDraft = 'grocery_draft';
 
   /// The saved grocery list the user is working on. Not a preference — it lives

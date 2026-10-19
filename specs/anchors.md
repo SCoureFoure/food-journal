@@ -88,6 +88,8 @@ touches and links back here; it does not redefine meaning or fallback.
 | Meal Planning| `btn-retry-grocery-list`        | Regenerates from the journal using the current window chips, replacing the box (groceries) |
 | Meal Planning| `btn-clear-grocery-list`        | Empties the box and drops the saved draft, returning the card to its Generate state (groceries) |
 | Meal Planning| `pantry-card`                   | Pantry panel, between the planner stub and the grocery card (receipt_scan) |
+| Meal Planning| `btn-pantry-toggle`             | Pantry title row; collapses / expands the item rows, shows "N items" while collapsed (meal_planning AC38). Reach unverified. |
+| Meal Planning| `btn-grocery-toggle`            | Grocery title row; collapses / expands the card body (meal_planning AC39). Reach unverified. |
 | Meal Planning| `btn-scan-receipt`              | Camera (one photo) / gallery (several) choice; queues the photos for background reading (receipt_scan, receipt_queue) ✱ absorbed — the id merges onto the **pantry card container**, not the control; tap via `content-desc` "Scan receipt". Reach unverified. |
 | Meal Planning| `btn-pantry-add`                | Adds one pantry item by hand — opens the review screen in manual mode (receipt_scan) ✱ absorbed — the id merges onto the **pantry card container**; tap via `content-desc` "Add item". Reach unverified. |
 | Meal Planning| `item-pantry-<id>`              | One pantry row (receipt_scan) ✱ merges into the pantry card container; reach unverified |

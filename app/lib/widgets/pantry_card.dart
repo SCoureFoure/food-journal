@@ -9,7 +9,9 @@ import '../models/receipt_parser.dart';
 import '../screens/receipt_review/receipt_review_screen.dart';
 import '../services/ai_service.dart';
 import '../services/receipt_queue.dart';
+import '../services/settings_service.dart';
 import '../services/storage_service.dart';
+import 'card_expansion_tile.dart';
 import 'folder_palette.dart';
 import 'panel_container.dart';
 
@@ -38,7 +40,10 @@ class _PantryCardState extends State<PantryCard> {
   StorageService? _ownedStorage;
   late final StorageService _storage;
   late final ReceiptQueue _queue = widget.queueOverride ?? ReceiptQueue.shared;
+  final _settings = SettingsService();
   List<PantryItem> _items = const [];
+  bool _savedCollapsed = false;
+  bool _expanded = true;
 
   @override
   void initState() {
@@ -52,6 +57,26 @@ class _PantryCardState extends State<PantryCard> {
     _queue.addListener(_onQueue);
     _queue.start().catchError((_) {}); // no cache dir in widget tests
     _load();
+    _loadCollapsed();
+  }
+
+  Future<void> _loadCollapsed() async {
+    try {
+      final collapsed = await _settings.isCardCollapsed('pantry');
+      if (mounted) {
+        setState(() {
+          _savedCollapsed = collapsed;
+          _expanded = !collapsed;
+        });
+      }
+    } catch (_) {
+      // Settings unreadable (no plugin in a widget test) — stay expanded.
+    }
+  }
+
+  void _onExpansionChanged(bool expanded) {
+    setState(() => _expanded = expanded);
+    _settings.setCardCollapsed('pantry', !expanded).catchError((_) {});
   }
 
   @override
@@ -139,17 +164,19 @@ class _PantryCardState extends State<PantryCard> {
 
   Future<void> _reviewNext() async {
     final r = _queue.ready.first;
-    final result = await Navigator.of(context).push<bool>(MaterialPageRoute(
-      builder: (_) => ReceiptReviewScreen(
-        items: r.items,
-        ocrText: r.ocrText,
-        source: 'receipt',
-        showDiscard: true,
-        storageOverride: widget.storageOverride,
-        aiOverride: widget.aiOverride,
-        aiEnabledOverride: widget.aiEnabledOverride,
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => ReceiptReviewScreen(
+          items: r.items,
+          ocrText: r.ocrText,
+          source: 'receipt',
+          showDiscard: true,
+          storageOverride: widget.storageOverride,
+          aiOverride: widget.aiOverride,
+          aiEnabledOverride: widget.aiEnabledOverride,
+        ),
       ),
-    ));
+    );
     if (result == true) {
       await _queue.remove(r.id);
       await _load();
@@ -161,16 +188,18 @@ class _PantryCardState extends State<PantryCard> {
   Future<void> _addManual() => _openReview(const [], '', 'manual');
 
   Future<void> _openReview(List<ParsedReceiptItem> items, String text, String source) async {
-    final saved = await Navigator.of(context).push<bool>(MaterialPageRoute(
-      builder: (_) => ReceiptReviewScreen(
-        items: items,
-        ocrText: text,
-        source: source,
-        storageOverride: widget.storageOverride,
-        aiOverride: widget.aiOverride,
-        aiEnabledOverride: widget.aiEnabledOverride,
+    final saved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => ReceiptReviewScreen(
+          items: items,
+          ocrText: text,
+          source: source,
+          storageOverride: widget.storageOverride,
+          aiOverride: widget.aiOverride,
+          aiEnabledOverride: widget.aiEnabledOverride,
+        ),
       ),
-    ));
+    );
     if (saved == true) await _load();
   }
 
@@ -194,50 +223,56 @@ class _PantryCardState extends State<PantryCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-              child: Text(
-                'Pantry',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-            if (_items.isEmpty)
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
-                child: Text('Nothing in the pantry yet.'),
-              )
-            else
-              for (final item in _items)
-                Semantics(
-                  identifier: 'item-pantry-${item.id}',
-                  child: ListTile(
-                    dense: true,
-                    title: Text(item.name),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(formatPantryQuantity(item.quantity, item.unit)),
-                        Semantics(
-                          identifier: 'btn-pantry-delete-${item.id}',
-                          child: IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            tooltip: 'Remove',
-                            onPressed: () => _delete(item.id!),
-                          ),
+            CardExpansionTile(
+              title: 'Pantry',
+              semanticsId: 'btn-pantry-toggle',
+              initiallyExpanded: !_savedCollapsed,
+              onExpansionChanged: _onExpansionChanged,
+              subtitle: _expanded
+                  ? null
+                  : Text(_items.length == 1 ? '1 item' : '${_items.length} items'),
+              children: [
+                if (_items.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: Text('Nothing in the pantry yet.'),
+                  )
+                else
+                  for (final item in _items)
+                    Semantics(
+                      identifier: 'item-pantry-${item.id}',
+                      child: ListTile(
+                        dense: true,
+                        title: Text(item.name),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(formatPantryQuantity(item.quantity, item.unit)),
+                            Semantics(
+                              identifier: 'btn-pantry-delete-${item.id}',
+                              child: IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                tooltip: 'Remove',
+                                onPressed: () => _delete(item.id!),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
+              ],
+            ),
             if (_queue.readingCount > 0 || _queue.ready.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
                 child: Semantics(
                   identifier: 'receipt-queue-status',
-                  child: Text([
-                    if (_queue.readingCount > 0) '${_queue.readingCount} reading…',
-                    if (_queue.ready.isNotEmpty) '${_queue.ready.length} ready to review',
-                  ].join(' · ')),
+                  child: Text(
+                    [
+                      if (_queue.readingCount > 0) '${_queue.readingCount} reading…',
+                      if (_queue.ready.isNotEmpty) '${_queue.ready.length} ready to review',
+                    ].join(' · '),
+                  ),
                 ),
               ),
             if (_queue.failedCount > 0)
@@ -248,9 +283,11 @@ class _PantryCardState extends State<PantryCard> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: Text(_queue.failedCount == 1
-                            ? "1 receipt couldn't be read"
-                            : "${_queue.failedCount} receipts couldn't be read"),
+                        child: Text(
+                          _queue.failedCount == 1
+                              ? "1 receipt couldn't be read"
+                              : "${_queue.failedCount} receipts couldn't be read",
+                        ),
                       ),
                       Semantics(
                         identifier: 'btn-receipt-failed-dismiss',
