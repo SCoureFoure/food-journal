@@ -5,6 +5,7 @@ import '../models/grocery.dart';
 import '../services/export_service.dart';
 import '../services/settings_service.dart';
 import '../services/storage_service.dart';
+import 'collapsible_card_header.dart';
 import 'folder_palette.dart';
 import 'panel_container.dart';
 
@@ -31,13 +32,13 @@ class _GroceryListCardState extends State<GroceryListCard> {
   _BusyAction _busy = _BusyAction.none;
   bool get _isBusy => _busy != _BusyAction.none;
   bool _aiEnabled = true;
+  bool _collapsed = false;
   GroceryWindowMode _groceryMode = kDefaultGroceryWindowMode;
   int _groceryMealWindow = kDefaultGroceryMealWindow;
   int _groceryDayWindow = kDefaultGroceryDayWindow;
 
-  int get _groceryWindowSize => _groceryMode == GroceryWindowMode.meals
-      ? _groceryMealWindow
-      : _groceryDayWindow;
+  int get _groceryWindowSize =>
+      _groceryMode == GroceryWindowMode.meals ? _groceryMealWindow : _groceryDayWindow;
 
   @override
   void initState() {
@@ -52,6 +53,21 @@ class _GroceryListCardState extends State<GroceryListCard> {
     _controller.addListener(_onControllerChanged);
     _loadAiEnabled();
     _loadDraft();
+    _loadCollapsed();
+  }
+
+  Future<void> _loadCollapsed() async {
+    try {
+      final collapsed = await _settings.isCardCollapsed('grocery');
+      if (mounted) setState(() => _collapsed = collapsed);
+    } catch (_) {
+      // Settings unreadable (no plugin in a widget test) — stay expanded.
+    }
+  }
+
+  void _toggleCollapsed() {
+    setState(() => _collapsed = !_collapsed);
+    _settings.setCardCollapsed('grocery', _collapsed).catchError((_) {});
   }
 
   Future<void> _loadAiEnabled() async {
@@ -92,81 +108,83 @@ class _GroceryListCardState extends State<GroceryListCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: Text(
-              'Grocery list',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
+          CollapsibleCardHeader(
+            title: 'Grocery list',
+            semanticsId: 'btn-grocery-toggle',
+            expanded: !_collapsed,
+            onToggle: _toggleCollapsed,
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Text(
-              _aiEnabled
-                  ? 'What you have been eating, most frequent first. Edit it, then copy or share. Tidy with AI merges duplicates and groups by aisle.'
-                  : 'What you have been eating, most frequent first. Edit it, then copy or share.',
-              style: Theme.of(context).textTheme.bodySmall,
+          if (!_collapsed) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Text(
+                _aiEnabled
+                    ? 'What you have been eating, most frequent first. Edit it, then copy or share. Tidy with AI merges duplicates and groups by aisle.'
+                    : 'What you have been eating, most frequent first. Edit it, then copy or share.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Wrap(
-              spacing: 8,
-              children: [
-                Semantics(
-                  identifier: 'chip-grocery-mode-meals',
-                  child: ChoiceChip(
-                    label: const Text('By meals'),
-                    selected: _groceryMode == GroceryWindowMode.meals,
-                    onSelected: (_) =>
-                        setState(() => _groceryMode = GroceryWindowMode.meals),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Wrap(
+                spacing: 8,
+                children: [
+                  Semantics(
+                    identifier: 'chip-grocery-mode-meals',
+                    child: ChoiceChip(
+                      label: const Text('By meals'),
+                      selected: _groceryMode == GroceryWindowMode.meals,
+                      onSelected: (_) => setState(() => _groceryMode = GroceryWindowMode.meals),
+                    ),
                   ),
-                ),
-                Semantics(
-                  identifier: 'chip-grocery-mode-days',
-                  child: ChoiceChip(
-                    label: const Text('By days'),
-                    selected: _groceryMode == GroceryWindowMode.days,
-                    onSelected: (_) =>
-                        setState(() => _groceryMode = GroceryWindowMode.days),
+                  Semantics(
+                    identifier: 'chip-grocery-mode-days',
+                    child: ChoiceChip(
+                      label: const Text('By days'),
+                      selected: _groceryMode == GroceryWindowMode.days,
+                      onSelected: (_) => setState(() => _groceryMode = GroceryWindowMode.days),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: Wrap(
-              spacing: 8,
-              children: _groceryMode == GroceryWindowMode.meals
-                  ? kGroceryMealWindows
-                      .map((n) => Semantics(
-                            identifier: 'chip-grocery-meals-$n',
-                            child: ChoiceChip(
-                              label: Text('$n meals'),
-                              selected: n == _groceryMealWindow,
-                              onSelected: (_) =>
-                                  setState(() => _groceryMealWindow = n),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Wrap(
+                spacing: 8,
+                children: _groceryMode == GroceryWindowMode.meals
+                    ? kGroceryMealWindows
+                          .map(
+                            (n) => Semantics(
+                              identifier: 'chip-grocery-meals-$n',
+                              child: ChoiceChip(
+                                label: Text('$n meals'),
+                                selected: n == _groceryMealWindow,
+                                onSelected: (_) => setState(() => _groceryMealWindow = n),
+                              ),
                             ),
-                          ))
-                      .toList()
-                  : kGroceryDayWindows
-                      .map((n) => Semantics(
-                            identifier: 'chip-grocery-days-$n',
-                            child: ChoiceChip(
-                              label: Text('$n days'),
-                              selected: n == _groceryDayWindow,
-                              onSelected: (_) =>
-                                  setState(() => _groceryDayWindow = n),
+                          )
+                          .toList()
+                    : kGroceryDayWindows
+                          .map(
+                            (n) => Semantics(
+                              identifier: 'chip-grocery-days-$n',
+                              child: ChoiceChip(
+                                label: Text('$n days'),
+                                selected: n == _groceryDayWindow,
+                                onSelected: (_) => setState(() => _groceryDayWindow = n),
+                              ),
                             ),
-                          ))
-                      .toList(),
+                          )
+                          .toList(),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: hasList ? _buildListSection() : _buildGenerateButton(),
-          ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: hasList ? _buildListSection() : _buildGenerateButton(),
+            ),
+          ] else
+            const SizedBox(height: 8),
         ],
       ),
     );
@@ -205,10 +223,7 @@ class _GroceryListCardState extends State<GroceryListCard> {
             minLines: 6,
             keyboardType: TextInputType.multiline,
             style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
+            decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
           ),
         ),
         const SizedBox(height: 8),
@@ -266,10 +281,7 @@ class _GroceryListCardState extends State<GroceryListCard> {
   Future<void> _generate() async {
     setState(() => _busy = _BusyAction.generating);
     try {
-      final text = await _export.buildGroceryListText(
-        mode: _groceryMode,
-        size: _groceryWindowSize,
-      );
+      final text = await _export.buildGroceryListText(mode: _groceryMode, size: _groceryWindowSize);
       _controller.text = text;
     } catch (e) {
       _showError('Grocery list failed: ${_errorText(e)}');
@@ -295,9 +307,9 @@ class _GroceryListCardState extends State<GroceryListCard> {
   Future<void> _copy() async {
     await Clipboard.setData(ClipboardData(text: _controller.text));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Copied to clipboard')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Copied to clipboard')));
   }
 
   Future<void> _share() async {
@@ -320,6 +332,5 @@ class _GroceryListCardState extends State<GroceryListCard> {
     );
   }
 
-  String _errorText(Object e) =>
-      e.toString().replaceFirst(RegExp(r'^Exception: '), '');
+  String _errorText(Object e) => e.toString().replaceFirst(RegExp(r'^Exception: '), '');
 }

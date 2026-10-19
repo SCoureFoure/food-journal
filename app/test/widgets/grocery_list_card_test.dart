@@ -639,4 +639,48 @@ void main() {
       expect(filledWithText(tester, 'Copy').onPressed, isNotNull);
     });
   });
+
+  /// [MFT] GroceryListCard collapse — meal_planning AC39/AC40: the title row
+  /// hides and restores the whole card body without touching the draft or the
+  /// chip selection, and the choice survives into a new session. If this
+  /// regresses the user either cannot shorten the tab, or collapsing silently
+  /// resets their list settings.
+  group('[MFT] GroceryListCard collapse', () {
+    testWidgets('AC39: toggle hides the body and restores it unchanged', (tester) async {
+      SharedPreferences.setMockInitialValues({'grocery_draft': '- salt'});
+      await pumpCard(tester, export: _FakeExportService());
+      await tapText(tester, 'By days');
+
+      await tester.tap(byId('btn-grocery-toggle'));
+      await tester.pumpAndSettle();
+      expect(byId('grocery-list-field'), findsNothing);
+      expect(byId('chip-grocery-mode-meals'), findsNothing);
+      expect(find.text('Grocery list'), findsOneWidget);
+
+      await tester.tap(byId('btn-grocery-toggle'));
+      await tester.pumpAndSettle();
+      expect(groceryField(tester).controller!.text, '- salt');
+      final days = tester.widget<ChoiceChip>(
+          find.descendant(of: byId('chip-grocery-mode-days'), matching: find.byType(ChoiceChip)));
+      expect(days.selected, isTrue);
+    });
+
+    testWidgets('AC40: expanded by default; a collapse is saved', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await pumpCard(tester, export: _FakeExportService());
+      expect(byId('btn-generate-grocery-list'), findsOneWidget);
+
+      await tester.tap(byId('btn-grocery-toggle'));
+      await tester.pumpAndSettle();
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('card_collapsed_grocery'), isTrue);
+    });
+
+    testWidgets('AC40: a saved collapse renders collapsed', (tester) async {
+      SharedPreferences.setMockInitialValues({'card_collapsed_grocery': true});
+      await pumpCard(tester, export: _FakeExportService());
+      expect(byId('btn-generate-grocery-list'), findsNothing);
+      expect(find.text('Grocery list'), findsOneWidget);
+    });
+  });
 }

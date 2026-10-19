@@ -255,6 +255,23 @@ widgets.
     immediately (no entry animation), and after any pop the fills are exactly
     `kTab*` / `folderTabFill(..., selected: false)` — endpoints are snapped, not lerped.
 
+**Collapsible cards** (added 2026-10-19). A long pantry pushes the grocery list far down
+the tab, so the pantry and grocery cards each collapse from their title row. Pinned:
+both start expanded; tapping anywhere on the title row toggles; each card's choice is
+saved in SharedPreferences (`card_collapsed_pantry`, `card_collapsed_grocery`) and
+restored on the next launch. Collapsing the pantry hides only its item rows — scanning,
+reviewing and adding stay one tap away, and the queue status stays visible.
+
+38. **AC38** — Given the pantry card with items, When `btn-pantry-toggle` is tapped, Then
+    the item rows (or the empty-pantry text) hide, the title row shows `N items`, and
+    `btn-scan-receipt`, `btn-pantry-add` and the queue status stay visible. Tapping again
+    shows the rows and drops the count.
+39. **AC39** — Given the grocery card, When `btn-grocery-toggle` is tapped, Then everything
+    below the title hides (description, mode and window chips, list box or Generate
+    button). Tapping again restores it with the draft text and chip selection unchanged.
+40. **AC40** — Given no saved choice, Then both cards render expanded. Given a card was
+    collapsed, When the card is built again in a new session, Then it renders collapsed.
+
 ## Anchors (explore rig)
 
 <!-- A view: ids this feature touches. Canonical row (screen · meaning · ✱/fallback)
@@ -272,6 +289,7 @@ widgets.
 - `chip-grocery-meals-<n>`, `chip-grocery-days-<n>` — window size (moved from Export)
 - `btn-generate-grocery-list` — plain generate & share (moved from Export)
 - `btn-tidy-grocery-list` — AI tidy & share; absent when AI is off (moved from Export)
+- `btn-pantry-toggle`, `btn-grocery-toggle` — collapse / expand a card from its title row
 
 Note the ✱ doctrine: `Semantics(identifier:)` merges onto the enclosing *card* on device,
 so a UIAutomator resource-id tap on a chip or button inside a card lands mid-card. The
@@ -287,7 +305,9 @@ declared regardless — Dart `integration_test` reads them in-process and is una
   `app/test/widgets/export_screen_test.dart` (AC27/AC28),
   `app/test/widgets/panel_container_test.dart` (AC29–AC32),
   `app/test/widgets/app_shell_test.dart` (AC33–AC35),
-  `app/test/widgets/folder_tab_bar_test.dart` (AC36/AC37)
+  `app/test/widgets/folder_tab_bar_test.dart` (AC36/AC37),
+  `app/test/widgets/pantry_card_test.dart` and
+  `app/test/widgets/grocery_list_card_test.dart` (AC38–AC40)
 - Grocery pipeline (unchanged, still green): `app/test/models/grocery_test.dart`,
   `app/test/services/export_grocery_test.dart`,
   `app/test/integration/ai/tidy_grocery_list_integration_test.dart`

@@ -9,6 +9,7 @@ import 'package:food_journal/screens/receipt_review/receipt_review_screen.dart';
 import 'package:food_journal/services/receipt_ocr_service.dart';
 import 'package:food_journal/services/receipt_queue.dart';
 import 'package:food_journal/widgets/pantry_card.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'receipt_scan_fakes.dart';
 
@@ -288,6 +289,39 @@ void main() {
       await tester.pump();
       expect(_id('receipt-queue-failed'), findsNothing);
       expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('meal_planning AC38: collapse hides rows, keeps actions, shows count',
+        (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      storage.items.addAll([
+        _p(1, 'limes', 2, 'ea', DateTime(2026, 10, 1)),
+        _p(2, 'sweet potatoes', 2.26, 'lb', DateTime(2026, 10, 19)),
+      ]);
+      await pump(tester);
+
+      await tester.tap(_id('btn-pantry-toggle'));
+      await tester.pumpAndSettle();
+      expect(_id('item-pantry-1'), findsNothing);
+      expect(_id('item-pantry-2'), findsNothing);
+      expect(find.text('2 items'), findsOneWidget);
+      expect(_id('btn-scan-receipt'), findsOneWidget);
+      expect(_id('btn-pantry-add'), findsOneWidget);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getBool('card_collapsed_pantry'), isTrue);
+
+      await tester.tap(_id('btn-pantry-toggle'));
+      await tester.pumpAndSettle();
+      expect(_id('item-pantry-1'), findsOneWidget);
+      expect(find.text('2 items'), findsNothing);
+    });
+
+    testWidgets('meal_planning AC40: a saved collapse renders collapsed', (tester) async {
+      SharedPreferences.setMockInitialValues({'card_collapsed_pantry': true});
+      storage.items.add(_p(1, 'limes', 2, 'ea', DateTime(2026, 10, 1)));
+      await pump(tester);
+      expect(_id('item-pantry-1'), findsNothing);
+      expect(find.text('1 item'), findsOneWidget);
     });
 
     testWidgets('AC18: add item opens a manual review', (tester) async {

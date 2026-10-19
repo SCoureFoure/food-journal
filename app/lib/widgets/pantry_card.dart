@@ -9,7 +9,9 @@ import '../models/receipt_parser.dart';
 import '../screens/receipt_review/receipt_review_screen.dart';
 import '../services/ai_service.dart';
 import '../services/receipt_queue.dart';
+import '../services/settings_service.dart';
 import '../services/storage_service.dart';
+import 'collapsible_card_header.dart';
 import 'folder_palette.dart';
 import 'panel_container.dart';
 
@@ -38,7 +40,9 @@ class _PantryCardState extends State<PantryCard> {
   StorageService? _ownedStorage;
   late final StorageService _storage;
   late final ReceiptQueue _queue = widget.queueOverride ?? ReceiptQueue.shared;
+  final _settings = SettingsService();
   List<PantryItem> _items = const [];
+  bool _collapsed = false;
 
   @override
   void initState() {
@@ -52,6 +56,21 @@ class _PantryCardState extends State<PantryCard> {
     _queue.addListener(_onQueue);
     _queue.start().catchError((_) {}); // no cache dir in widget tests
     _load();
+    _loadCollapsed();
+  }
+
+  Future<void> _loadCollapsed() async {
+    try {
+      final collapsed = await _settings.isCardCollapsed('pantry');
+      if (mounted) setState(() => _collapsed = collapsed);
+    } catch (_) {
+      // Settings unreadable (no plugin in a widget test) — stay expanded.
+    }
+  }
+
+  void _toggleCollapsed() {
+    setState(() => _collapsed = !_collapsed);
+    _settings.setCardCollapsed('pantry', _collapsed).catchError((_) {});
   }
 
   @override
@@ -194,14 +213,16 @@ class _PantryCardState extends State<PantryCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-              child: Text(
-                'Pantry',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
+            CollapsibleCardHeader(
+              title: 'Pantry',
+              semanticsId: 'btn-pantry-toggle',
+              expanded: !_collapsed,
+              onToggle: _toggleCollapsed,
+              summary: _items.length == 1 ? '1 item' : '${_items.length} items',
             ),
-            if (_items.isEmpty)
+            if (_collapsed)
+              const SizedBox.shrink()
+            else if (_items.isEmpty)
               const Padding(
                 padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: Text('Nothing in the pantry yet.'),
