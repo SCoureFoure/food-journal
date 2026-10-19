@@ -71,6 +71,47 @@ existing pantry item (same alias, or a close name match), review proposes "same 
 instead of creating a duplicate. Lines that are hard to parse go to the same review list
 for manual correction.
 
+### Identity and repeat purchases (phase 2 requirement)
+
+**Assume a repeat purchase first.** At least half of a typical shop is things bought
+before, and staples repeat most. Matching an incoming line to an existing pantry item is
+the expected case; creating a new item is the exception. The pantry never shows
+"peanut butter" and "peanut butter 2".
+
+**One pantry row per unique food.** Identical lines on one receipt already merge into a
+single review row with a summed quantity. What the phase 2 spec must add:
+
+1. **Bought again on a later trip** → the existing item is marked present again and its
+   purchase history grows. No new row.
+2. **OCR misread of a known line** (`PROG TRD CHK 0RZ LMN` vs `... ORZ ...`) → matches
+   the known alias, not a new item.
+3. **Close match** → review asks: "Peanut butter matches a pantry item. Bought it again,
+   or is this a different peanut butter?" One tap keeps it as the same item; the other
+   makes a new one. The answer is remembered as an alias, so it is not asked again.
+
+**How fine-grained an item is.** Rule: split only on what changes the diet or a reaction.
+
+| Same item (merge by default) | Different items (never merge silently) |
+| --- | --- |
+| Brand: Jif vs Skippy peanut butter | Lactose-free milk vs whole milk |
+| Pack size, store brand vs name brand | Flavour that adds an ingredient: black cherry skyr vs plain skyr |
+| Texture with the same ingredients: chunky vs smooth | Gluten-free, sugar-free, dairy-free, decaf variants |
+
+Flavoured is not plain. A flavour can carry an allergen or a trigger, so "black cherry
+yogurt" is its own item, not "yogurt". Plain yogurt is "yogurt".
+
+**Recognise first, then group.** The first pass still identifies the specific product
+("Jif peanut butter", "Skippy peanut butter") and keeps that detail on the purchase
+record and as an alias. The pantry item it files under is the generic food ("peanut
+butter"). The user can always split an item or rename it; their choice wins over the
+default rule. Splitting matters to some users (texture, brand), and the default must not
+fight them.
+
+**Regression fixtures.** The phase 2 spec carries a fixture of receipts over time (the
+same staples on several trips, a misread line, a brand swap, a flavour change, a
+lactose-free swap) with the expected pantry after each one, so matching never silently
+regresses.
+
 ### Schema note
 
 `pantry_items` (v16) exists only on the unmerged `feat/receipt-scan` branch and stores
@@ -110,7 +151,8 @@ carries it, so the list is achievable. Later, insights add:
    from native code instead of ~6 MB of scores per line, use more CPU threads, measure on
    the phone).
 2. **Kitchen tab + pantry items.** Third tab; pantry as present/not-present items with
-   aliases and purchase history; incoming-receipt diff ("same thing?"); manual add and
+   aliases and purchase history; repeat-purchase matching and the "same thing?" prompt
+   per *Identity and repeat purchases*, with its regression fixtures; manual add and
    edit through existing editors. Reshape `pantry_items` before merging the branch.
 3. **Kitchen-aware logging.** Pantry names in `parse_meal` context; pantry items offered
    in the journal's food search; home/out fork decided here.
