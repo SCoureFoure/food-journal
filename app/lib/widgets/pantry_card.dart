@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -7,7 +8,7 @@ import '../models/pantry_item.dart';
 import '../models/receipt_parser.dart';
 import '../screens/receipt_review/receipt_review_screen.dart';
 import '../services/ai_service.dart';
-import '../services/receipt_ocr_service.dart';
+import '../services/receipt_queue.dart';
 import '../services/storage_service.dart';
 import 'folder_palette.dart';
 import 'panel_container.dart';
@@ -15,18 +16,18 @@ import 'panel_container.dart';
 class PantryCard extends StatefulWidget {
   /// Test seams — inject fakes. Null in production.
   final StorageService? storageOverride;
-  final ReceiptReader? readerOverride;
+  final ReceiptQueue? queueOverride;
   final AiService? aiOverride;
   final bool? aiEnabledOverride;
-  final Future<Uint8List?> Function(BuildContext context)? pickImageOverride;
+  final Future<List<Uint8List>> Function(BuildContext context)? pickImagesOverride;
 
   const PantryCard({
     super.key,
     this.storageOverride,
-    this.readerOverride,
+    this.queueOverride,
     this.aiOverride,
     this.aiEnabledOverride,
-    this.pickImageOverride,
+    this.pickImagesOverride,
   });
 
   @override
@@ -36,9 +37,8 @@ class PantryCard extends StatefulWidget {
 class _PantryCardState extends State<PantryCard> {
   StorageService? _ownedStorage;
   late final StorageService _storage;
-  late final ReceiptReader _reader;
+  late final ReceiptQueue _queue = widget.queueOverride ?? ReceiptQueue.shared;
   List<PantryItem> _items = const [];
-  bool _reading = false;
 
   @override
   void initState() {
@@ -49,14 +49,20 @@ class _PantryCardState extends State<PantryCard> {
       _ownedStorage = StorageService();
       _storage = _ownedStorage!;
     }
-    _reader = widget.readerOverride ?? OnnxReceiptReader();
+    _queue.addListener(_onQueue);
+    _queue.start().catchError((_) {}); // no cache dir in widget tests
     _load();
   }
 
   @override
   void dispose() {
+    _queue.removeListener(_onQueue);
     _ownedStorage?.dispose();
     super.dispose();
+  }
+
+  void _onQueue() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _load() async {
@@ -78,13 +84,7 @@ class _PantryCardState extends State<PantryCard> {
     await _load();
   }
 
-  static const _spinner = SizedBox(
-    width: 18,
-    height: 18,
-    child: CircularProgressIndicator(strokeWidth: 2),
-  );
-
-  Future<Uint8List?> _pickImage(BuildContext context) async {
+  Future<List<Uint8List>> _pickImages(BuildContext context) async {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (sheetContext) => SafeArea(
@@ -105,31 +105,57 @@ class _PantryCardState extends State<PantryCard> {
         ),
       ),
     );
-    if (source == null) return null;
+    if (source == null) return const [];
     // No maxWidth/maxHeight — OCR needs the full-resolution photo.
-    final picked = await ImagePicker().pickImage(source: source, imageQuality: 95);
-    if (picked == null) return null;
-    return picked.readAsBytes();
+    final List<XFile> files;
+    if (source == ImageSource.camera) {
+      final one = await ImagePicker().pickImage(source: source, imageQuality: 95);
+      files = one == null ? const [] : [one];
+    } else {
+      files = await ImagePicker().pickMultiImage(imageQuality: 95);
+    }
+    final out = <Uint8List>[];
+    for (final x in files) {
+      out.add(await x.readAsBytes());
+      try {
+        await File(x.path).delete(); // the picker's own copy
+      } catch (_) {}
+    }
+    return out;
   }
 
   Future<void> _scan() async {
-    final bytes = await (widget.pickImageOverride ?? _pickImage)(context);
-    if (bytes == null || !mounted) return;
-    setState(() => _reading = true);
-    final String text;
-    final List<ParsedReceiptItem> items;
-    try {
-      final lines = await _reader.readLines(bytes);
-      text = lines.join('\n');
-      items = mergeReceiptItems(parseReceiptText(text));
-    } catch (e) {
-      _showError(e.toString());
-      if (mounted) setState(() => _reading = false);
-      return;
-    }
+    final photos = await (widget.pickImagesOverride ?? _pickImages)(context);
     if (!mounted) return;
-    setState(() => _reading = false);
-    await _openReview(items, text, 'receipt');
+    for (final p in photos) {
+      try {
+        await _queue.add(p);
+      } catch (e) {
+        _showError('Could not queue the receipt: $e');
+        return;
+      }
+    }
+  }
+
+  Future<void> _reviewNext() async {
+    final r = _queue.ready.first;
+    final result = await Navigator.of(context).push<bool>(MaterialPageRoute(
+      builder: (_) => ReceiptReviewScreen(
+        items: r.items,
+        ocrText: r.ocrText,
+        source: 'receipt',
+        showDiscard: true,
+        storageOverride: widget.storageOverride,
+        aiOverride: widget.aiOverride,
+        aiEnabledOverride: widget.aiEnabledOverride,
+      ),
+    ));
+    if (result == true) {
+      await _queue.remove(r.id);
+      await _load();
+    } else if (result == false) {
+      await _queue.remove(r.id);
+    }
   }
 
   Future<void> _addManual() => _openReview(const [], '', 'manual');
@@ -203,6 +229,40 @@ class _PantryCardState extends State<PantryCard> {
                     ),
                   ),
                 ),
+            if (_queue.readingCount > 0 || _queue.ready.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                child: Semantics(
+                  identifier: 'receipt-queue-status',
+                  child: Text([
+                    if (_queue.readingCount > 0) '${_queue.readingCount} reading…',
+                    if (_queue.ready.isNotEmpty) '${_queue.ready.length} ready to review',
+                  ].join(' · ')),
+                ),
+              ),
+            if (_queue.failedCount > 0)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                child: Semantics(
+                  identifier: 'receipt-queue-failed',
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(_queue.failedCount == 1
+                            ? "1 receipt couldn't be read"
+                            : "${_queue.failedCount} receipts couldn't be read"),
+                      ),
+                      Semantics(
+                        identifier: 'btn-receipt-failed-dismiss',
+                        child: TextButton(
+                          onPressed: _queue.dismissFailed,
+                          child: const Text('Dismiss'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
               child: Wrap(
@@ -212,11 +272,20 @@ class _PantryCardState extends State<PantryCard> {
                   Semantics(
                     identifier: 'btn-scan-receipt',
                     child: FilledButton.icon(
-                      icon: _reading ? _spinner : const Icon(Icons.receipt_long),
-                      label: Text(_reading ? 'Reading…' : 'Scan receipt'),
-                      onPressed: _reading ? null : _scan,
+                      icon: const Icon(Icons.receipt_long),
+                      label: const Text('Scan receipt'),
+                      onPressed: _scan,
                     ),
                   ),
+                  if (_queue.ready.isNotEmpty)
+                    Semantics(
+                      identifier: 'btn-receipt-review-next',
+                      child: FilledButton.tonalIcon(
+                        icon: const Icon(Icons.fact_check_outlined),
+                        label: const Text('Review'),
+                        onPressed: _reviewNext,
+                      ),
+                    ),
                   Semantics(
                     identifier: 'btn-pantry-add',
                     child: OutlinedButton.icon(

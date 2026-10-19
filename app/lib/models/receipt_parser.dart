@@ -12,6 +12,31 @@ class ParsedReceiptItem {
 
   const ParsedReceiptItem({required this.raw, this.qty = 1, this.unit = 'ea', this.food, this.name});
 
+  Map<String, dynamic> toJson() => {'raw': raw, 'qty': qty, 'unit': unit, 'food': food, 'name': name};
+
+  /// Inverse of [toJson]. Throws [FormatException] on a missing or mistyped field.
+  factory ParsedReceiptItem.fromJson(Map<String, dynamic> j) {
+    final raw = j['raw'];
+    final qty = j['qty'];
+    final unit = j['unit'];
+    final food = j['food'];
+    final name = j['name'];
+    if (raw is! String ||
+        qty is! num ||
+        unit is! String ||
+        (food != null && food is! bool) ||
+        (name != null && name is! String)) {
+      throw const FormatException('bad receipt item');
+    }
+    return ParsedReceiptItem(
+      raw: raw,
+      qty: qty.toDouble(),
+      unit: unit,
+      food: food as bool?,
+      name: name as String?,
+    );
+  }
+
   /// Copy with the given fields replaced. Fields cannot be reset to null.
   ParsedReceiptItem copyWith({String? raw, double? qty, String? unit, bool? food, String? name}) {
     return ParsedReceiptItem(

@@ -40,5 +40,5 @@ flutter:
   assets:
     - .env
     - assets/ocr/PP-OCRv6_det_small.onnx
-    - assets/ocr/PP-OCRv6_rec_small.onnx
+    - assets/ocr/PP-OCRv6_rec_small_argmax.onnx
     - assets/ocr/rec_dict.txt

@@ -88,15 +88,20 @@ touches and links back here; it does not redefine meaning or fallback.
 | Meal Planning| `btn-retry-grocery-list`        | Regenerates from the journal using the current window chips, replacing the box (groceries) |
 | Meal Planning| `btn-clear-grocery-list`        | Empties the box and drops the saved draft, returning the card to its Generate state (groceries) |
 | Meal Planning| `pantry-card`                   | Pantry panel, between the planner stub and the grocery card (receipt_scan) |
-| Meal Planning| `btn-scan-receipt`              | Camera / gallery choice, then reads the receipt and opens the review screen (receipt_scan) ✱ absorbed — the id merges onto the **pantry card container**, not the control; tap via `content-desc` "Scan receipt". Reach unverified. |
+| Meal Planning| `btn-scan-receipt`              | Camera (one photo) / gallery (several) choice; queues the photos for background reading (receipt_scan, receipt_queue) ✱ absorbed — the id merges onto the **pantry card container**, not the control; tap via `content-desc` "Scan receipt". Reach unverified. |
 | Meal Planning| `btn-pantry-add`                | Adds one pantry item by hand — opens the review screen in manual mode (receipt_scan) ✱ absorbed — the id merges onto the **pantry card container**; tap via `content-desc` "Add item". Reach unverified. |
 | Meal Planning| `item-pantry-<id>`              | One pantry row (receipt_scan) ✱ merges into the pantry card container; reach unverified |
 | Meal Planning| `btn-pantry-delete-<id>`        | Deletes one pantry row (receipt_scan) ✱ absorbed — the id merges onto the **pantry card container**; tap via `content-desc` "Remove". Reach unverified. |
+| Meal Planning| `receipt-queue-status`          | "N reading… · N ready to review" line on the pantry card; absent when the queue is empty (receipt_queue). Reach unverified. |
+| Meal Planning| `btn-receipt-review-next`       | Opens the oldest ready receipt in the review screen; absent when none is ready (receipt_queue). Reach unverified. |
+| Meal Planning| `receipt-queue-failed`          | "N receipt(s) couldn't be read" notice (receipt_queue). Reach unverified. |
+| Meal Planning| `btn-receipt-failed-dismiss`    | Hides the couldn't-be-read notice (receipt_queue). Reach unverified. |
 | Receipt review| `receipt-review-screen`        | Receipt review / manual add screen root (receipt_scan) |
 | Receipt review| `item-receipt-row-<index>`     | One review row: include checkbox, name, quantity, unit (receipt_scan). Reach unverified. |
 | Receipt review| `btn-receipt-ai-names`         | AI name clean-up; absent when AI is off, source is manual, or no OCR text (receipt_scan). Reach unverified. |
 | Receipt review| `btn-receipt-add-row`          | Appends a blank review row (receipt_scan). Reach unverified. |
 | Receipt review| `btn-receipt-save`             | Saves checked, named rows to the pantry and pops (receipt_scan). Reach unverified. |
+| Receipt review| `btn-receipt-discard`         | Discards a queued receipt without saving; only shown when review was opened from the queue (receipt_queue). Reach unverified. |
 | Receipt review| `receipt-review-empty`         | "Couldn't find any items" message, shown when there are zero rows (receipt_scan) |
 | Import       | `import-wizard-screen`          | Import wizard root (per-record selection)      |
 | Import       | `btn-import-confirm`            | Confirm import of selected records. ✱ absorbed (ElevatedButton); tap via bounds/label |

@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -5,9 +7,32 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:food_journal/models/pantry_item.dart';
 import 'package:food_journal/screens/receipt_review/receipt_review_screen.dart';
 import 'package:food_journal/services/receipt_ocr_service.dart';
+import 'package:food_journal/services/receipt_queue.dart';
 import 'package:food_journal/widgets/pantry_card.dart';
 
 import 'receipt_scan_fakes.dart';
+
+/// Reader whose reads block until the test completes the matching gate.
+class GatedReader implements ReceiptReader {
+  final gates = <Completer<List<String>>>[];
+
+  @override
+  Future<List<String>> readLines(Uint8List imageBytes) {
+    final c = Completer<List<String>>();
+    gates.add(c);
+    return c.future;
+  }
+
+  /// Release every pending and future read so the queue worker finishes.
+  Future<void> drain(WidgetTester tester, ReceiptQueue queue) async {
+    for (var i = 0; i < 200 && queue.readingCount > 0; i++) {
+      for (final g in gates) {
+        if (!g.isCompleted) g.complete(const []);
+      }
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 10)));
+    }
+  }
+}
 
 Finder _id(String id) =>
     find.byWidgetPredicate((w) => w is Semantics && w.properties.identifier == id);
@@ -25,30 +50,60 @@ void main() {
   late FakePantryStorage storage;
   late FakeReceiptReader reader;
   late FakeReceiptAi ai;
-  Uint8List? picked;
+  late List<Uint8List> picked;
+  late Directory tempDir;
+  late ReceiptQueue queue;
 
   setUp(() {
     storage = FakePantryStorage();
     reader = FakeReceiptReader();
     ai = FakeReceiptAi();
-    picked = Uint8List.fromList([1, 2, 3]);
+    picked = [Uint8List.fromList([1, 2, 3])];
+    tempDir = Directory.systemTemp.createTempSync('pc');
   });
 
-  Future<void> pump(WidgetTester tester) async {
+  tearDown(() {
+    try {
+      tempDir.deleteSync(recursive: true);
+    } catch (_) {}
+  });
+
+  Future<void> pump(WidgetTester tester, {ReceiptReader? queueReader}) async {
+    queue = ReceiptQueue(reader: queueReader ?? reader, directory: () async => tempDir);
+    await tester.runAsync(() => queue.start());
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
         body: SingleChildScrollView(
           child: PantryCard(
             storageOverride: storage,
-            readerOverride: reader,
+            queueOverride: queue,
             aiOverride: ai,
             aiEnabledOverride: false,
-            pickImageOverride: (_) async => picked,
+            pickImagesOverride: (_) async => picked,
           ),
         ),
       ),
     ));
     await tester.pumpAndSettle();
+  }
+
+  // File IO needs the real event loop; poll it, pumping so widget state catches up.
+  Future<void> until(WidgetTester tester, bool Function() cond) async {
+    for (var i = 0; i < 200 && !cond(); i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 10)));
+      await tester.pump();
+    }
+    expect(cond(), isTrue, reason: 'condition not reached');
+    // The queue may have notified between the last pump and the check.
+    await tester.pump();
+  }
+
+  Future<void> seedReady(WidgetTester tester) async {
+    await tester.runAsync(() async {
+      await queue.add(Uint8List.fromList([9]));
+      await queue.whenIdle();
+    });
+    await tester.pump();
   }
 
   group('[MFT] formatPantryQuantity', () {
@@ -102,22 +157,76 @@ void main() {
     });
   });
 
-  group('[MFT] scan flow', () {
-    // testTheory: minimum functionality — scan reads, parses, merges and opens
-    //   review; saving reloads the card.
-    // contract: picked bytes -> ReceiptReader -> parseReceiptText ->
-    //   mergeReceiptItems -> ReceiptReviewScreen(source receipt); a cancelled
-    //   pick does nothing; a read failure is a SnackBar.
-    // implication: AC9/AC13/AC14 wired end to end with fakes.
+  group('[MFT] receipt queue on the card', () {
+    // testTheory: minimum functionality — the card shows queue state and drives
+    //   review from the queue; scanning only enqueues.
+    // contract: status text from readingCount/ready; scan always enabled; Review
+    //   opens the oldest ready receipt; save/discard remove it, back keeps it;
+    //   a failed read is an inline notice, never a SnackBar.
+    // implication: spec receipt_queue AC14-AC18.
 
-    testWidgets('scan opens review with merged rows; save reloads card', (tester) async {
-      reader.lines = hannafordLines;
+    testWidgets('AC14: status text and review button follow the queue', (tester) async {
+      final gated = GatedReader();
+      await pump(tester, queueReader: gated);
+      expect(_id('receipt-queue-status'), findsNothing);
+      expect(_id('btn-receipt-review-next'), findsNothing);
+
+      picked = [
+        Uint8List.fromList([1]),
+        Uint8List.fromList([2]),
+        Uint8List.fromList([3]),
+      ];
+      await tester.tap(_id('btn-scan-receipt'));
+      await until(tester, () => gated.gates.length == 1 && queue.readingCount == 3);
+      expect(find.text('3 reading…'), findsOneWidget);
+      expect(_id('btn-receipt-review-next'), findsNothing);
+
+      gated.gates[0].complete(hannafordLines);
+      await until(tester, () => queue.ready.length == 1 && gated.gates.length == 2);
+      expect(find.text('2 reading… · 1 ready to review'), findsOneWidget);
+      expect(_id('btn-receipt-review-next'), findsOneWidget);
+
+      await gated.drain(tester, queue);
+    });
+
+    testWidgets('AC15: scan stays enabled while reading; two photos queue two', (tester) async {
+      final gated = GatedReader();
+      await pump(tester, queueReader: gated);
+      picked = [
+        Uint8List.fromList([1]),
+        Uint8List.fromList([2]),
+      ];
+      await tester.tap(_id('btn-scan-receipt'));
+      await until(tester, () => queue.readingCount + queue.ready.length == 2);
+      expect(queue.readingCount + queue.ready.length, 2);
+
+      final button = tester.widget<FilledButton>(
+          find.descendant(of: _id('btn-scan-receipt'), matching: find.byWidgetPredicate((w) => w is FilledButton)));
+      expect(button.onPressed, isNotNull);
+
+      await gated.drain(tester, queue);
+    });
+
+    testWidgets('cancelled pick queues nothing', (tester) async {
+      picked = [];
       await pump(tester);
       await tester.tap(_id('btn-scan-receipt'));
       await tester.pumpAndSettle();
+      expect(reader.calls, 0);
+      expect(_id('receipt-queue-status'), findsNothing);
+      expect(find.byType(ReceiptReviewScreen), findsNothing);
+    });
 
-      expect(reader.calls, 1);
-      expect(find.byType(ReceiptReviewScreen), findsOneWidget);
+    testWidgets('AC16: review shows merged rows; save clears the queue and lists items',
+        (tester) async {
+      reader.lines = hannafordLines;
+      await pump(tester);
+      await seedReady(tester);
+      expect(queue.ready.length, 1);
+
+      await tester.tap(_id('btn-receipt-review-next'));
+      await tester.pumpAndSettle();
+      expect(_id('receipt-review-screen'), findsOneWidget);
       final screen = tester.widget<ReceiptReviewScreen>(find.byType(ReceiptReviewScreen));
       expect(screen.items.map((i) => (i.raw, i.qty)).toList(), [
         ('LIMES', 1.0),
@@ -125,31 +234,60 @@ void main() {
         ('DVE MEN+CARE CDRWD/T', 1.0),
       ]);
       expect(screen.source, 'receipt');
-      expect(screen.ocrText, hannafordLines.join('\n'));
 
       await tester.tap(_id('btn-receipt-save'));
+      await until(tester, () => queue.ready.isEmpty);
       await tester.pumpAndSettle();
       expect(find.byType(ReceiptReviewScreen), findsNothing);
+      expect(queue.ready, isEmpty);
       expect(find.text('LIMES'), findsOneWidget);
       expect(find.text('PROG TRD CHK ORZ LMN'), findsOneWidget);
     });
 
-    testWidgets('cancelled pick does nothing', (tester) async {
-      picked = null;
+    testWidgets('AC16: going back keeps the receipt ready', (tester) async {
+      reader.lines = hannafordLines;
       await pump(tester);
-      await tester.tap(_id('btn-scan-receipt'));
+      await seedReady(tester);
+
+      await tester.tap(_id('btn-receipt-review-next'));
       await tester.pumpAndSettle();
-      expect(reader.calls, 0);
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await tester.pumpAndSettle();
       expect(find.byType(ReceiptReviewScreen), findsNothing);
+      expect(queue.ready.length, 1);
     });
 
-    testWidgets('read failure shows a SnackBar and no review', (tester) async {
+    testWidgets('AC17: discard removes the receipt and saves nothing', (tester) async {
+      reader.lines = hannafordLines;
+      await pump(tester);
+      await seedReady(tester);
+
+      await tester.tap(_id('btn-receipt-review-next'));
+      await tester.pumpAndSettle();
+      await tester.tap(_id('btn-receipt-discard'));
+      await until(tester, () => queue.ready.isEmpty);
+      await tester.pumpAndSettle();
+      expect(find.byType(ReceiptReviewScreen), findsNothing);
+      expect(queue.ready, isEmpty);
+      expect(storage.items, isEmpty);
+    });
+
+    testWidgets('AC18: failed read is an inline notice, dismissable, no SnackBar',
+        (tester) async {
       reader.error = const ReceiptReadException('Could not open that photo.');
       await pump(tester);
-      await tester.tap(_id('btn-scan-receipt'));
-      await tester.pumpAndSettle();
-      expect(find.text('Could not open that photo.'), findsOneWidget);
-      expect(find.byType(ReceiptReviewScreen), findsNothing);
+      await tester.runAsync(() async {
+        await queue.add(Uint8List.fromList([1]));
+        await queue.whenIdle();
+      });
+      await tester.pump();
+      expect(find.text("1 receipt couldn't be read"), findsOneWidget);
+      expect(find.byType(SnackBar), findsNothing);
+
+      await tester.tap(_id('btn-receipt-failed-dismiss'));
+      await tester.pump();
+      expect(_id('receipt-queue-failed'), findsNothing);
+      expect(find.byType(SnackBar), findsNothing);
     });
 
     testWidgets('AC18: add item opens a manual review', (tester) async {

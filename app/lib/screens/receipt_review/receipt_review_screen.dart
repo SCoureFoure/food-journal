@@ -11,6 +11,9 @@ class ReceiptReviewScreen extends StatefulWidget {
   final String ocrText;
   final String source; // 'receipt' | 'manual'
 
+  /// Shown when the receipt came from the queue; pops false.
+  final bool showDiscard;
+
   /// Test seams — inject fakes. Null in production.
   final StorageService? storageOverride;
   final AiService? aiOverride;
@@ -22,6 +25,7 @@ class ReceiptReviewScreen extends StatefulWidget {
     required this.items,
     required this.ocrText,
     this.source = 'receipt',
+    this.showDiscard = false,
     this.storageOverride,
     this.aiOverride,
     this.aiEnabledOverride,
@@ -331,6 +335,14 @@ class _ReceiptReviewScreenState extends State<ReceiptReviewScreen> {
         appBar: AppBar(
           title: Text(widget.source == 'manual' ? 'Add to pantry' : 'Review receipt'),
           actions: [
+            if (widget.showDiscard)
+              Semantics(
+                identifier: 'btn-receipt-discard',
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Discard'),
+                ),
+              ),
             Semantics(
               identifier: 'btn-receipt-save',
               child: TextButton(

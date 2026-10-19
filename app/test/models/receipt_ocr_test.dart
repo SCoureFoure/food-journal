@@ -21,7 +21,8 @@ class _FixtureRunner implements OcrModelRunner {
   final Map<String, dynamic> fixture;
   final Float32List prob;
   final detCalls = <(int, int, double)>[];
-  final recCalls = <(int, double)>[];
+  final recCalls = <(int, int, double)>[];
+  final _consumed = <int>{};
 
   @override
   Future<Float32List> detect(Float32List input, int h, int w) async {
@@ -30,21 +31,41 @@ class _FixtureRunner implements OcrModelRunner {
   }
 
   @override
-  Future<RecOutput> recognize(Float32List input, int w) async {
-    final box = (fixture['boxes'] as List)[recCalls.length] as Map<String, dynamic>;
-    recCalls.add((w, input.fold<double>(0, (a, b) => a + b)));
-    final classes = fixture['classes'] as int;
-    final argmax = (box['argmax'] as List).cast<int>();
-    final maxprob = (box['maxprob'] as List).map((e) => (e as num).toDouble()).toList();
-    final probs = Float32List(argmax.length * classes);
-    for (var t = 0; t < argmax.length; t++) {
-      final rest = (1 - maxprob[t]) / (classes - 1);
-      for (var c = 0; c < classes; c++) {
-        probs[t * classes + c] = rest;
+  Future<RecBatchOutput> recognizeBatch(Float32List input, int n, int w) async {
+    final boxes = (fixture['boxes'] as List).cast<Map<String, dynamic>>();
+    final rowIdx = <List<int>>[];
+    final rowProb = <List<double>>[];
+    for (var r = 0; r < n; r++) {
+      final row = input.sublist(r * 3 * 48 * w, (r + 1) * 3 * 48 * w);
+      final rowSum = row.fold<double>(0, (a, b) => a + b);
+      int? best;
+      var bestDiff = double.infinity;
+      for (var i = 0; i < boxes.length; i++) {
+        if (_consumed.contains(i) || (boxes[i]['rec_w'] as int) > w) continue;
+        final diff = ((boxes[i]['rec_input_sum'] as num).toDouble() - rowSum).abs();
+        if (diff < bestDiff) {
+          bestDiff = diff;
+          best = i;
+        }
       }
-      probs[t * classes + argmax[t]] = maxprob[t];
+      final i = best!;
+      _consumed.add(i);
+      recCalls.add((i, w, rowSum));
+      rowIdx.add((boxes[i]['argmax'] as List).cast<int>());
+      rowProb.add((boxes[i]['maxprob'] as List).map((e) => (e as num).toDouble()).toList());
     }
-    return RecOutput(probs, argmax.length, classes);
+    final steps = rowIdx.fold<int>(0, (a, b) => a > b.length ? a : b.length);
+    final idx = <int>[];
+    final maxp = <double>[];
+    for (var r = 0; r < n; r++) {
+      idx.addAll(rowIdx[r]);
+      maxp.addAll(rowProb[r]);
+      for (var t = rowIdx[r].length; t < steps; t++) {
+        idx.add(0);
+        maxp.add(0.0);
+      }
+    }
+    return RecBatchOutput(idx, maxp, steps);
   }
 }
 
@@ -223,7 +244,7 @@ void main() {
     test('text lines, detector call and recogniser calls match', () async {
       final runner = _FixtureRunner(fixture, prob);
       final dict = File('assets/ocr/rec_dict.txt').readAsStringSync().split('\n');
-      final lines = await readReceiptLines(image, runner, dict);
+      final lines = await readReceiptLines(image, runner, dict, batchSize: 1);
 
       expect(lines, (fixture['lines'] as List).cast<String>());
 
@@ -234,13 +255,29 @@ void main() {
       expect(detSum, closeTo(expectedDet, expectedDet.abs() * 1e-4));
 
       final boxes = (fixture['boxes'] as List).cast<Map<String, dynamic>>();
-      expect(runner.recCalls.length, boxes.length);
-      for (var i = 0; i < boxes.length; i++) {
-        final (recW, recSum) = runner.recCalls[i];
+      expect({for (final c in runner.recCalls) c.$1}, {for (var i = 0; i < boxes.length; i++) i});
+      for (final (i, recW, recSum) in runner.recCalls) {
         expect(recW, boxes[i]['rec_w'], reason: 'box $i width');
         final expectedRec = (boxes[i]['rec_input_sum'] as num).toDouble();
         expect(recSum, closeTo(expectedRec, expectedRec.abs() * 1e-3 + 1), reason: 'box $i crop');
       }
+    });
+
+    test('[EQUIV] batched recogniser gives the reference lines', () async {
+      // testTheory: equivalence — batching and width-sorting change call shape,
+      //   not the decoded text.
+      // contract: default batchSize (8) yields the fixture lines and recognises
+      //   every box exactly once.
+      // implication: spec receipt_queue AC4 — batched recognition is a speed
+      //   change only.
+      final runner = _FixtureRunner(fixture, prob);
+      final dict = File('assets/ocr/rec_dict.txt').readAsStringSync().split('\n');
+      final lines = await readReceiptLines(image, runner, dict);
+
+      expect(lines, (fixture['lines'] as List).cast<String>());
+      final boxes = (fixture['boxes'] as List).cast<Map<String, dynamic>>();
+      final seen = [for (final c in runner.recCalls) c.$1]..sort();
+      expect(seen, [for (var i = 0; i < boxes.length; i++) i]);
     });
   });
 }

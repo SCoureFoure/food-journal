@@ -49,7 +49,8 @@ Each is a reversible default, recorded so it can be revisited with evidence.
    rectangle, rectangle unclip, rotated crop, CTC decode, row grouping. The reference's
    unit cases become the Dart unit tests, so the two cannot drift silently.
 4. **The receipt photo is decoded, read, and discarded.** It is never written to the
-   database or to disk by this feature.
+   database. Amended 2026-10-19 by `specs/receipt_queue.spec.md`: a photo waits in the
+   app's private cache only until it has been read, then it is deleted.
 
 ### Parsing
 
@@ -179,3 +180,4 @@ Each is a reversible default, recorded so it can be revisited with evidence.
   inputs served from the host (see the file header). 2026-10-19 on the x86_64 emulator:
   synthetic receipt exact; a real 21-item receipt 21/21 found in 23 s.
 - Bake-off: `.warboss-horde/bakeoff/` (gitignored — holds private receipt photos)
+- Queue, batching and speed: see `specs/receipt_queue.spec.md`.

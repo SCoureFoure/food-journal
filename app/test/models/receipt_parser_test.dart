@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:food_journal/models/receipt_parser.dart';
 
@@ -180,6 +182,46 @@ void main() {
       expect(sequenceRatio('GROCER', 'GROCERY'), closeTo(12 / 13, 1e-9));
       expect(sequenceRatio('ABCD', 'BCDA'), closeTo(0.75, 1e-9));
       expect(sequenceRatio('', ''), 1.0);
+    });
+  });
+
+  group('[EQUIV] ParsedReceiptItem JSON round trip', () {
+    // testTheory: equivalence — serialising an item and reading it back yields
+    //   an equal item; a malformed map is rejected rather than coerced.
+    // contract: toJson -> jsonEncode -> jsonDecode -> fromJson preserves all
+    //   fields; qty is stored as double; missing or mistyped raw/qty/unit throw
+    //   FormatException('bad receipt item').
+    // implication: decision 9 — parsed items persist as JSON; a corrupt row must
+    //   fail loudly instead of becoming a bogus pantry item.
+
+    test('round trip preserves every field', () {
+      const item = ParsedReceiptItem(raw: 'LIMES W', qty: 2.26, unit: 'lb', food: true, name: 'limes');
+      final back = ParsedReceiptItem.fromJson(
+        jsonDecode(jsonEncode(item.toJson())) as Map<String, dynamic>,
+      );
+      expect(back.raw, 'LIMES W');
+      expect(back.qty, 2.26);
+      expect(back.unit, 'lb');
+      expect(back.food, true);
+      expect(back.name, 'limes');
+    });
+
+    test('missing food and name decode to null; integer qty becomes double', () {
+      final item = ParsedReceiptItem.fromJson({'raw': 'X', 'qty': 2, 'unit': 'ea'});
+      expect(item.qty, 2.0);
+      expect(item.food, isNull);
+      expect(item.name, isNull);
+    });
+
+    test('missing qty or mistyped raw throws FormatException', () {
+      expect(
+        () => ParsedReceiptItem.fromJson({'raw': 'X', 'unit': 'ea'}),
+        throwsA(isA<FormatException>()),
+      );
+      expect(
+        () => ParsedReceiptItem.fromJson({'raw': 1, 'qty': 1, 'unit': 'ea'}),
+        throwsA(isA<FormatException>()),
+      );
     });
   });
 }

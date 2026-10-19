@@ -22,7 +22,7 @@ class ReceiptReadException implements Exception {
 /// On-device PaddleOCR via ONNX Runtime. Sessions load lazily on first use and are kept.
 class OnnxReceiptReader implements ReceiptReader, OcrModelRunner {
   static const detAsset = 'assets/ocr/PP-OCRv6_det_small.onnx';
-  static const recAsset = 'assets/ocr/PP-OCRv6_rec_small.onnx';
+  static const recAsset = 'assets/ocr/PP-OCRv6_rec_small_argmax.onnx';
   static const dictAsset = 'assets/ocr/rec_dict.txt';
 
   late OrtSession _det;
@@ -34,8 +34,9 @@ class OnnxReceiptReader implements ReceiptReader, OcrModelRunner {
 
   Future<void> _load() async {
     final ort = OnnxRuntime();
-    _det = await ort.createSessionFromAsset(detAsset);
-    _rec = await ort.createSessionFromAsset(recAsset);
+    final options = OrtSessionOptions(intraOpNumThreads: 4);
+    _det = await ort.createSessionFromAsset(detAsset, options: options);
+    _rec = await ort.createSessionFromAsset(recAsset, options: options);
     final chars = (await rootBundle.loadString(dictAsset)).split('\n');
     if (chars.isNotEmpty && chars.last.isEmpty) chars.removeLast();
     _chars = chars;
@@ -65,9 +66,29 @@ class OnnxReceiptReader implements ReceiptReader, OcrModelRunner {
   }
 
   @override
-  Future<RecOutput> recognize(Float32List input, int w) async {
-    final (data, shape) = await _run(_rec, input, [1, 3, 48, w]);
-    return RecOutput(data, shape[1], shape[2]);
+  Future<RecBatchOutput> recognizeBatch(Float32List input, int n, int w) async {
+    final x = await OrtValue.fromList(input, [n, 3, 48, w]);
+    Map<String, OrtValue>? out;
+    try {
+      out = await _rec.run({'x': x});
+      final idxFlat = await out['idx']!.asFlattenedList();
+      final maxpFlat = await out['maxp']!.asFlattenedList();
+      final idx = [for (final e in idxFlat) (e as num).toInt()];
+      final List<double> maxp = maxpFlat is Float32List
+          ? maxpFlat
+          : [for (final e in maxpFlat) (e as num).toDouble()];
+      if (idx.length != maxp.length || idx.length % n != 0) {
+        throw const ReceiptReadException('Recogniser returned an unexpected size.');
+      }
+      return RecBatchOutput(idx, maxp, idx.length ~/ n);
+    } finally {
+      await x.dispose();
+      if (out != null) {
+        for (final v in out.values) {
+          await v.dispose();
+        }
+      }
+    }
   }
 
   Future<(Float32List, List<int>)> _run(OrtSession session, Float32List input, List<int> shape) async {

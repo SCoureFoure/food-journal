@@ -37,6 +37,7 @@ void main() {
     String? ocrText,
     String source = 'receipt',
     bool aiEnabled = true,
+    bool showDiscard = false,
   }) async {
     final results = <bool?>[];
     await tester.pumpWidget(MaterialApp(
@@ -49,6 +50,7 @@ void main() {
                   items: items ?? hannafordItems(),
                   ocrText: ocrText ?? hannafordLines.join('\n'),
                   source: source,
+                  showDiscard: showDiscard,
                   storageOverride: storage,
                   aiOverride: ai,
                   aiEnabledOverride: aiEnabled,
@@ -130,6 +132,27 @@ void main() {
       expect(results, isEmpty);
       expect(_id('receipt-review-screen'), findsOneWidget);
       expect(find.byType(SnackBar), findsOneWidget);
+    });
+  });
+
+  group('[MFT] discard from the queue', () {
+    // testTheory: minimum functionality — Discard is offered only for queued
+    //   receipts and leaves the pantry untouched.
+    // contract: showDiscard true → btn-receipt-discard pops false with no
+    //   storage writes; showDiscard default → control absent.
+    // implication: AC17 — a queued receipt can be dropped without saving anything.
+
+    testWidgets('AC17: discard pops false and saves nothing', (tester) async {
+      final results = await pump(tester, showDiscard: true);
+      await tester.tap(_id('btn-receipt-discard'));
+      await tester.pumpAndSettle();
+      expect(results, [false]);
+      expect(storage.items, isEmpty);
+    });
+
+    testWidgets('AC17: no discard control by default', (tester) async {
+      await pump(tester);
+      expect(_id('btn-receipt-discard'), findsNothing);
     });
   });
 

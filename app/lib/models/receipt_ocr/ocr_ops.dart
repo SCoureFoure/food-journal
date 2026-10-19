@@ -393,3 +393,53 @@ String groupRows(List<List<(double, double)>> boxes, List<String> texts) {
           .join(' '),
   ].join('\n');
 }
+
+/// Greedy CTC decode from per-step argmax [idx] and max probability [maxp] (same
+/// length). Same result as [ctcDecode] on the full scores.
+(String, double) ctcDecodeArgmax(List<int> idx, List<double> maxp, List<String> chars) {
+  final full = ['blank', ...chars, ' '];
+  final text = StringBuffer();
+  var sum = 0.0;
+  var count = 0;
+  for (var t = 0; t < idx.length; t++) {
+    if (idx[t] != 0 && (t == 0 || idx[t] != idx[t - 1])) {
+      text.write(full[idx[t]]);
+      sum += maxp[t];
+      count++;
+    }
+  }
+  if (count == 0) return ('', 0.0);
+  return (text.toString(), sum / count);
+}
+
+/// Batch plan for recogniser inputs of the given [widths]: indices sorted by width
+/// ascending (ties keep input order), cut into chunks of at most [batchSize].
+List<List<int>> recBatches(List<int> widths, {int batchSize = 8}) {
+  if (batchSize < 1) throw ArgumentError.value(batchSize, 'batchSize', 'must be at least 1');
+  final order = [for (var i = 0; i < widths.length; i++) i]
+    ..sort((a, b) => widths[a] != widths[b] ? widths[a].compareTo(widths[b]) : a.compareTo(b));
+  return [
+    for (var s = 0; s < order.length; s += batchSize)
+      order.sublist(s, math.min(s + batchSize, order.length)),
+  ];
+}
+
+/// Stacks recogniser inputs (each CHW 3x48x[width]) into one NCHW tensor, each item
+/// right-padded with 0.0 to the widest one.
+({Float32List data, int n, int width}) stackRecInputs(List<({Float32List data, int width})> inputs) {
+  if (inputs.isEmpty) throw ArgumentError.value(inputs, 'inputs', 'must not be empty');
+  final n = inputs.length;
+  final width = inputs.map((e) => e.width).reduce(math.max);
+  final out = Float32List(n * 3 * 48 * width);
+  for (var i = 0; i < n; i++) {
+    final inp = inputs[i];
+    for (var c = 0; c < 3; c++) {
+      for (var y = 0; y < 48; y++) {
+        for (var x = 0; x < inp.width; x++) {
+          out[((i * 3 + c) * 48 + y) * width + x] = inp.data[(c * 48 + y) * inp.width + x];
+        }
+      }
+    }
+  }
+  return (data: out, n: n, width: width);
+}
