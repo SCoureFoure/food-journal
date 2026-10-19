@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:food_journal/screens/meal_planning/meal_planning_screen.dart';
 import 'package:food_journal/widgets/grocery_list_card.dart';
+import 'package:food_journal/widgets/pantry_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -139,6 +140,24 @@ void main() {
         matching: find.byType(TextButton),
       );
       expect(buttonFinder, findsNothing);
+    });
+  });
+  /// [MFT] Pantry placement — AC19 of specs/receipt_scan.spec.md: the pantry card
+  /// sits between the planner stub and the grocery card. If this regresses the
+  /// receipt-scan entry point moves or vanishes from the planning surface.
+  group('[MFT] MealPlanningScreen pantry placement', () {
+    testWidgets('AC19: stub, pantry card, grocery card in that order', (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: MealPlanningScreen()));
+      await tester.pumpAndSettle();
+
+      final stub = find.byWidgetPredicate(
+        (w) => w is Semantics && w.properties.identifier == 'planner-stub-card',
+      );
+      final stubY = tester.getTopLeft(stub).dy;
+      final pantryY = tester.getTopLeft(find.byType(PantryCard)).dy;
+      final groceryY = tester.getTopLeft(find.byType(GroceryListCard, skipOffstage: false)).dy;
+      expect(stubY, lessThan(pantryY));
+      expect(pantryY, lessThan(groceryY));
     });
   });
 }

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import '../models/food_item.dart';
 import '../models/grocery.dart';
+import '../models/receipt_parser.dart';
 import 'worker_ai_service.dart';
 
 class MealParseResult {
@@ -48,6 +49,14 @@ class GroceryTidyResult {
   GroceryTidyResult({required this.success, this.sections, this.errorMessage});
 }
 
+class ReceiptParseResult {
+  final bool success;
+  final List<ParsedReceiptItem>? items;
+  final String? errorMessage;
+
+  ReceiptParseResult({required this.success, this.items, this.errorMessage});
+}
+
 abstract class AiService {
   Future<MealParseResult> parseMeal({
     String? text,
@@ -64,6 +73,9 @@ abstract class AiService {
   /// Turns a raw frequency-ranked food list into a merged, section-grouped
   /// shopping list. See specs/groceries.spec.md.
   Future<GroceryTidyResult> tidyGroceryList(String rawList);
+
+  /// Sends receipt item text to the Worker for generic food naming. See specs/receipt_scan.spec.md.
+  Future<ReceiptParseResult> parseReceipt(String ocrText, {List<String> knownFoods = const []});
 
   factory AiService.fromEnv() => WorkerAiService();
 }

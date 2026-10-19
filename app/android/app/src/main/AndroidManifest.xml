@@ -36,6 +36,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- The ONNX plugin runs inference on the platform thread; keep it off the Dart UI thread. -->
+        <meta-data
+            android:name="io.flutter.embedding.android.DisableMergedPlatformUIThread"
+            android:value="true" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

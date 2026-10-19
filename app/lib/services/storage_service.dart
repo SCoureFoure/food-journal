@@ -10,6 +10,7 @@ import '../models/food_suspicion.dart';
 import '../models/ingredient.dart';
 import '../models/meal_entry.dart';
 import '../models/medication.dart';
+import '../models/pantry_item.dart';
 import '../models/reaction_log.dart';
 import '../models/saved_item.dart';
 import '../models/water_log.dart';
@@ -947,6 +948,69 @@ class StorageService {
         createdAt: row.createdAt,
       );
     }).toList();
+  }
+
+  // ── Pantry ───────────────────────────────────────────────────────────────────
+
+  Future<void> addPantryItems(List<PantryItem> items) async {
+    if (items.isEmpty) return;
+    await _db.transaction(() async {
+      for (final item in items) {
+        await _db.into(_db.pantryItems).insert(
+          db.PantryItemsCompanion.insert(
+            name: item.name,
+            canonicalName: canonicalize(item.name),
+            quantity: item.quantity,
+            unit: item.unit,
+            source: item.source,
+            rawText: Value(item.rawText),
+            addedAt: item.addedAt,
+            createdAt: DateTime.now(),
+          ),
+        );
+      }
+    });
+  }
+
+  Future<List<PantryItem>> getPantryItems() async {
+    final rows = await (_db.select(_db.pantryItems)
+          ..orderBy([
+            (t) => OrderingTerm.desc(t.addedAt),
+            (t) => OrderingTerm.desc(t.id),
+          ]))
+        .get();
+    return rows.map((row) {
+      return PantryItem(
+        id: row.id,
+        name: row.name,
+        quantity: row.quantity,
+        unit: row.unit,
+        source: row.source,
+        rawText: row.rawText,
+        addedAt: row.addedAt,
+      );
+    }).toList();
+  }
+
+  Future<void> deletePantryItem(int id) async {
+    await (_db.delete(_db.pantryItems)..where((t) => t.id.equals(id))).go();
+  }
+
+  /// One name per canonical food key, most-logged first (then name asc), capped
+  /// at [limit]. Feeds the AI receipt clean-up so it reuses the journal's names.
+  Future<List<String>> getKnownFoodNames({int limit = 200}) async {
+    final rows = await _db.customSelect(
+      '''
+        SELECT MIN(name) AS name, COUNT(*) AS n
+        FROM food_items
+        GROUP BY COALESCE(NULLIF(canonical_name, ''), LOWER(name))
+        ORDER BY n DESC, name ASC
+        LIMIT ?
+      ''',
+      variables: [Variable.withInt(limit)],
+      readsFrom: {_db.foodItems},
+    ).get();
+    return rows.map((row) => row.read<String>('name')).toList();
   }
 
   // ── Misc ─────────────────────────────────────────────────────────────────────

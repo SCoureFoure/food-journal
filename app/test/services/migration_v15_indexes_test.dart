@@ -55,7 +55,7 @@ void main() {
       if (tmp.existsSync()) tmp.deleteSync(recursive: true);
     });
 
-    test('preserves data, adds indexes, bumps user_version to 15', () async {
+    test('preserves data, adds indexes, bumps user_version to current', () async {
       final seed = AppDatabase.forTesting(NativeDatabase(file));
       await seed.customStatement(
         'INSERT INTO meals (id, date, time, meal_type, created_at) '
@@ -95,7 +95,7 @@ void main() {
       expect(item.single.read<String>('name'), 'rice');
 
       final v = await db.customSelect('PRAGMA user_version').getSingle();
-      expect(v.read<int>('user_version'), 15);
+      expect(v.read<int>('user_version'), AppDatabase.currentSchemaVersion);
     });
   });
 }

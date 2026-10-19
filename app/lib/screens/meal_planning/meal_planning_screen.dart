@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../widgets/folder_palette.dart';
 import '../../widgets/grocery_list_card.dart';
 import '../../widgets/panel_container.dart';
+import '../../widgets/pantry_card.dart';
 
 class MealPlanningScreen extends StatelessWidget {
   const MealPlanningScreen({super.key});
@@ -19,6 +20,7 @@ class MealPlanningScreen extends StatelessWidget {
           padding: const EdgeInsets.only(top: 8, bottom: 100),
           children: const [
             _PlannerStubCard(),
+            PantryCard(),
             GroceryListCard(),
           ],
         ),
