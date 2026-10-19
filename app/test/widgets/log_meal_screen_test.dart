@@ -27,6 +27,10 @@ import 'package:food_journal/widgets/reuse_suggestion.dart';
 // ── Fakes ─────────────────────────────────────────────────────────────────────
 
 class _FakeAi implements AiService {
+  @override
+  Future<ReceiptParseResult> parseReceipt(String ocrText, {List<String> knownFoods = const []}) async =>
+      ReceiptParseResult(success: false, errorMessage: 'not used');
+
   final MealParseResult Function(String? text, Uint8List? image) mealImpl;
   int calls = 0;
   String? lastText;

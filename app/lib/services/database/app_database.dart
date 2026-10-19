@@ -157,9 +157,21 @@ class SavedItems extends Table {
   DateTimeColumn get createdAt => dateTime()();
 }
 
+class PantryItems extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  TextColumn get canonicalName => text()();
+  RealColumn get quantity => real()();
+  TextColumn get unit => text()();
+  TextColumn get source => text()();
+  TextColumn get rawText => text().nullable()();
+  DateTimeColumn get addedAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
 // ─── Database ─────────────────────────────────────────────────────────────────
 
-@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories, Medications, MealFingerprints, WaterLogs, WeightLogs, SavedItems, FoodSuspicions, SuspicionExclusions])
+@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories, Medications, MealFingerprints, WaterLogs, WeightLogs, SavedItems, FoodSuspicions, SuspicionExclusions, PantryItems])
 class AppDatabase extends _$AppDatabase {
   static final AppDatabase _instance = AppDatabase._internal();
 
@@ -172,11 +184,11 @@ class AppDatabase extends _$AppDatabase {
 
   // Exposed as a static constant so tests can assert the current version
   // without instantiating the singleton (which requires native sqlite3).
-  static const int currentSchemaVersion = 15;
+  static const int currentSchemaVersion = 16;
 
   // The declared migration ceiling versions in the order they appear in
   // onUpgrade.  Must be non-decreasing — tested in migration_order_test.dart.
-  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -360,6 +372,22 @@ class AppDatabase extends _$AppDatabase {
       if (from < 15) {
         // v15 adds lookup indexes only and is data-preserving.
         await _createIndexes();
+      }
+      if (from < 16) {
+        // v16 adds the pantry (receipt scan). Additive only.
+        await customStatement('''
+          CREATE TABLE IF NOT EXISTS pantry_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            canonical_name TEXT NOT NULL,
+            quantity REAL NOT NULL,
+            unit TEXT NOT NULL,
+            source TEXT NOT NULL,
+            raw_text TEXT,
+            added_at INTEGER NOT NULL,
+            created_at INTEGER NOT NULL
+          )
+        ''');
       }
     },
   );

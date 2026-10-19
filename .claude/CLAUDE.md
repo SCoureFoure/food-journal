@@ -155,7 +155,7 @@ The modes above are executed by concrete tooling — use it, don't reinvent it.
 - **Services as tool interface**: service methods designed to be exposable as Claude tool-use (function calling). Clear typed inputs/outputs, single responsibility. Forward-compatible for AI calling services as tools.
 - **Entry types**: journal tracks `meal`, `medication`, `water`, `weight`, and standalone `feeling` check-ins (a `ReactionLogs` row with `mealId` NULL). All appear in same chronological feed. Each has its own table; all share date/time/notes/created_at. `body_output` is planned, not current.
 - **AI input parsing**: Cloudflare Worker + Gemini (`MEAL_PARSER_URL`) — text + image → structured JSON (meals + medications). App talks only to the Worker; no direct LLM key in the app binary
-- **Local storage**: SQLite via `drift` — meals, food_items, ingredients, reaction_logs, food_memories, food_suspicions, suspicion_exclusions, medications, meal_fingerprints, water_logs, weight_logs, saved_items
+- **Local storage**: SQLite via `drift` — meals, food_items, ingredients, reaction_logs, food_memories, food_suspicions, suspicion_exclusions, medications, meal_fingerprints, water_logs, weight_logs, saved_items, pantry_items
 - **Notifications**: `flutter_local_notifications` — check-in scheduled on save of any entry that warrants follow-up (configurable delay, default 90 min); permission prompt on first save if not yet granted
 - **Camera**: `image_picker` with `ImageSource.camera` as primary; gallery as secondary option on photo attach
 - **Export**: JSON snapshot of all entry types (timestamped `.json` file, shared via system share sheet). Grocery list: frequency-ranked list with an optional AI tidy pass, on the Meal Planning tab (see `specs/groceries.spec.md`).
@@ -163,7 +163,7 @@ The modes above are executed by concrete tooling — use it, don't reinvent it.
 
 ## Data model (core)
 
-Schema version **15** (`AppDatabase.currentSchemaVersion`). Ground truth: `app/lib/services/database/app_database.dart`.
+Schema version **16** (`AppDatabase.currentSchemaVersion`). Ground truth: `app/lib/services/database/app_database.dart`.
 
 ```text
 Meals         { id, date, time, mealType, overallSymptoms, rawInput, createdAt, imageData }
@@ -178,6 +178,7 @@ MealFingerprints { id, mealId, date, mealType, foodsSummary, totalCals, totalPro
 WaterLogs     { id, date, time, amountMl, notes, createdAt }
 WeightLogs    { id, date, time, weightValue, unit, notes, createdAt }
 SavedItems    { id, name, calories, protein, carbs, fat, componentsJson, createdAt }
+PantryItems   { id, name, canonicalName, quantity, unit, source, rawText, addedAt, createdAt }
 ```
 
 **Planned, not implemented:** BodyOutput { id, date, time, outputType, urgency, consistency, notes } — no table, no model as of schema v15.

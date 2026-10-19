@@ -74,6 +74,10 @@ class _FakeStorage extends StorageService {
 // each throws UnimplementedError.
 
 class _FakeAiService implements AiService {
+  @override
+  Future<ReceiptParseResult> parseReceipt(String ocrText, {List<String> knownFoods = const []}) async =>
+      ReceiptParseResult(success: false, errorMessage: 'not used');
+
   final GroceryTidyResult result;
   String? capturedRawList;
   bool tidyGroceryListCalled = false;

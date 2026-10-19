@@ -43,6 +43,10 @@ class _FakeStorage extends StorageService {
 }
 
 class _FakeAi implements AiService {
+  @override
+  Future<ReceiptParseResult> parseReceipt(String ocrText, {List<String> knownFoods = const []}) async =>
+      ReceiptParseResult(success: false, errorMessage: 'not used');
+
   final MedicationParseResult Function() medImpl;
   int calls = 0;
   _FakeAi(this.medImpl);

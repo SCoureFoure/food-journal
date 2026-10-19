@@ -4,16 +4,18 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import '../models/food_item.dart';
 import '../models/grocery.dart';
+import '../models/receipt_parser.dart';
 import 'ai_service.dart';
 
 class WorkerAiService implements AiService {
-  final _client = http.Client();
+  final http.Client _client;
   final String? _workerUrl;
   final String? _authToken;
 
-  WorkerAiService({String? workerUrl, String? authToken})
+  WorkerAiService({String? workerUrl, String? authToken, http.Client? client})
       : _workerUrl = workerUrl,
-        _authToken = authToken;
+        _authToken = authToken,
+        _client = client ?? http.Client();
 
   String get _resolvedUrl => _workerUrl ?? dotenv.env['MEAL_PARSER_URL'] ?? '';
 
@@ -195,6 +197,50 @@ class WorkerAiService implements AiService {
       return GroceryTidyResult(success: true, sections: sections);
     } catch (e) {
       return GroceryTidyResult(success: false, errorMessage: e.toString());
+    }
+  }
+
+  @override
+  Future<ReceiptParseResult> parseReceipt(String ocrText, {List<String> knownFoods = const []}) async {
+    final text = ocrText.trim();
+    if (text.isEmpty) {
+      return ReceiptParseResult(success: false, errorMessage: 'No receipt text to read.');
+    }
+    if (_resolvedUrl.isEmpty) {
+      return ReceiptParseResult(success: false, errorMessage: 'MEAL_PARSER_URL not set in .env');
+    }
+
+    try {
+      final response = await _post({
+        'task': 'parse_receipt',
+        'text': buildReceiptAiText(ocrText, knownFoods),
+      });
+
+      if (response.statusCode != 200) {
+        return ReceiptParseResult(
+          success: false,
+          errorMessage: 'Worker error ${response.statusCode}: ${response.body}',
+        );
+      }
+
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      final items = <ParsedReceiptItem>[];
+      for (final e in (json['items'] as List).cast<Map<String, dynamic>>()) {
+        final raw = (e['raw'] as String?)?.trim() ?? '';
+        if (raw.isEmpty) continue;
+        final name = e['name'] as String?;
+        items.add(ParsedReceiptItem(
+          raw: raw,
+          qty: (e['qty'] as num?)?.toDouble() ?? 1.0,
+          unit: e['unit'] == 'lb' ? 'lb' : 'ea',
+          food: e['food'] as bool?,
+          name: (name == null || name.isEmpty) ? null : name,
+        ));
+      }
+
+      return ReceiptParseResult(success: true, items: items);
+    } catch (e) {
+      return ReceiptParseResult(success: false, errorMessage: e.toString());
     }
   }
 

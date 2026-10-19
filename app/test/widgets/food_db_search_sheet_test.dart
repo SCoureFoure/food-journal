@@ -16,6 +16,10 @@ import 'package:food_journal/widgets/food_db_search_sheet.dart';
 // ── Fake AiService ────────────────────────────────────────────────────────────
 
 class _FakeAi implements AiService {
+  @override
+  Future<ReceiptParseResult> parseReceipt(String ocrText, {List<String> knownFoods = const []}) async =>
+      ReceiptParseResult(success: false, errorMessage: 'not used');
+
   final Future<FoodDbSearchResult> Function(String query) searchImpl;
   final List<String> queries = [];
 
