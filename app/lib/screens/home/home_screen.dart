@@ -248,6 +248,9 @@ class HomeScreenState extends State<HomeScreen> {
         itemBuilder: (_, i) {
           final group = groups[i];
           return WeekSummarySection(
+            // Keyed by week so a kept-alive section stays with its week when a
+            // new week is added at the top of the list.
+            key: ValueKey(group.weekStart),
             weekStart: group.weekStart,
             dates: group.dates,
             mealsByDate: _mealsByDate,

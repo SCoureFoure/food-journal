@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -48,9 +49,23 @@ class _DateSectionState extends State<DateSection> {
   ({int cal, double prot, double carbs, double fat})? _totals;
   bool _totalsLoaded = false;
 
+  static List<int> _mealIds(List<MealEntry> meals) =>
+      meals.where((m) => m.id != null).map((m) => m.id!).toList();
+
+  // The journal keeps sections alive while scrolling, so an opened day can
+  // outlive the meal list its totals were loaded for.
+  @override
+  void didUpdateWidget(DateSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_totalsLoaded && !listEquals(_mealIds(oldWidget.meals), _mealIds(widget.meals))) {
+      _totalsLoaded = false;
+      _loadTotals();
+    }
+  }
+
   Future<void> _loadTotals() async {
     if (_totalsLoaded || widget.storage == null) return;
-    final ids = widget.meals.where((m) => m.id != null).map((m) => m.id!).toList();
+    final ids = _mealIds(widget.meals);
     final t = await widget.storage!.getMacroTotalsForMeals(ids);
     if (!mounted) return;
     setState(() {

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -49,8 +50,15 @@ class WeekSummarySection extends StatefulWidget {
   State<WeekSummarySection> createState() => _WeekSummarySectionState();
 }
 
-class _WeekSummarySectionState extends State<WeekSummarySection> {
+// Kept alive so the lazy journal list does not dispose a week once it scrolls
+// out of the cache: rebuilding it lost its expansion and reloaded the totals,
+// which popped in and made the page jump mid-scroll.
+class _WeekSummarySectionState extends State<WeekSummarySection>
+    with AutomaticKeepAliveClientMixin {
   ({int cal, double prot, double carbs, double fat})? _totals;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -58,13 +66,24 @@ class _WeekSummarySectionState extends State<WeekSummarySection> {
     _loadTotals();
   }
 
+  @override
+  void didUpdateWidget(WeekSummarySection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!listEquals(_mealIds(oldWidget), _mealIds(widget))) _loadTotals();
+  }
+
+  static List<int> _mealIds(WeekSummarySection w) => w.dates
+      .expand<MealEntry>((d) => w.mealsByDate[d] ?? [])
+      .where((m) => m.id != null)
+      .map((m) => m.id!)
+      .toList();
+
   Future<void> _loadTotals() async {
-    final ids = widget.dates
-        .expand<MealEntry>((d) => widget.mealsByDate[d] ?? [])
-        .where((m) => m.id != null)
-        .map((m) => m.id!)
-        .toList();
-    if (ids.isEmpty) return;
+    final ids = _mealIds(widget);
+    if (ids.isEmpty) {
+      if (_totals != null) setState(() => _totals = null);
+      return;
+    }
     final fetch = widget.macroFetcher ?? widget.storage!.getMacroTotalsForMeals;
     final t = await fetch(ids);
     if (!mounted) return;
@@ -82,6 +101,7 @@ class _WeekSummarySectionState extends State<WeekSummarySection> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final theme = Theme.of(context);
     // The journal tab's colour, not the theme's — the spine has to agree with
     // the tab standing above it.

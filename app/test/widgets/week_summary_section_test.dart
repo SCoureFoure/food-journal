@@ -298,6 +298,99 @@ void main() {
     });
   });
 
+  // ── Lazy journal list — state kept, totals kept fresh ─────────────────────
+
+  /// [INV] Section state across scrolling — the journal is a lazy list of week
+  /// sections that load their totals in initState. Without keep-alive a section
+  /// that left the list cache was disposed, so scrolling back rebuilt it with no
+  /// totals, collapsed, and reloaded: the macro bar popped in and the page
+  /// jumped. Each section must keep its State and fetch its totals once.
+  group('[INV] WeekSummarySection — state survives a lazy list scroll', () {
+    testWidgets('same State and one fetch per week after scrolling away and back',
+        (tester) async {
+      tester.view.physicalSize = const Size(400, 200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final weeks = [for (var i = 0; i < 30; i++) _monday.subtract(Duration(days: 7 * i))];
+      final fetches = <int, int>{};
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: ListView.builder(
+            itemCount: weeks.length,
+            itemBuilder: (_, i) => WeekSummarySection(
+              key: ValueKey(weeks[i]),
+              weekStart: weeks[i],
+              dates: [weeks[i]],
+              mealsByDate: {weeks[i]: [_meal(i + 1, weeks[i])]},
+              medsByDate: const {},
+              feelingsByDate: const {},
+              waterByDate: const {},
+              weightByDate: const {},
+              isToday: (_) => false,
+              onReload: () {},
+              macroFetcher: (ids) async {
+                fetches.update(ids.single, (n) => n + 1, ifAbsent: () => 1);
+                return (cal: 100, prot: 0.0, carbs: 0.0, fat: 0.0);
+              },
+            ),
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      final first = tester.state(find.byKey(ValueKey(weeks[0])));
+      final scrollable = find.byType(Scrollable).first;
+      // Step like a finger scroll: one giant jump would build and drop the
+      // sections it skips within a single frame, before keep-alive applies.
+      Future<void> scroll(double dy) async {
+        for (var i = 0; i < 60; i++) {
+          await tester.drag(scrollable, Offset(0, dy));
+          await tester.pump();
+        }
+        await tester.pumpAndSettle();
+      }
+
+      await scroll(-150);
+      await scroll(150);
+
+      expect(identical(tester.state(find.byKey(ValueKey(weeks[0]))), first), isTrue);
+      expect(fetches.values.where((n) => n > 1), isEmpty, reason: 'refetched: $fetches');
+    });
+  });
+
+  /// [DIR] Totals follow the meals — a kept-alive section outlives the data it
+  /// was built with. When the journal reloads with a meal added to this week,
+  /// the header must show the new total, not the one loaded at first build.
+  group('[DIR] WeekSummarySection — totals refresh when meals change', () {
+    testWidgets('adding a meal to the week updates the calorie subtitle', (tester) async {
+      MacroFetcher byCount() =>
+          (ids) async => (cal: 100 * ids.length, prot: 0.0, carbs: 0.0, fat: 0.0);
+      final day2 = _monday.add(const Duration(days: 1));
+
+      await tester.pumpWidget(_wrap(_section(
+        weekStart: _monday,
+        dates: [_monday],
+        mealsByDate: {_monday: [_meal(1, _monday)]},
+        fetcher: byCount(),
+      )));
+      await tester.pump();
+      expect(find.text('1 meal · 100 cal'), findsOneWidget);
+
+      await tester.pumpWidget(_wrap(_section(
+        weekStart: _monday,
+        dates: [_monday, day2],
+        mealsByDate: {
+          _monday: [_meal(1, _monday)],
+          day2: [_meal(2, day2)],
+        },
+        fetcher: byCount(),
+      )));
+      await tester.pump();
+      expect(find.text('2 meals · 200 cal'), findsOneWidget);
+    });
+  });
+
   // DateSection child rendering is covered by date_section_test.dart.
   // WeekSummarySection skips DateSection rendering when storage is null
   // (test-only path; production always supplies storage).
