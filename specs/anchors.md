@@ -28,6 +28,11 @@ touches and links back here; it does not redefine meaning or fallback.
 | Blame history| `blame-history-item-<logId>-<symptom-slug>` | Episode-symptom row: date, severity, blamed item names. `symptom-slug` = lowercase, spaces→dashes (e.g. "Stomach pain" → `stomach-pain`) (blame_history) |
 | Blame history| `btn-blame-history-toggle-<logId>-<symptom-slug>` | Dismiss/restore control on a row — toggles its exclusion (blame_history) |
 | Blame history| `blame-history-empty-state`     | Empty-state message when no blamed episodes exist. Reach unverified. |
+| Blame history| `tab-blame-episodes`           | Episodes tab (default) on the blame history screen (blame_suspects). Reach unverified. |
+| Blame history| `tab-blame-suspects`           | Suspects tab — ranked likely triggers per symptom (blame_suspects). Reach unverified. |
+| Blame history| `blame-suspects-section-<symptom-slug>` | Symptom section header on the Suspects tab; slug rule as `blame-history-item-…` (blame_suspects) |
+| Blame history| `blame-suspect-item-<symptom-slug>-<name-slug>` | Suspect row: name + "Blamed in N check-ins · eaten M times". Name slug = canonical name, spaces→dashes (blame_suspects) |
+| Blame history| `blame-suspects-empty-state`   | Empty state when no item meets the 3-check-in threshold (blame_suspects). Reach unverified. |
 | App shell    | `app-shell`                     | Two-tab shell root at route `/` — owns the AppBar, the folder tabs, and the lined-paper background (meal_planning) |
 | App shell    | `tab-food-journal`              | Folder tab 0 — selects the journal. Verified on device 2026-08-30: surfaces its own resource-id, directly ADB-tappable (content-desc "Food Journal") (meal_planning) |
 | App shell    | `tab-meal-planning`             | Folder tab 1 — selects the planning surface. Verified on device 2026-08-30: surfaces its own resource-id, directly ADB-tappable (content-desc "Meal Planning") (meal_planning) |

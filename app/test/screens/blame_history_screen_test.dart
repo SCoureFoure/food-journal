@@ -18,11 +18,20 @@ class _FakeStorage extends StorageService {
   List<BlameHistoryEntry> entries = [];
   Object? loadError;
   final List<({int reactionLogId, String symptom})> toggled = [];
+  List<SuspectEntry> suspects = [];
+  int suspectLoads = 0;
 
   @override
   Future<List<BlameHistoryEntry>> getBlameHistory() async {
     if (loadError != null) throw loadError!;
     return entries;
+  }
+
+  @override
+  Future<List<SuspectEntry>> getSuspects() async {
+    suspectLoads++;
+    if (loadError != null) throw loadError!;
+    return suspects;
   }
 
   @override
@@ -61,6 +70,22 @@ BlameHistoryEntry _entry(
       blamedNames: names,
       dismissed: dismissed,
     );
+
+SuspectEntry _suspect(String symptom, String name,
+        {int episodes = 3, int eaten = 4, double score = 3}) =>
+    SuspectEntry(
+      targetName: name,
+      symptom: symptom,
+      score: score,
+      episodeCount: episodes,
+      timesEaten: eaten,
+      rate: score / (eaten < 1 ? 1 : eaten),
+    );
+
+Future<void> _openSuspectsTab(WidgetTester t) async {
+  await t.tap(find.text('Suspects'));
+  await t.pumpAndSettle();
+}
 
 Future<void> _pump(WidgetTester tester, _FakeStorage storage) async {
   await tester.pumpWidget(MaterialApp(
@@ -184,6 +209,78 @@ void main() {
     await _pump(t, storage);
     expect(find.textContaining("Couldn't load blame history"), findsOneWidget);
     expect(find.bySemanticsIdentifier('blame-history-empty-state'), findsNothing);
+  });
+
+  group('[MFT] blame_suspects tabs', () {
+    // testTheory: MFT
+    // contract: The screen exposes Episodes and Suspects tabs; Suspects lists
+    //   each symptom section with its targets, eaten counts, and an empty state.
+    // implication: Without the Suspects tab users cannot see which foods or
+    //   medications are repeatedly blamed for a symptom.
+
+    testWidgets('AC10 both tab anchors render and the Episodes list is the default tab', (t) async {
+      final storage = _FakeStorage()
+        ..entries = [
+          _entry(1, 'Nausea', severity: ReactionLevel.bad, names: ['salad']),
+        ];
+      await _pump(t, storage);
+
+      expect(find.bySemanticsIdentifier('tab-blame-episodes'), findsOneWidget);
+      expect(find.bySemanticsIdentifier('tab-blame-suspects'), findsOneWidget);
+      expect(find.bySemanticsIdentifier('blame-history-item-1-nausea'), findsOneWidget);
+    });
+
+    testWidgets('AC11 suspects are grouped by symptom, ordered by rank, with eaten-count subtitles',
+        (t) async {
+      final storage = _FakeStorage()
+        ..suspects = [
+          _suspect('Bloating', 'milk', episodes: 4, eaten: 1),
+          _suspect('Bloating', 'oat bran', eaten: 0),
+          _suspect('Stomach pain', 'coffee'),
+        ];
+      await _pump(t, storage);
+      await _openSuspectsTab(t);
+
+      expect(find.bySemanticsIdentifier('blame-suspects-section-bloating'), findsOneWidget);
+      expect(find.bySemanticsIdentifier('blame-suspects-section-stomach-pain'), findsOneWidget);
+      expect(find.bySemanticsIdentifier('blame-suspect-item-bloating-milk'), findsOneWidget);
+      expect(find.bySemanticsIdentifier('blame-suspect-item-bloating-oat-bran'), findsOneWidget);
+      expect(find.bySemanticsIdentifier('blame-suspect-item-stomach-pain-coffee'), findsOneWidget);
+
+      expect(find.text('Milk'), findsOneWidget);
+      expect(find.text('Oat Bran'), findsOneWidget);
+      expect(find.text('Blamed in 4 check-ins · eaten 1 time'), findsOneWidget);
+      expect(find.text('Blamed in 3 check-ins · eaten 0 times'), findsOneWidget);
+      expect(find.text('Blamed in 3 check-ins · eaten 4 times'), findsOneWidget);
+
+      // fake returns the list as given; screen must not re-sort.
+      expect(topOf(t, 'blame-suspect-item-bloating-milk'),
+          lessThan(topOf(t, 'blame-suspect-item-bloating-oat-bran')));
+    });
+
+    testWidgets('AC12 empty suspects shows the empty state with the threshold message', (t) async {
+      await _pump(t, _FakeStorage()..suspects = []);
+      await _openSuspectsTab(t);
+
+      expect(find.bySemanticsIdentifier('blame-suspects-empty-state'), findsOneWidget);
+      expect(find.textContaining('at least 3 check-ins'), findsOneWidget);
+    });
+
+    testWidgets('AC13 dismissing an episode reloads suspects', (t) async {
+      final storage = _FakeStorage()
+        ..entries = [
+          _entry(1, 'Nausea', severity: ReactionLevel.bad, names: ['salad']),
+        ];
+      await _pump(t, storage);
+      final before = storage.suspectLoads;
+
+      // TextButton/OutlinedButton absorb their Semantics identifier (✱) —
+      // tap by label, matching the existing AC4 toggle test.
+      await t.tap(find.widgetWithText(TextButton, 'Dismiss'));
+      await t.pumpAndSettle();
+
+      expect(storage.suspectLoads, before + 1);
+    });
   });
 }
 

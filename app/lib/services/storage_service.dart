@@ -617,6 +617,38 @@ class StorageService {
     );
   }
 
+  /// Ranked likely triggers per symptom for the blame-history Suspects tab —
+  /// every ledger row, minus dismissed episodes, rated against how often each
+  /// item appears in history. See specs/blame_suspects.spec.md.
+  Future<List<SuspectEntry>> getSuspects() async {
+    final rows = await _db.select(_db.foodSuspicions).get();
+    if (rows.isEmpty) return const [];
+    final suspicions = rows.map(_suspicionFromRow).toList();
+
+    final exclusions = await _db.select(_db.suspicionExclusions).get();
+    final dismissedKeys = exclusions
+        .map((e) => blameHistoryKey(e.reactionLogId, e.symptom))
+        .toSet();
+
+    final timesEatenByName = <String, int>{};
+    final foodItems = await _db.select(_db.foodItems).get();
+    for (final item in foodItems) {
+      final key = item.canonicalName ?? canonicalize(item.name);
+      timesEatenByName[key] = (timesEatenByName[key] ?? 0) + 1;
+    }
+    final medications = await _db.select(_db.medications).get();
+    for (final med in medications) {
+      final key = med.canonicalName ?? canonicalize(med.name);
+      timesEatenByName[key] = (timesEatenByName[key] ?? 0) + 1;
+    }
+
+    return buildSuspects(
+      rows: suspicions,
+      dismissedKeys: dismissedKeys,
+      timesEatenByName: timesEatenByName,
+    );
+  }
+
   /// Target+id keys (`type:id`) the user manually blamed on [logId] — used to
   /// pre-select the blame modal when editing a check-in.
   Future<Set<String>> getManualBlameKeysForLog(int logId) async {

@@ -11,6 +11,10 @@ import '../../widgets/reaction_badge.dart';
 /// excludes the whole episode from `getBlameHistory` aggregation without
 /// touching the underlying check-in. See specs/blame_history.spec.md.
 ///
+/// A second "Suspects" tab lists the foods/medications blamed for the same
+/// symptom in at least `kSuspectMinEpisodes` check-ins, grouped by symptom.
+/// See specs/blame_suspects.spec.md.
+///
 /// Deliberately read-only beyond the toggle: no time editing, no navigation
 /// into the check-in — that stays in `log_feeling`'s native edit flow.
 class BlameHistoryScreen extends StatefulWidget {
@@ -26,6 +30,7 @@ class _BlameHistoryScreenState extends State<BlameHistoryScreen> {
   late final StorageService _storage = widget.storageOverride ?? StorageService();
 
   List<BlameHistoryEntry>? _entries; // null = still loading
+  List<SuspectEntry>? _suspects; // null = still loading
   String? _error;
 
   static final _dateFmt = DateFormat('MMM d, yyyy');
@@ -45,9 +50,11 @@ class _BlameHistoryScreenState extends State<BlameHistoryScreen> {
   Future<void> _load() async {
     try {
       final entries = await _storage.getBlameHistory();
+      final suspects = await _storage.getSuspects();
       if (!mounted) return;
       setState(() {
         _entries = entries;
+        _suspects = suspects;
         _error = null;
       });
     } catch (e) {
@@ -72,18 +79,36 @@ class _BlameHistoryScreenState extends State<BlameHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Semantics(
       identifier: 'blame-history-screen',
-      child: Scaffold(
-        appBar: AppBar(title: const Text('Blame History')),
-        body: _buildBody(Theme.of(context)),
+      child: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('Blame History'),
+            bottom: TabBar(
+              tabs: [
+                Semantics(
+                  identifier: 'tab-blame-episodes',
+                  child: const Tab(text: 'Episodes'),
+                ),
+                Semantics(
+                  identifier: 'tab-blame-suspects',
+                  child: const Tab(text: 'Suspects'),
+                ),
+              ],
+            ),
+          ),
+          body: TabBarView(
+            children: [_buildBody(theme), _buildSuspectsBody(theme)],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildBody(ThemeData theme) {
-    if (_error != null) {
-      return Center(
+  Widget _errorBody(ThemeData theme) => Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Text(_error!,
@@ -91,7 +116,62 @@ class _BlameHistoryScreenState extends State<BlameHistoryScreen> {
               style: TextStyle(color: theme.colorScheme.error)),
         ),
       );
+
+  Widget _buildSuspectsBody(ThemeData theme) {
+    if (_error != null) return _errorBody(theme);
+    final suspects = _suspects;
+    if (suspects == null) {
+      return const Center(child: CircularProgressIndicator());
     }
+    if (suspects.isEmpty) {
+      return Center(
+        child: Semantics(
+          identifier: 'blame-suspects-empty-state',
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              "No suspects yet. A food or medication shows up here once it's "
+              'been blamed for the same symptom in at least '
+              '$kSuspectMinEpisodes check-ins.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(color: theme.colorScheme.outline),
+            ),
+          ),
+        ),
+      );
+    }
+    final children = <Widget>[];
+    String? currentSymptom;
+    for (final e in suspects) {
+      if (e.symptom != currentSymptom) {
+        currentSymptom = e.symptom;
+        children.add(Semantics(
+          identifier: 'blame-suspects-section-${_symptomSlug(e.symptom)}',
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 4),
+            child: Text(titleCase(e.symptom), style: theme.textTheme.titleSmall),
+          ),
+        ));
+      }
+      children.add(Semantics(
+        identifier:
+            'blame-suspect-item-${_symptomSlug(e.symptom)}-${_symptomSlug(e.targetName)}',
+        child: ListTile(
+          title: Text(titleCase(e.targetName)),
+          subtitle: Text(_suspectSubtitle(e)),
+        ),
+      ));
+    }
+    return ListView(padding: const EdgeInsets.all(16), children: children);
+  }
+
+  String _suspectSubtitle(SuspectEntry e) =>
+      'Blamed in ${e.episodeCount} check-ins · eaten ${e.timesEaten} '
+      "${e.timesEaten == 1 ? 'time' : 'times'}";
+
+  Widget _buildBody(ThemeData theme) {
+    if (_error != null) return _errorBody(theme);
     final entries = _entries;
     if (entries == null) {
       return const Center(child: CircularProgressIndicator());

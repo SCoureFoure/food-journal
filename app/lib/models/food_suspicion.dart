@@ -231,6 +231,85 @@ List<SuspicionScore> aggregateSuspicions(List<FoodSuspicion> rows) {
   return scores;
 }
 
+/// Minimum distinct non-dismissed check-ins before an item is listed as a suspect.
+/// See specs/blame_suspects.spec.md (Decision 3).
+const int kSuspectMinEpisodes = 3;
+
+/// One ranked suspect for a symptom — an item blamed in enough separate
+/// check-ins to be more than noise. [rate] is [score] per time eaten, the
+/// ranking key (see specs/blame_suspects.spec.md, Decisions 2 and 5).
+class SuspectEntry {
+  final String targetName; // canonical
+  final String symptom;
+  final double score; // summed effective weight, dismissed episodes excluded
+  final int episodeCount; // distinct reactionLogIds, dismissed excluded
+  final int timesEaten; // as supplied; 0 when absent from the map
+  final double rate; // score / max(timesEaten, 1)
+
+  const SuspectEntry({
+    required this.targetName,
+    required this.symptom,
+    required this.score,
+    required this.episodeCount,
+    required this.timesEaten,
+    required this.rate,
+  });
+}
+
+/// Ranks items per symptom by how often they line up with it relative to how
+/// often they are eaten. Dismissed episodes are excluded first; groups are
+/// keyed by `(targetName, symptom)` so food and medication with the same name
+/// merge. Groups with fewer than [minEpisodes] distinct check-ins are dropped.
+/// Sorted by symptom asc, then rate desc, episode count desc, target name asc.
+/// Pure → testable without native sqlite3; `StorageService.getSuspects`
+/// supplies the rows, exclusions and times-eaten counts.
+List<SuspectEntry> buildSuspects({
+  required List<FoodSuspicion> rows,
+  required Set<String> dismissedKeys,
+  required Map<String, int> timesEatenByName,
+  int minEpisodes = kSuspectMinEpisodes,
+}) {
+  final live = excludeDismissedSuspicions(rows, dismissedKeys);
+  final sums = <String, double>{};
+  final episodes = <String, Set<int>>{};
+  final keyParts = <String, ({String name, String symptom})>{};
+  for (final r in live) {
+    // NUL separator, as in aggregateSuspicions — see the \u0000 note there.
+    final key = '${r.targetName}\u0000${r.symptom}';
+    sums[key] = (sums[key] ?? 0) +
+        effectiveSuspicionWeight(baseWeight: r.baseWeight, source: r.source);
+    episodes.putIfAbsent(key, () => {}).add(r.reactionLogId);
+    keyParts[key] = (name: r.targetName, symptom: r.symptom);
+  }
+
+  final entries = <SuspectEntry>[];
+  for (final key in sums.keys) {
+    final episodeCount = episodes[key]!.length;
+    if (episodeCount < minEpisodes) continue;
+    final parts = keyParts[key]!;
+    final score = sums[key]!;
+    final timesEaten = timesEatenByName[parts.name] ?? 0;
+    entries.add(SuspectEntry(
+      targetName: parts.name,
+      symptom: parts.symptom,
+      score: score,
+      episodeCount: episodeCount,
+      timesEaten: timesEaten,
+      rate: score / (timesEaten < 1 ? 1 : timesEaten),
+    ));
+  }
+  entries.sort((a, b) {
+    final bySymptom = a.symptom.compareTo(b.symptom);
+    if (bySymptom != 0) return bySymptom;
+    final byRate = b.rate.compareTo(a.rate);
+    if (byRate != 0) return byRate;
+    final byEpisodes = b.episodeCount.compareTo(a.episodeCount);
+    if (byEpisodes != 0) return byEpisodes;
+    return a.targetName.compareTo(b.targetName);
+  });
+  return entries;
+}
+
 /// Filters out ledger rows whose `(reactionLogId, symptom)` the user has
 /// dismissed (see [BlameHistoryEntry]/`suspicion_exclusions`). [dismissedKeys]
 /// holds [blameHistoryKey] strings. This is the tested spec of that filter —
