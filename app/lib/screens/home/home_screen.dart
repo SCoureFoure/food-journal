@@ -164,10 +164,13 @@ class HomeScreenState extends State<HomeScreen> {
         _sortedDates = allDates;
         _loading = false;
       });
+      final todayGoals = goalsForDate(goalHistory, now);
       widget.petFeed?.value = PetFeed(
         mealsToday: (mealsByDate[todayKey] ?? const <MealEntry>[]).length,
         waterMl: todayWaterMl,
-        waterGoalMl: goalsForDate(goalHistory, now).effectiveWaterMl,
+        waterGoalMl: todayGoals.effectiveWaterMl,
+        caloriesToday: t.cal,
+        calorieGoal: todayGoals.calories,
       );
     } catch (e) {
       if (!mounted) return;
@@ -255,6 +258,9 @@ class HomeScreenState extends State<HomeScreen> {
   /// Called by the shell's journal-only app-bar actions. Mirrors `_navigate`:
   /// the feed must reload when the user comes back from Export or Import.
   Future<void> navigateAndReload(String route) => _navigate(route);
+
+  /// Called by the shell when the pet sheet asks the user to set a calorie goal.
+  Future<void> editGoals() => _editGoals();
 
   @override
   Widget build(BuildContext context) {

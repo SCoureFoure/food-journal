@@ -39,8 +39,9 @@ touches and links back here; it does not redefine meaning or fallback.
 | App shell    | `btn-settings`                  | Settings icon in the app-shell app bar — shell-level, present on BOTH tabs (meal_planning) |
 | App shell    | `pet-avatar`                    | Floating pet avatar, shell-level, on BOTH tabs, bottom corner opposite the + button (flips in left-handed mode). Tap opens the pet sheet. `container: true` (virtual_pet) |
 | Pet sheet    | `pet-sheet`                     | Bottom sheet root, opened from `pet-avatar` (virtual_pet) |
-| Pet sheet    | `pet-meter-food`                | Food meter, GoalFillBar with custom id; reads `<n> / 3 meals`. `container: true` |
+| Pet sheet    | `pet-meter-food`                | Food meter, GoalFillBar with custom id; reads `<kcal> / <goal> kcal`; with no calorie goal it is the `<kcal> kcal today` row instead. `container: true` |
 | Pet sheet    | `pet-meter-water`               | Water meter, GoalFillBar with custom id; reads `<oz> / <goal> oz`. Distinct from `goal-row-water`, which is on screen under the sheet. `container: true` |
+| Pet sheet    | `btn-pet-set-goal`              | "Set a calorie goal" button, only when no calorie goal is set; closes the sheet and opens the edit-goals dialog (virtual_pet) |
 | Meal Planning| `meal-planning-screen`          | Meal Planning tab body root (meal_planning) |
 | Meal Planning| `planner-stub-card`             | Inert "This week's meals" placeholder — copy only, no controls; the planner itself is a later slice (meal_planning) |
 | Home         | `home-meal-list`                | Has meals — home screen ready                  |

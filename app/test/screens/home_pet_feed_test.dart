@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:food_journal/models/daily_goals.dart';
@@ -15,11 +17,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 class _FakeStorage extends StorageService {
   final List<MealEntry> meals;
   final List<WaterLog> water;
+  final Map<int, int> calById;
   final List<GoalSnapshot> history;
 
   _FakeStorage({
     this.meals = const [],
     this.water = const [],
+    this.calById = const {},
     this.history = const [],
   });
 
@@ -44,7 +48,8 @@ class _FakeStorage extends StorageService {
   @override
   Future<({int cal, double prot, double carbs, double fat})>
       getMacroTotalsForMeals(List<int> mealIds) async {
-    return (cal: 0, prot: 0.0, carbs: 0.0, fat: 0.0);
+    final cal = mealIds.fold<int>(0, (s, id) => s + (calById[id] ?? 0));
+    return (cal: cal, prot: 0.0, carbs: 0.0, fat: 0.0);
   }
 }
 
@@ -64,6 +69,10 @@ WaterLog _water(int id, DateTime day, int ml) => WaterLog(
       time: '9:00 AM',
       amountMl: ml,
       createdAt: DateTime.now(),
+    );
+
+Finder _anchor(String id) => find.byWidgetPredicate(
+      (w) => w is Semantics && w.properties.identifier == id,
     );
 
 Future<void> _pumpHome(
@@ -87,8 +96,8 @@ void main() {
 
   group('[MFT] home publishes today\'s PetFeed (AC4)', () {
     // testTheory: MFT
-    // contract: publishes meals and water for today only, with the default water goal when none is saved.
-    // implication: AC4 — if this fails, the pet reports yesterday's meals or the wrong water total.
+    // contract: publishes meals, water and calories for today only, with the default water goal when none is saved.
+    // implication: AC4 — if this fails, the pet reports yesterday's meals or the wrong water or calorie total.
     testWidgets('2 meals today, 1 yesterday, water 500+446 today', (tester) async {
       final now = DateTime.now();
       final notifier = ValueNotifier<PetFeed?>(null);
@@ -102,21 +111,27 @@ void main() {
           _water(1, now, 500),
           _water(2, now, 446),
         ],
+        calById: {1: 400, 2: 250, 3: 900},
       );
       await _pumpHome(tester, fake, notifier: notifier);
 
       expect(
         notifier.value,
-        const PetFeed(mealsToday: 2, waterMl: 946, waterGoalMl: 1893),
+        const PetFeed(
+          mealsToday: 2,
+          waterMl: 946,
+          waterGoalMl: 1893,
+          caloriesToday: 650,
+        ),
       );
     });
   });
 
-  group('[DIR] home publishes the water goal in effect today', () {
+  group('[DIR] home publishes the goals in effect today', () {
     // testTheory: DIR
-    // contract: waterGoalMl is the effective water target from goal history for today.
-    // implication: AC4 — if this fails, the pet's water bar fills toward the wrong target.
-    testWidgets('snapshot effective today sets waterGoalMl', (tester) async {
+    // contract: waterGoalMl and calorieGoal are the effective targets from goal history for today.
+    // implication: AC4 — if this fails, the pet's bars fill toward the wrong targets.
+    testWidgets('snapshot effective today sets waterGoalMl and calorieGoal', (tester) async {
       final now = DateTime.now();
       final notifier = ValueNotifier<PetFeed?>(null);
       final fake = _FakeStorage(
@@ -124,13 +139,14 @@ void main() {
           GoalSnapshot(
             id: 1,
             effectiveDate: _midnight(now),
-            goals: const DailyGoals(waterMl: 2366),
+            goals: const DailyGoals(calories: 2000, waterMl: 2366),
             createdAt: now,
           ),
         ],
       );
       await _pumpHome(tester, fake, notifier: notifier);
 
+      expect(notifier.value?.calorieGoal, 2000);
       expect(notifier.value?.waterGoalMl, 2366);
     });
   });
@@ -159,6 +175,22 @@ void main() {
       await _pumpHome(tester, _FakeStorage());
 
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('[MFT] pet sheet can open the goals dialog (AC4)', () {
+    // testTheory: MFT
+    // contract: HomeScreenState.editGoals() opens the edit-goals dialog.
+    // implication: AC4 — if this fails, the pet's set-calorie-goal action does nothing.
+    testWidgets('editGoals opens edit-goals-dialog', (tester) async {
+      await _pumpHome(tester, _FakeStorage());
+
+      unawaited(tester
+          .state<HomeScreenState>(find.byType(HomeScreen))
+          .editGoals());
+      await tester.pumpAndSettle();
+
+      expect(_anchor('edit-goals-dialog'), findsOneWidget);
     });
   });
 }

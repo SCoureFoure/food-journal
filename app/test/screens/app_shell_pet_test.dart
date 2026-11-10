@@ -15,11 +15,13 @@ class _FakeStorage extends StorageService {
   final List<MealEntry> meals;
   final List<WaterLog> water;
   final List<GoalSnapshot> history;
+  final Map<int, int> calById;
 
   _FakeStorage({
     this.meals = const [],
     this.water = const [],
     this.history = const [],
+    this.calById = const {},
   });
 
   @override
@@ -43,7 +45,8 @@ class _FakeStorage extends StorageService {
   @override
   Future<({int cal, double prot, double carbs, double fat})>
       getMacroTotalsForMeals(List<int> mealIds) async {
-    return (cal: 0, prot: 0.0, carbs: 0.0, fat: 0.0);
+    final cal = mealIds.fold<int>(0, (sum, id) => sum + (calById[id] ?? 0));
+    return (cal: cal, prot: 0.0, carbs: 0.0, fat: 0.0);
   }
 }
 
@@ -124,13 +127,22 @@ void main() {
     // testTheory: MFT
     // contract: tapping the avatar opens the sheet showing meals and water from the journal's feed.
     // implication: AC6 — if this fails, the shell's feed never reaches the sheet.
-    testWidgets('2 meals and 946 ml show as 2 / 3 meals and 32 / 64 oz',
+    testWidgets('1450 kcal of 2000 and 946 ml of 1893 show as meters',
         (tester) async {
       SharedPreferences.setMockInitialValues({'goal_bars_animated': false});
       final now = DateTime.now();
       await tester.pumpWidget(_shell(_FakeStorage(
         meals: [_meal(1, now), _meal(2, now)],
         water: [_water(1, now, 946)],
+        calById: const {1: 1000, 2: 450},
+        history: [
+          GoalSnapshot(
+            id: 1,
+            effectiveDate: _midnight(now),
+            goals: const DailyGoals(calories: 2000, waterMl: 1893),
+            createdAt: now,
+          ),
+        ],
       )));
       await tester.pumpAndSettle();
 
@@ -138,8 +150,44 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(_anchor('pet-sheet'), findsWidgets);
-      expect(find.text('2 / 3 meals'), findsOneWidget);
-      expect(find.text('32 / 64 oz'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: _anchor('pet-meter-food'),
+          matching: find.text('1450 / 2000 kcal'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: _anchor('pet-meter-water'),
+          matching: find.text('32 / 64 oz'),
+        ),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('[DIR] pet sheet without a calorie goal (AC10)', () {
+    // testTheory: DIR
+    // contract: with no goal in effect the sheet shows today's kcal and a Set a calorie goal button that opens the goals dialog.
+    // implication: AC10 — if this fails, users with no calorie goal cannot reach goal setting from the pet.
+    testWidgets('Set a calorie goal opens the edit goals dialog', (tester) async {
+      SharedPreferences.setMockInitialValues({'goal_bars_animated': false});
+      final now = DateTime.now();
+      await tester.pumpWidget(_shell(_FakeStorage(
+        meals: [_meal(1, now)],
+        calById: const {1: 650},
+      )));
+      await tester.pumpAndSettle();
+
+      await tester.tap(_anchor('pet-avatar'));
+      await tester.pumpAndSettle();
+      expect(find.text('650 kcal today'), findsOneWidget);
+
+      await tester.tap(find.text('Set a calorie goal'));
+      await tester.pumpAndSettle();
+      expect(_anchor('pet-sheet'), findsNothing);
+      expect(_anchor('edit-goals-dialog'), findsOneWidget);
     });
   });
 

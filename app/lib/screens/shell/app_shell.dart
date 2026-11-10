@@ -70,7 +70,8 @@ class _AppShellState extends State<AppShell> {
     final animated = await _settings.isGoalBarsAnimated;
     if (!mounted) return;
     await showPetSheet(context, _petFeed.value ?? PetFeed.empty,
-        animateBars: animated);
+        animateBars: animated,
+        onSetGoal: () => _homeKey.currentState?.editGoals());
   }
 
   @override

@@ -41,8 +41,17 @@ pass.
   left-handed mode. *(user)*
 - **Open:** tapping the avatar opens a modal bottom sheet with a large block and two
   meters, Food and Water. Swipe down or tap outside to close. *(user)*
-- **Food meter:** meals logged today ÷ 3, capped at full. Reads `<n> / 3 meals`.
-  The constant `kPetMealsPerDay = 3` is arbitrary and is expected to become adjustable. *(user)*
+- **Food meter (amended 2026-11-10):** today's calories ÷ today's calorie goal
+  (`goalsForDate(history, today).calories`), capped at full. Reads `<kcal> / <goal> kcal`,
+  the same numbers as the Goals panel calorie row. Meal *count* was dropped because
+  every entry (snacks, drinks) is logged as a meal, so a count means nothing. *(user)*
+  This pulls layer 2 (proportional feeding) forward; risks 1–4 in doc 03 §3 apply and
+  the no-judgement rule covers over-target days.
+- **No calorie goal:** the Food meter is replaced by `<kcal> kcal today` and a
+  "Set a calorie goal" button that closes the sheet and opens the existing goals editor.
+  No default calorie number is invented. *(user)*
+- **Meals with no calories** (AI parse skipped or failed) add 0 kcal, as in the Goals
+  panel. They still count as feeding for the bounce. *(intent: one source with Goals panel)*
 - **Water meter:** today's water ÷ today's water target (`effectiveWaterMl`, 64 oz
   when unset), capped at full. Reads `<oz> / <target oz> oz`, the same numbers as the
   Goals panel water row. *(user)*
@@ -52,7 +61,7 @@ pass.
   today. The `created_at` question is part of the sad-path design. *(intent: one source
   with the Goals panel)*
 - **Data flow (seam):** `app/lib/models/pet_feed.dart` defines `PetFeed { mealsToday,
-  waterMl, waterGoalMl }` with `foodLevel`, `waterLevel` (0.0–1.0) and
+  waterMl, waterGoalMl, caloriesToday, calorieGoal? }` with `foodLevel`, `waterLevel` (0.0–1.0) and
   `bool fedSince(PetFeed? previous)`. The shell owns a `ValueNotifier<PetFeed?>` and
   passes it to `HomeScreen` (new optional param `petFeed`); `HomeScreenState._load`
   sets it at the end of every successful load. No second database read. *(intent)*
@@ -60,7 +69,7 @@ pass.
   water sheet closes). Meal Planning has no log actions, so nothing is missed. Like the
   Goals panel, counts roll over at midnight on the next reload, not live. *(intent)*
 - **Feed reaction:** when a new `PetFeed` arrives and `fedSince(previous)` is true (more
-  meals or more water than the last value), the avatar bounces once (~400 ms up-and-down).
+  meals, more calories or more water than the last value), the avatar bounces once (~400 ms up-and-down).
   No bounce on the first load, on unchanged counts, or when counts go down (a delete,
   midnight). Skipped when `MediaQuery.disableAnimations` is true. *(intent)*
 - **Unique anchors:** the sheet's meters must not reuse `goal-row-water` because the
@@ -75,25 +84,27 @@ pass.
 
 ## Acceptance criteria (Given / When / Then)
 
-1. **AC1: food level.** Given `mealsToday` 0, 1, 2, 3, 4, then `foodLevel` is 0.0,
-   ⅓, ⅔, 1.0, 1.0.
+1. **AC1: food level.** Given calorie goal 2000 and `caloriesToday` 0, 1450, 2000, 2150,
+   then `foodLevel` is 0.0, 0.725, 1.0, 1.0. Given no calorie goal, it is 0.0.
 2. **AC2: water level.** Given 946 ml of a 1893 ml target, `waterLevel` ≈ 0.4997; given
    2000 ml of 1893, it is 1.0. Given a target of 0 (defensive), it is 0.0.
-3. **AC3: fed since.** Given previous `PetFeed(2, 946, 1893)`: a meal more gives true;
-   250 ml more water gives true; the same counts give false; fewer meals (delete,
+3. **AC3: fed since.** Given previous `PetFeed(2 meals, 946 ml, 1893, 650 kcal)`: a meal
+   more gives true; 250 ml more water gives true; more calories with the same meal count
+   (an edit) gives true; the same values give false; fewer meals and calories (delete,
    midnight) give false; a previous of `null` (first load) gives false.
-4. **AC4: journal publishes the feed.** Given 2 meals dated today, 1 meal dated yesterday,
-   and 946 ml of water today, when the journal loads, then the notifier holds
-   `PetFeed(mealsToday: 2, waterMl: 946, waterGoalMl: 1893)`. Given a water target of
-   2366 ml saved, `waterGoalMl` is 2366.
+4. **AC4: journal publishes the feed.** Given 2 meals dated today (400 + 250 kcal), 1 meal
+   dated yesterday, and 946 ml of water today, when the journal loads, then the notifier
+   holds `PetFeed(mealsToday: 2, waterMl: 946, waterGoalMl: 1893, caloriesToday: 650,
+   calorieGoal: null)`. Given a snapshot with calories 2000 and water 2366 ml saved,
+   `calorieGoal` is 2000 and `waterGoalMl` is 2366.
 5. **AC5: avatar on both tabs, opposite the FAB.** Given the pet enabled and right-handed
    mode, the `pet-avatar` sits in the bottom-left quadrant on the journal tab and is
    still shown after switching to Meal Planning. Given left-handed mode, it sits in the
    bottom-right quadrant.
-6. **AC6: sheet shows the meters.** Given `PetFeed(2, 946, 1893)`, when the avatar is
-   tapped, then `pet-sheet` opens with `pet-meter-food` reading `2 / 3 meals` and
-   `pet-meter-water` reading `32 / 64 oz`. Given 4 meals, the food meter reads
-   `4 / 3 meals`, is full, and uses the same colour as below target.
+6. **AC6: sheet shows the meters.** Given 1450 kcal of a 2000 kcal goal and 946 ml of
+   1893, when the avatar is tapped, then `pet-sheet` opens with `pet-meter-food` reading
+   `1450 / 2000 kcal` and `pet-meter-water` reading `32 / 64 oz`. Given 2150 kcal, the
+   food meter reads `2150 / 2000 kcal`, is full, and uses the same colour as below target.
 7. **AC7: unique ids.** Given the sheet open over the journal with a water goal set,
    `goal-row-water` and `pet-meter-water` are both found, once each.
 8. **AC8: bounce on feed.** Given the avatar showing `PetFeed(2, 946, 1893)`, when the
@@ -103,12 +114,17 @@ pass.
 9. **AC9: off switch.** Given no saved setting, the pet is shown. When the user turns off
    "Show pet" in Settings and closes the dialog, then no `pet-avatar` is shown on either
    tab, and it stays hidden after the shell is rebuilt (setting persists).
+10. **AC10: no calorie goal.** Given no calorie goal and 650 kcal today, the sheet shows
+    `650 kcal today` in `pet-meter-food` and a `btn-pet-set-goal` button, with no food
+    bar. Tapping it closes the sheet and opens the edit-goals dialog (`edit-goals-dialog`).
 
 ## Anchors (explore rig)
 
 - `pet-avatar`: floating avatar, tap to open the sheet
 - `pet-sheet`: bottom sheet root
-- `pet-meter-food`: Food meter (`GoalFillBar`, `container: true`)
+- `pet-meter-food`: Food meter (`GoalFillBar`, `container: true`); with no calorie goal,
+  the `<kcal> kcal today` row
+- `btn-pet-set-goal`: "Set a calorie goal" button, shown only with no calorie goal
 - `pet-meter-water`: Water meter (`GoalFillBar`, `container: true`)
 - `switch-pet-enabled`: Settings "Show pet" switch. SwitchListTile may absorb the id ✱;
   fallback: tap by text `Show pet`
