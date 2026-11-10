@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/daily_goals.dart';
+import '../../models/weight_goal.dart';
 import '../../services/settings_service.dart';
 import '../card_expansion_tile.dart';
 import '../goal_fill_bar.dart';
@@ -13,6 +14,9 @@ class GoalsPanel extends StatefulWidget {
   final GoalIntake intake;
   final VoidCallback onEdit;
   final bool animateBars;
+  final WeightGoalMet? weightGoalMet;
+  final VoidCallback? onNewWeightGoal;
+  final VoidCallback? onDismissWeightGoal;
 
   const GoalsPanel({
     super.key,
@@ -20,6 +24,9 @@ class GoalsPanel extends StatefulWidget {
     required this.intake,
     required this.onEdit,
     this.animateBars = true,
+    this.weightGoalMet,
+    this.onNewWeightGoal,
+    this.onDismissWeightGoal,
   });
 
   @override
@@ -66,13 +73,60 @@ class _GoalsPanelState extends State<GoalsPanel> {
       container: true,
       child: PanelContainer(
         accentColor: Colors.green.shade600,
-        child: CardExpansionTile(
-          title: 'Goals',
-          semanticsId: 'item-header-goals',
-          initiallyExpanded: !_savedCollapsed,
-          onExpansionChanged: _onExpansionChanged,
-          subtitle: Text(_subtitle, style: Theme.of(context).textTheme.bodySmall),
-          children: _buildChildren(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (widget.weightGoalMet != null) _weightGoalPrompt(context),
+            CardExpansionTile(
+              title: 'Goals',
+              semanticsId: 'item-header-goals',
+              initiallyExpanded: !_savedCollapsed,
+              onExpansionChanged: _onExpansionChanged,
+              subtitle: Text(_subtitle, style: Theme.of(context).textTheme.bodySmall),
+              children: _buildChildren(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _weightGoalPrompt(BuildContext context) {
+    return Semantics(
+      identifier: 'goal-weight-met',
+      container: true,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'You reached ${formatWeightLb(widget.weightGoalMet!.targetWeightLb)} lb! Set a new goal?',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Semantics(
+                  identifier: 'btn-weight-goal-later',
+                  container: true,
+                  child: TextButton(
+                    onPressed: widget.onDismissWeightGoal,
+                    child: const Text('Not now'),
+                  ),
+                ),
+                Semantics(
+                  identifier: 'btn-weight-goal-new',
+                  container: true,
+                  child: FilledButton.tonal(
+                    onPressed: widget.onNewWeightGoal,
+                    child: const Text('Set new goal'),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

@@ -246,4 +246,92 @@ void main() {
       expect(fieldText(tester, 'weight'), '172.5');
     });
   });
+
+  /// [BVA] Goal calculator target weight — optional target validated against
+  /// the pace direction and the current weight.
+  /// If this regresses: impossible weight goals are saved or targets are dropped.
+  group('[BVA] GoalCalculatorDialog target weight', () {
+    Future<void> fillWith(WidgetTester tester, String goal, {String? target}) async {
+      await fill(
+        tester,
+        weight: '180',
+        ft: '5',
+        inch: '10',
+        age: '30',
+        formula: 'Male formula',
+        activity: 'Moderate (3–5 days a week)',
+        goal: goal,
+      );
+      if (target != null) {
+        await tester.enterText(fieldOf('target'), target);
+        await tester.pumpAndSettle();
+      }
+    }
+
+    testWidgets('AC21: lose pace with target 170 pops target and direction', (tester) async {
+      // testTheory: MFT
+      // contract: a valid lose target is returned with lose direction, calories unchanged
+      // implication: AC21 weight goal is lost or alters the calorie estimate
+      await open(tester);
+      await fillWith(tester, 'Lose 1 lb a week', target: '170');
+      await apply(tester);
+
+      expect(result?.targetWeightLb, 170.0);
+      expect(result?.weightDirection, WeightDirection.lose);
+      expect(result?.calories, ac13Result.calories);
+    });
+
+    testWidgets('AC21: lose pace with target above weight is rejected', (tester) async {
+      // testTheory: BVA
+      // contract: lose target 185 at weight 180 shows an error and keeps the dialog open
+      // implication: AC21 a lose goal above current weight is accepted
+      await open(tester);
+      await fillWith(tester, 'Lose 1 lb a week', target: '185');
+      await apply(tester);
+
+      expect(find.text('Target must be below your current weight'), findsOneWidget);
+      expect(id('goal-calculator-dialog'), findsOneWidget);
+      expect(closed, isFalse);
+    });
+
+    testWidgets('AC21: gain pace with target below weight is rejected', (tester) async {
+      // testTheory: BVA
+      // contract: gain target 175 at weight 180 shows an error and keeps the dialog open
+      // implication: AC21 a gain goal below current weight is accepted
+      await open(tester);
+      await fillWith(tester, 'Gain 0.5 lb a week', target: '175');
+      await apply(tester);
+
+      expect(find.text('Target must be above your current weight'), findsOneWidget);
+      expect(closed, isFalse);
+    });
+
+    testWidgets('AC21: maintain pace has no target field and no target result', (tester) async {
+      // testTheory: DIR
+      // contract: maintain hides the target field and pops a null target
+      // implication: AC21 a weight goal is set without a direction
+      await open(tester);
+      await fillWith(tester, 'Maintain weight');
+
+      expect(id('field-calc-target'), findsNothing);
+
+      await apply(tester);
+
+      expect(result?.targetWeightLb, isNull);
+      expect(result?.weightDirection, isNull);
+    });
+
+    testWidgets('AC21: empty target pops null target and direction', (tester) async {
+      // testTheory: MFT
+      // contract: a blank optional target yields no weight goal
+      // implication: AC21 blank target is treated as an error or a zero goal
+      await open(tester);
+      await fillWith(tester, 'Lose 1 lb a week');
+      await apply(tester);
+
+      expect(closed, isTrue);
+      expect(result?.targetWeightLb, isNull);
+      expect(result?.weightDirection, isNull);
+    });
+  });
 }

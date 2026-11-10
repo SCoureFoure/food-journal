@@ -6700,6 +6700,28 @@ class $GoalHistoryTable extends GoalHistory
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _targetWeightLbMeta = const VerificationMeta(
+    'targetWeightLb',
+  );
+  @override
+  late final GeneratedColumn<double> targetWeightLb = GeneratedColumn<double>(
+    'target_weight_lb',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _weightDirectionMeta = const VerificationMeta(
+    'weightDirection',
+  );
+  @override
+  late final GeneratedColumn<String> weightDirection = GeneratedColumn<String>(
+    'weight_direction',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -6710,6 +6732,8 @@ class $GoalHistoryTable extends GoalHistory
     fatG,
     waterMl,
     createdAt,
+    targetWeightLb,
+    weightDirection,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -6775,6 +6799,24 @@ class $GoalHistoryTable extends GoalHistory
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
+    if (data.containsKey('target_weight_lb')) {
+      context.handle(
+        _targetWeightLbMeta,
+        targetWeightLb.isAcceptableOrUnknown(
+          data['target_weight_lb']!,
+          _targetWeightLbMeta,
+        ),
+      );
+    }
+    if (data.containsKey('weight_direction')) {
+      context.handle(
+        _weightDirectionMeta,
+        weightDirection.isAcceptableOrUnknown(
+          data['weight_direction']!,
+          _weightDirectionMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -6816,6 +6858,14 @@ class $GoalHistoryTable extends GoalHistory
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      targetWeightLb: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}target_weight_lb'],
+      ),
+      weightDirection: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}weight_direction'],
+      ),
     );
   }
 
@@ -6834,6 +6884,8 @@ class GoalHistoryData extends DataClass implements Insertable<GoalHistoryData> {
   final int? fatG;
   final int? waterMl;
   final DateTime createdAt;
+  final double? targetWeightLb;
+  final String? weightDirection;
   const GoalHistoryData({
     required this.id,
     required this.effectiveDate,
@@ -6843,6 +6895,8 @@ class GoalHistoryData extends DataClass implements Insertable<GoalHistoryData> {
     this.fatG,
     this.waterMl,
     required this.createdAt,
+    this.targetWeightLb,
+    this.weightDirection,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -6865,6 +6919,12 @@ class GoalHistoryData extends DataClass implements Insertable<GoalHistoryData> {
       map['water_ml'] = Variable<int>(waterMl);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || targetWeightLb != null) {
+      map['target_weight_lb'] = Variable<double>(targetWeightLb);
+    }
+    if (!nullToAbsent || weightDirection != null) {
+      map['weight_direction'] = Variable<String>(weightDirection);
+    }
     return map;
   }
 
@@ -6886,6 +6946,12 @@ class GoalHistoryData extends DataClass implements Insertable<GoalHistoryData> {
           ? const Value.absent()
           : Value(waterMl),
       createdAt: Value(createdAt),
+      targetWeightLb: targetWeightLb == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetWeightLb),
+      weightDirection: weightDirection == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weightDirection),
     );
   }
 
@@ -6903,6 +6969,8 @@ class GoalHistoryData extends DataClass implements Insertable<GoalHistoryData> {
       fatG: serializer.fromJson<int?>(json['fatG']),
       waterMl: serializer.fromJson<int?>(json['waterMl']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      targetWeightLb: serializer.fromJson<double?>(json['targetWeightLb']),
+      weightDirection: serializer.fromJson<String?>(json['weightDirection']),
     );
   }
   @override
@@ -6917,6 +6985,8 @@ class GoalHistoryData extends DataClass implements Insertable<GoalHistoryData> {
       'fatG': serializer.toJson<int?>(fatG),
       'waterMl': serializer.toJson<int?>(waterMl),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'targetWeightLb': serializer.toJson<double?>(targetWeightLb),
+      'weightDirection': serializer.toJson<String?>(weightDirection),
     };
   }
 
@@ -6929,6 +6999,8 @@ class GoalHistoryData extends DataClass implements Insertable<GoalHistoryData> {
     Value<int?> fatG = const Value.absent(),
     Value<int?> waterMl = const Value.absent(),
     DateTime? createdAt,
+    Value<double?> targetWeightLb = const Value.absent(),
+    Value<String?> weightDirection = const Value.absent(),
   }) => GoalHistoryData(
     id: id ?? this.id,
     effectiveDate: effectiveDate ?? this.effectiveDate,
@@ -6938,6 +7010,12 @@ class GoalHistoryData extends DataClass implements Insertable<GoalHistoryData> {
     fatG: fatG.present ? fatG.value : this.fatG,
     waterMl: waterMl.present ? waterMl.value : this.waterMl,
     createdAt: createdAt ?? this.createdAt,
+    targetWeightLb: targetWeightLb.present
+        ? targetWeightLb.value
+        : this.targetWeightLb,
+    weightDirection: weightDirection.present
+        ? weightDirection.value
+        : this.weightDirection,
   );
   GoalHistoryData copyWithCompanion(GoalHistoryCompanion data) {
     return GoalHistoryData(
@@ -6951,6 +7029,12 @@ class GoalHistoryData extends DataClass implements Insertable<GoalHistoryData> {
       fatG: data.fatG.present ? data.fatG.value : this.fatG,
       waterMl: data.waterMl.present ? data.waterMl.value : this.waterMl,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      targetWeightLb: data.targetWeightLb.present
+          ? data.targetWeightLb.value
+          : this.targetWeightLb,
+      weightDirection: data.weightDirection.present
+          ? data.weightDirection.value
+          : this.weightDirection,
     );
   }
 
@@ -6964,7 +7048,9 @@ class GoalHistoryData extends DataClass implements Insertable<GoalHistoryData> {
           ..write('carbsG: $carbsG, ')
           ..write('fatG: $fatG, ')
           ..write('waterMl: $waterMl, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('targetWeightLb: $targetWeightLb, ')
+          ..write('weightDirection: $weightDirection')
           ..write(')'))
         .toString();
   }
@@ -6979,6 +7065,8 @@ class GoalHistoryData extends DataClass implements Insertable<GoalHistoryData> {
     fatG,
     waterMl,
     createdAt,
+    targetWeightLb,
+    weightDirection,
   );
   @override
   bool operator ==(Object other) =>
@@ -6991,7 +7079,9 @@ class GoalHistoryData extends DataClass implements Insertable<GoalHistoryData> {
           other.carbsG == this.carbsG &&
           other.fatG == this.fatG &&
           other.waterMl == this.waterMl &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.targetWeightLb == this.targetWeightLb &&
+          other.weightDirection == this.weightDirection);
 }
 
 class GoalHistoryCompanion extends UpdateCompanion<GoalHistoryData> {
@@ -7003,6 +7093,8 @@ class GoalHistoryCompanion extends UpdateCompanion<GoalHistoryData> {
   final Value<int?> fatG;
   final Value<int?> waterMl;
   final Value<DateTime> createdAt;
+  final Value<double?> targetWeightLb;
+  final Value<String?> weightDirection;
   const GoalHistoryCompanion({
     this.id = const Value.absent(),
     this.effectiveDate = const Value.absent(),
@@ -7012,6 +7104,8 @@ class GoalHistoryCompanion extends UpdateCompanion<GoalHistoryData> {
     this.fatG = const Value.absent(),
     this.waterMl = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.targetWeightLb = const Value.absent(),
+    this.weightDirection = const Value.absent(),
   });
   GoalHistoryCompanion.insert({
     this.id = const Value.absent(),
@@ -7022,6 +7116,8 @@ class GoalHistoryCompanion extends UpdateCompanion<GoalHistoryData> {
     this.fatG = const Value.absent(),
     this.waterMl = const Value.absent(),
     required DateTime createdAt,
+    this.targetWeightLb = const Value.absent(),
+    this.weightDirection = const Value.absent(),
   }) : effectiveDate = Value(effectiveDate),
        createdAt = Value(createdAt);
   static Insertable<GoalHistoryData> custom({
@@ -7033,6 +7129,8 @@ class GoalHistoryCompanion extends UpdateCompanion<GoalHistoryData> {
     Expression<int>? fatG,
     Expression<int>? waterMl,
     Expression<DateTime>? createdAt,
+    Expression<double>? targetWeightLb,
+    Expression<String>? weightDirection,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -7043,6 +7141,8 @@ class GoalHistoryCompanion extends UpdateCompanion<GoalHistoryData> {
       if (fatG != null) 'fat_g': fatG,
       if (waterMl != null) 'water_ml': waterMl,
       if (createdAt != null) 'created_at': createdAt,
+      if (targetWeightLb != null) 'target_weight_lb': targetWeightLb,
+      if (weightDirection != null) 'weight_direction': weightDirection,
     });
   }
 
@@ -7055,6 +7155,8 @@ class GoalHistoryCompanion extends UpdateCompanion<GoalHistoryData> {
     Value<int?>? fatG,
     Value<int?>? waterMl,
     Value<DateTime>? createdAt,
+    Value<double?>? targetWeightLb,
+    Value<String?>? weightDirection,
   }) {
     return GoalHistoryCompanion(
       id: id ?? this.id,
@@ -7065,6 +7167,8 @@ class GoalHistoryCompanion extends UpdateCompanion<GoalHistoryData> {
       fatG: fatG ?? this.fatG,
       waterMl: waterMl ?? this.waterMl,
       createdAt: createdAt ?? this.createdAt,
+      targetWeightLb: targetWeightLb ?? this.targetWeightLb,
+      weightDirection: weightDirection ?? this.weightDirection,
     );
   }
 
@@ -7095,6 +7199,12 @@ class GoalHistoryCompanion extends UpdateCompanion<GoalHistoryData> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (targetWeightLb.present) {
+      map['target_weight_lb'] = Variable<double>(targetWeightLb.value);
+    }
+    if (weightDirection.present) {
+      map['weight_direction'] = Variable<String>(weightDirection.value);
+    }
     return map;
   }
 
@@ -7108,7 +7218,9 @@ class GoalHistoryCompanion extends UpdateCompanion<GoalHistoryData> {
           ..write('carbsG: $carbsG, ')
           ..write('fatG: $fatG, ')
           ..write('waterMl: $waterMl, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('targetWeightLb: $targetWeightLb, ')
+          ..write('weightDirection: $weightDirection')
           ..write(')'))
         .toString();
   }
@@ -11623,6 +11735,8 @@ typedef $$GoalHistoryTableCreateCompanionBuilder =
       Value<int?> fatG,
       Value<int?> waterMl,
       required DateTime createdAt,
+      Value<double?> targetWeightLb,
+      Value<String?> weightDirection,
     });
 typedef $$GoalHistoryTableUpdateCompanionBuilder =
     GoalHistoryCompanion Function({
@@ -11634,6 +11748,8 @@ typedef $$GoalHistoryTableUpdateCompanionBuilder =
       Value<int?> fatG,
       Value<int?> waterMl,
       Value<DateTime> createdAt,
+      Value<double?> targetWeightLb,
+      Value<String?> weightDirection,
     });
 
 class $$GoalHistoryTableFilterComposer
@@ -11682,6 +11798,16 @@ class $$GoalHistoryTableFilterComposer
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get targetWeightLb => $composableBuilder(
+    column: $table.targetWeightLb,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get weightDirection => $composableBuilder(
+    column: $table.weightDirection,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -11734,6 +11860,16 @@ class $$GoalHistoryTableOrderingComposer
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<double> get targetWeightLb => $composableBuilder(
+    column: $table.targetWeightLb,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get weightDirection => $composableBuilder(
+    column: $table.weightDirection,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$GoalHistoryTableAnnotationComposer
@@ -11770,6 +11906,16 @@ class $$GoalHistoryTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<double> get targetWeightLb => $composableBuilder(
+    column: $table.targetWeightLb,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get weightDirection => $composableBuilder(
+    column: $table.weightDirection,
+    builder: (column) => column,
+  );
 }
 
 class $$GoalHistoryTableTableManager
@@ -11811,6 +11957,8 @@ class $$GoalHistoryTableTableManager
                 Value<int?> fatG = const Value.absent(),
                 Value<int?> waterMl = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<double?> targetWeightLb = const Value.absent(),
+                Value<String?> weightDirection = const Value.absent(),
               }) => GoalHistoryCompanion(
                 id: id,
                 effectiveDate: effectiveDate,
@@ -11820,6 +11968,8 @@ class $$GoalHistoryTableTableManager
                 fatG: fatG,
                 waterMl: waterMl,
                 createdAt: createdAt,
+                targetWeightLb: targetWeightLb,
+                weightDirection: weightDirection,
               ),
           createCompanionCallback:
               ({
@@ -11831,6 +11981,8 @@ class $$GoalHistoryTableTableManager
                 Value<int?> fatG = const Value.absent(),
                 Value<int?> waterMl = const Value.absent(),
                 required DateTime createdAt,
+                Value<double?> targetWeightLb = const Value.absent(),
+                Value<String?> weightDirection = const Value.absent(),
               }) => GoalHistoryCompanion.insert(
                 id: id,
                 effectiveDate: effectiveDate,
@@ -11840,6 +11992,8 @@ class $$GoalHistoryTableTableManager
                 fatG: fatG,
                 waterMl: waterMl,
                 createdAt: createdAt,
+                targetWeightLb: targetWeightLb,
+                weightDirection: weightDirection,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

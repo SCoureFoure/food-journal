@@ -50,14 +50,20 @@ touches and links back here; it does not redefine meaning or fallback.
 | Journal — Goals panel | `btn-edit-goals`       | Edit button, first row of expanded panel — opens edit dialog |
 | Journal — Goals panel | `btn-set-goals`        | Empty-state button — shown when no targets set |
 | Journal — Goals panel | `goal-row-<metric>`    | GoalFillBar; metric = calories, protein, carbs, fat, water. `container: true` |
+| Journal — Goals panel | `goal-weight-met`      | "You reached <lb> lb! Set a new goal?" prompt above the Goals header when a weigh-in reaches the target. Shown collapsed or expanded. `container: true` |
+| Journal — Goals panel | `btn-weight-goal-new`  | "Set new goal" button on the weight-goal prompt. `container: true` |
+| Journal — Goals panel | `btn-weight-goal-later`| "Not now" button on the weight-goal prompt — dismisses it for that weigh-in. `container: true` |
 | Settings | `switch-goal-bars-animated` | Settings dialog switch: moving vs still goal bars. SwitchListTile may absorb the id ✱ — fallback: tap by text `Moving goal bars` |
 | Settings | `switch-pet-enabled`        | Settings dialog switch: show/hide the pet (default on). SwitchListTile may absorb the id ✱ — fallback: tap by text `Show pet` |
 | Journal — Goals panel | `edit-goals-dialog`    | Edit dialog root |
 | Journal — Goals panel | `field-goal-<metric>`  | Dialog TextField; same metric names |
+| Journal — Goals panel | `goal-weight-target`   | Edit dialog weight-goal line — target weight. `container: true` |
+| Journal — Goals panel | `btn-clear-weight-goal`| Edit dialog Clear button for the weight goal. `container: true` |
 | Journal — Goals panel | `btn-save-goals`       | Dialog save button |
 | Journal — Goals calculator | `btn-calc-goals`       | Edit dialog button — opens calculator |
 | Journal — Goals calculator | `goal-calculator-dialog` | Calculator root |
 | Journal — Goals calculator | `field-calc-<input>`   | input = weight, height-ft, height-in, age, formula, activity, goal; dropdowns may absorb the id ✱ — fallback: tap by label text |
+| Journal — Goals calculator | `field-calc-target`    | Calculator target weight — shown for lose/gain pace only. `container: true` |
 | Journal — Goals calculator | `calc-result`          | Live estimate text |
 | Journal — Goals calculator | `btn-calc-apply`       | "Use these" — pre-fills edit dialog |
 | App shell    | `btn-export`                    | Export icon in app bar — app-shell app bar, journal tab only (absent on Meal Planning) |

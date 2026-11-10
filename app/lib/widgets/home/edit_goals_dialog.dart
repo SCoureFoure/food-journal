@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../models/daily_goals.dart';
+import '../../models/weight_goal.dart';
 import 'goal_calculator_dialog.dart';
 
 /// Opens the editor pre-filled with [current]. Returns the new targets, or null on cancel.
@@ -28,6 +29,8 @@ class _EditGoalsDialogState extends State<EditGoalsDialog> {
   late final TextEditingController _fat;
   late final TextEditingController _water;
   final Map<String, String> _errors = {};
+  double? _targetWeightLb;
+  WeightDirection? _weightDirection;
 
   @override
   void initState() {
@@ -40,6 +43,8 @@ class _EditGoalsDialogState extends State<EditGoalsDialog> {
     _water = TextEditingController(
       text: g.waterMl == null ? '' : (g.waterMl! / kMlPerOz).round().toString(),
     );
+    _targetWeightLb = g.targetWeightLb;
+    _weightDirection = g.weightDirection;
   }
 
   @override
@@ -60,6 +65,8 @@ class _EditGoalsDialogState extends State<EditGoalsDialog> {
       _protein.text = '${g.proteinG}';
       _carbs.text = '${g.carbsG}';
       _fat.text = '${g.fatG}';
+      _targetWeightLb = g.targetWeightLb;
+      _weightDirection = g.weightDirection;
       _errors.clear();
     });
   }
@@ -96,6 +103,8 @@ class _EditGoalsDialogState extends State<EditGoalsDialog> {
         carbsG: carbs,
         fatG: fat,
         waterMl: oz == null ? null : (oz * kMlPerOz).round(),
+        targetWeightLb: _targetWeightLb,
+        weightDirection: _weightDirection,
       ),
     );
   }
@@ -139,6 +148,25 @@ class _EditGoalsDialogState extends State<EditGoalsDialog> {
               _field('carbs', 'Carbs (g)', _carbs),
               _field('fat', 'Fat (g)', _fat),
               _field('water', 'Water (oz)', _water),
+              if (_targetWeightLb != null)
+                Semantics(
+                  identifier: 'goal-weight-target',
+                  container: true,
+                  child: Row(children: [
+                    Expanded(child: Text('Weight goal: ${formatWeightLb(_targetWeightLb!)} lb')),
+                    Semantics(
+                      identifier: 'btn-clear-weight-goal',
+                      container: true,
+                      child: TextButton(
+                        onPressed: () => setState(() {
+                          _targetWeightLb = null;
+                          _weightDirection = null;
+                        }),
+                        child: const Text('Clear'),
+                      ),
+                    ),
+                  ]),
+                ),
               const SizedBox(height: 8),
               Text(
                 'Leave a field empty to clear that goal.',

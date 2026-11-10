@@ -106,4 +106,35 @@ void main() {
           [DateTime(2026, 11, 1), DateTime(2026, 11, 10)]);
     });
   });
+
+  group('[MFT] weight goal storage round trip', () {
+    // testTheory: minimum functionality — what is saved is what is read back.
+    // contract: saveGoals stores targetWeightLb and weightDirection; unset ones
+    //   read back null.
+    // implication: AC20 — the weight goal persists per goal snapshot.
+    test('AC20: target 170 lose reads back from history and by date', () async {
+      await storage.saveGoals(
+        const DailyGoals(
+          calories: 1800,
+          targetWeightLb: 170,
+          weightDirection: WeightDirection.lose,
+        ),
+        now: DateTime(2026, 11, 1, 9),
+      );
+      final last = (await storage.getGoalHistory()).last.goals;
+      expect(last.targetWeightLb, 170.0);
+      expect(last.weightDirection, WeightDirection.lose);
+      final g = await storage.getGoalsForDate(DateTime(2026, 11, 9));
+      expect(g.targetWeightLb, 170.0);
+      expect(g.weightDirection, WeightDirection.lose);
+    });
+
+    test('AC20: a save without a target reads both as null', () async {
+      await storage.saveGoals(const DailyGoals(calories: 1800),
+          now: DateTime(2026, 11, 1, 9));
+      final g = (await storage.getGoalHistory()).last.goals;
+      expect(g.targetWeightLb, isNull);
+      expect(g.weightDirection, isNull);
+    });
+  });
 }

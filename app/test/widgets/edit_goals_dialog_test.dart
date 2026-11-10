@@ -181,4 +181,73 @@ void main() {
       expect(closed, isFalse);
     });
   });
+
+  /// [MFT] EditGoalsDialog weight goal — holds the contract that an existing
+  /// weight target is shown, survives Save, and is removed only by Clear.
+  /// If this regresses: editing calories silently drops the weight goal, or the
+  /// weight goal cannot be cleared from the editor.
+  group('[MFT] EditGoalsDialog weight goal', () {
+    const withWeight = DailyGoals(
+        calories: 1800, targetWeightLb: 170, weightDirection: WeightDirection.lose);
+
+    testWidgets('AC20: existing target shows and Save keeps it', (tester) async {
+      // testTheory: MFT
+      // contract: weight goal line shows the target; Save pops target and direction unchanged
+      // implication: AC20/AC26 — opening and saving the editor must not erase the weight goal
+      await openDialog(tester, withWeight);
+
+      expect(
+        find.descendant(
+            of: anchor('goal-weight-target'), matching: find.text('Weight goal: 170 lb')),
+        findsOneWidget,
+      );
+
+      await save(tester);
+
+      expect(closed, isTrue);
+      expect(result!.targetWeightLb, 170);
+      expect(result!.weightDirection, WeightDirection.lose);
+    });
+
+    testWidgets('AC20: editing calories keeps the weight goal', (tester) async {
+      // testTheory: MFT
+      // contract: changing a nutrition field leaves target and direction intact
+      // implication: AC20/AC26 — a calorie edit must not clear the weight goal
+      await openDialog(tester, withWeight);
+
+      await tester.enterText(fieldOf('calories'), '1700');
+      await save(tester);
+
+      expect(result!.calories, 1700);
+      expect(result!.targetWeightLb, 170);
+      expect(result!.weightDirection, WeightDirection.lose);
+    });
+
+    testWidgets('AC26: Clear removes the weight goal on Save', (tester) async {
+      // testTheory: MFT
+      // contract: Clear hides the weight goal line and Save pops null target and direction
+      // implication: AC26 — the user can remove a weight goal from the editor
+      await openDialog(tester, withWeight);
+
+      await tester.tap(find.descendant(
+          of: anchor('btn-clear-weight-goal'), matching: find.text('Clear')));
+      await tester.pumpAndSettle();
+
+      expect(anchor('goal-weight-target'), findsNothing);
+
+      await save(tester);
+
+      expect(result!.targetWeightLb, isNull);
+      expect(result!.weightDirection, isNull);
+    });
+
+    testWidgets('AC20: no target means no weight goal line', (tester) async {
+      // testTheory: MFT
+      // contract: without a target, the weight goal line is absent
+      // implication: AC20 — the editor must not show an empty or phantom weight goal
+      await openDialog(tester, const DailyGoals(calories: 1800));
+
+      expect(anchor('goal-weight-target'), findsNothing);
+    });
+  });
 }

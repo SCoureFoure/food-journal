@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:food_journal/models/daily_goals.dart';
+import 'package:food_journal/models/weight_goal.dart';
+import 'package:food_journal/services/settings_service.dart';
 import 'package:food_journal/widgets/home/goals_panel.dart';
 import 'package:liquid_progress_indicator_v2/liquid_progress_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,11 +23,21 @@ void main() {
     required DailyGoals goals,
     GoalIntake intake = const GoalIntake(),
     VoidCallback? onEdit,
+    WeightGoalMet? weightGoalMet,
+    VoidCallback? onNewWeightGoal,
+    VoidCallback? onDismissWeightGoal,
   }) async {
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
         body: SingleChildScrollView(
-          child: GoalsPanel(goals: goals, intake: intake, onEdit: onEdit ?? () {}),
+          child: GoalsPanel(
+            goals: goals,
+            intake: intake,
+            onEdit: onEdit ?? () {},
+            weightGoalMet: weightGoalMet,
+            onNewWeightGoal: onNewWeightGoal,
+            onDismissWeightGoal: onDismissWeightGoal,
+          ),
         ),
       ),
     ));
@@ -211,6 +223,111 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
 
       expect(find.byType(LiquidLinearProgressIndicator), findsNWidgets(2));
+    });
+  });
+
+  /// [MFT] GoalsPanel weight-goal prompt — a non-null weightGoalMet shows the
+  /// "You reached" prompt with both buttons wired to their callbacks (AC25).
+  /// If this regresses: a met weight goal is silent, or its buttons do nothing.
+  group('[MFT] GoalsPanel weight-goal prompt', () {
+    testWidgets('AC25: prompt shows target text and both buttons call their callback once',
+        (tester) async {
+      // testTheory: minimum functionality — prompt text and both buttons are wired.
+      // contract: weightGoalMet 170 lb → anchor goal-weight-met with text
+      //   "You reached 170 lb! Set a new goal?"; each button calls its callback once.
+      // implication: AC25 — a reached weight goal offers "Set new goal" and "Not now".
+      SharedPreferences.setMockInitialValues({});
+      var newGoal = 0;
+      var later = 0;
+      await pumpPanel(
+        tester,
+        goals: const DailyGoals(calories: 2000),
+        weightGoalMet: const WeightGoalMet(
+          targetWeightLb: 170,
+          direction: WeightDirection.lose,
+        ),
+        onNewWeightGoal: () => newGoal++,
+        onDismissWeightGoal: () => later++,
+      );
+
+      expect(anchor('goal-weight-met'), findsOneWidget);
+      expect(find.text('You reached 170 lb! Set a new goal?'), findsOneWidget);
+
+      await tester.tap(find.descendant(
+          of: anchor('btn-weight-goal-new'), matching: find.text('Set new goal')));
+      await tester.pump();
+      expect(newGoal, 1);
+      expect(later, 0);
+
+      await tester.tap(find.descendant(
+          of: anchor('btn-weight-goal-later'), matching: find.text('Not now')));
+      await tester.pump();
+      expect(later, 1);
+      expect(newGoal, 1);
+    });
+  });
+
+  /// [BVA] GoalsPanel weight-goal prompt absence — null weightGoalMet shows no
+  /// prompt (AC25).
+  /// If this regresses: the prompt nags users who have no reached goal.
+  group('[BVA] GoalsPanel weight-goal prompt absence', () {
+    testWidgets('AC25: null weightGoalMet shows no goal-weight-met anchor', (tester) async {
+      // testTheory: boundary — the null edge hides the prompt entirely.
+      // contract: weightGoalMet null → anchor goal-weight-met findsNothing.
+      // implication: AC25 — the prompt appears only when a weigh-in reaches the target.
+      SharedPreferences.setMockInitialValues({});
+      await pumpPanel(tester, goals: const DailyGoals(calories: 2000));
+
+      expect(anchor('goal-weight-met'), findsNothing);
+      expect(anchor('btn-weight-goal-new'), findsNothing);
+      expect(anchor('btn-weight-goal-later'), findsNothing);
+    });
+  });
+
+  /// [DIR] GoalsPanel weight-goal prompt when collapsed — the prompt sits above
+  /// the header, so collapsing the Goals card does not hide it (AC25).
+  /// If this regresses: the prompt disappears with the panel body.
+  group('[DIR] GoalsPanel weight-goal prompt collapsed', () {
+    testWidgets('AC25: prompt still shown after collapsing the header', (tester) async {
+      // testTheory: directional — collapsing changes only the body, not the prompt.
+      // contract: tap item-header-goals → goal-weight-met still findsOneWidget.
+      // implication: AC25 — the reached-goal prompt is visible whether collapsed or expanded.
+      SharedPreferences.setMockInitialValues({});
+      await pumpPanel(
+        tester,
+        goals: const DailyGoals(calories: 2000),
+        weightGoalMet: const WeightGoalMet(
+          targetWeightLb: 170,
+          direction: WeightDirection.lose,
+        ),
+        onNewWeightGoal: () {},
+        onDismissWeightGoal: () {},
+      );
+
+      await tester.tap(anchor('item-header-goals'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(anchor('goal-row-calories'), findsNothing);
+      expect(anchor('goal-weight-met'), findsOneWidget);
+    });
+  });
+
+  /// [INV] SettingsService weight-goal dismissed log id — a stored id round-trips
+  /// and defaults to null (AC25).
+  /// If this regresses: a dismissed prompt cannot be remembered, or reappears
+  /// with no stored id.
+  group('[INV] SettingsService weight-goal dismissed log id', () {
+    test('AC25: set 7 then read 7; default is null', () async {
+      // testTheory: invariance — round-trip through SharedPreferences preserves the id.
+      // contract: fresh prefs → null; setWeightGoalDismissedLogId(7) → 7.
+      // implication: AC25 — "Not now" persists the dismissed weigh-in so the prompt stays hidden.
+      SharedPreferences.setMockInitialValues({});
+      final settings = SettingsService();
+
+      expect(await settings.weightGoalDismissedLogId, isNull);
+      await settings.setWeightGoalDismissedLogId(7);
+      expect(await settings.weightGoalDismissedLogId, 7);
     });
   });
 }

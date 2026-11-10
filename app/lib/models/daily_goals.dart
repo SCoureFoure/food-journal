@@ -4,6 +4,8 @@ const int kDefaultWaterGoalMl = 1893;
 
 const double kMlPerOz = 29.5735;
 
+enum WeightDirection { lose, gain }
+
 /// Daily targets. Every target is optional; null means "not set" and the
 /// Goals panel hides that metric.
 class DailyGoals {
@@ -13,12 +15,20 @@ class DailyGoals {
   final int? fatG;
   final int? waterMl;
 
+  /// Weight the goal aims for, in lb. Null = no weight goal.
+  final double? targetWeightLb;
+
+  /// Set iff [targetWeightLb] is set.
+  final WeightDirection? weightDirection;
+
   const DailyGoals({
     this.calories,
     this.proteinG,
     this.carbsG,
     this.fatG,
     this.waterMl,
+    this.targetWeightLb,
+    this.weightDirection,
   });
 
   static const none = DailyGoals();
@@ -40,14 +50,18 @@ class DailyGoals {
       other.proteinG == proteinG &&
       other.carbsG == carbsG &&
       other.fatG == fatG &&
-      other.waterMl == waterMl;
+      other.waterMl == waterMl &&
+      other.targetWeightLb == targetWeightLb &&
+      other.weightDirection == weightDirection;
 
   @override
-  int get hashCode => Object.hash(calories, proteinG, carbsG, fatG, waterMl);
+  int get hashCode => Object.hash(calories, proteinG, carbsG, fatG, waterMl,
+      targetWeightLb, weightDirection);
 
   @override
   String toString() =>
-      'DailyGoals(cal: $calories, p: $proteinG, c: $carbsG, f: $fatG, waterMl: $waterMl)';
+      'DailyGoals(cal: $calories, p: $proteinG, c: $carbsG, f: $fatG, waterMl: $waterMl, '
+      'targetWeightLb: $targetWeightLb, weightDirection: $weightDirection)';
 }
 
 /// One saved change of targets. A save stores all five targets, so a snapshot

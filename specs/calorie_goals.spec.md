@@ -143,6 +143,62 @@ only if a goal applied then. *(user)*
     on 2026-11-10, when the user opens 2026-11-05 with 1450 kcal logged, then DAY TOTALS
     reads `1450 / 2000`. On 2026-10-30 (before any goal) it reads `1450`.
 
+## Weight goal (amendment, 2026-11-10)
+
+A calorie goal already carries over day to day until the user saves a new one. A goal set
+from the calculator can now also carry a **target weight**. When a weigh-in reaches it, the
+Goals panel asks whether to set a new goal. Nothing changes until the user saves. *(user)*
+
+Decisions:
+
+- **Where it's set:** an optional "Target weight (lb)" field in the calculator, shown only
+  for a lose or gain pace. Maintain means no target. *(user)*
+- **Direction:** comes from the pace: lose paces give `lose`, gain paces give `gain`. *(intent)*
+- **Wrong side rejected:** with `lose`, the target must be below the calculator weight; with `gain`,
+  above it. Otherwise the field shows an error and the calculator stays open. Range 50–700 lb. *(user)*
+- **Storage:** `goal_history` gains nullable `target_weight_lb` (REAL) and `weight_direction`
+  (TEXT `lose|gain`), schema v17 → v18, additive. They live in `DailyGoals`, so
+  `goalsForDate` carries them forward like every other target. *(intent: "saved with the goal history")*
+- **Edit dialog:** shows "Weight goal: <n> lb" with a Clear button while a target is set.
+  Saving manual edits keeps the target. *(intent)*
+- **Met:** the first weigh-in at or past the target (≤ for lose, ≥ for gain), dated on or
+  after the start of the current target. "Start" is the effective date of the earliest
+  snapshot in the unbroken run of snapshots carrying the same target and direction, so
+  editing calories mid-goal does not reset it. kg weigh-ins are converted (× 2.20462). *(user: one weigh-in is enough)*
+- **Prompt:** above the Goals panel's collapsible header (visible collapsed or expanded):
+  "You reached <n> lb! Set a new goal?" with "Set new goal" and "Not now". *(user: ask me first)*
+- **Set new goal:** opens the calculator (weight pre-filled from the latest weigh-in), then
+  the edit dialog pre-filled with its result plus today's water target. Saving stores a new
+  snapshot; the new pace/target replaces the old one, so the prompt goes away. Cancel at
+  either step changes nothing and the prompt stays. *(intent)*
+- **Not now:** hides the prompt until a newer weigh-in exists (SharedPreferences
+  `weight_goal_dismissed_log_id` = highest weight-log id at dismissal). *(user)*
+- **Pet:** the pet sheet does not show the prompt. *(user)*
+
+19. **AC19 — migration.** Given a v17 database with goal rows, when the app opens at v18,
+    then `goal_history` has `target_weight_lb` and `weight_direction`, old rows read them as
+    null, and other columns are unchanged.
+20. **AC20 — round trip.** Given a save with target 170 lb, direction lose, then
+    `getGoalHistory().last.goals` has `targetWeightLb` 170.0 and `weightDirection` lose,
+    and `goalsForDate` for a later day returns them.
+21. **AC21 — calculator target.** Given weight 180, pace "Lose 1 lb a week", target 170,
+    when "Use these" is tapped, then the result carries target 170 / lose. Given target 185
+    with a lose pace, the target field shows an error and the calculator stays open. Given
+    pace "Maintain weight", the target field is not shown and the result has no target.
+22. **AC22 — met (lose).** Given a lose target 170 set 2026-11-01 and weigh-ins 175 lb
+    (11-03) and 169.5 lb (11-08), then the goal is met on 11-08. Given only 171 lb, not met.
+    A 165 lb weigh-in dated 10-30 (before the target started) does not count.
+23. **AC23 — met (gain, kg).** Given a gain target 150 lb and a weigh-in of 68.5 kg
+    (151.0 lb), then the goal is met.
+24. **AC24 — run start.** Given target 170/lose saved 11-01, then calories edited 11-05
+    (same target carried), and a 169 lb weigh-in on 11-03, then the goal is met.
+25. **AC25 — prompt.** Given a met goal, the Goals panel shows `goal-weight-met` with
+    "You reached 170 lb! Set a new goal?". "Not now" hides it; it stays hidden after a
+    reload and comes back after a newer weigh-in.
+26. **AC26 — set new goal.** Given the prompt, tapping "Set new goal" opens the calculator;
+    "Use these" then opens the edit dialog with the estimate and today's water; Save stores
+    a snapshot with the new target (or none for maintain) and the prompt disappears.
+
 ## Anchors (explore rig)
 
 - `goals-panel` — panel root
@@ -158,6 +214,12 @@ only if a goal applied then. *(user)*
 - `field-calc-<input>` — `weight|height-ft|height-in|age|formula|activity|goal`
 - `calc-result` — live estimate line
 - `btn-calc-apply` — "Use these"
+- `field-calc-target` — calculator target weight (lose/gain pace only)
+- `goal-weight-target` — edit dialog "Weight goal: <n> lb" line
+- `btn-clear-weight-goal` — edit dialog Clear for the weight goal
+- `goal-weight-met` — "You reached <n> lb!" prompt above the Goals header
+- `btn-weight-goal-new` — prompt "Set new goal"
+- `btn-weight-goal-later` — prompt "Not now"
 
 ## Verifies-with
 

@@ -178,6 +178,10 @@ class GoalHistory extends Table {
   IntColumn get fatG => integer().nullable()();
   IntColumn get waterMl => integer().nullable()();
   DateTimeColumn get createdAt => dateTime()();
+  // v18. Declared after createdAt so a fresh install's column order matches an
+  // upgraded one (addColumn appends at the end).
+  RealColumn get targetWeightLb => real().nullable()();
+  TextColumn get weightDirection => text().nullable()();
 }
 
 // ─── Database ─────────────────────────────────────────────────────────────────
@@ -195,11 +199,11 @@ class AppDatabase extends _$AppDatabase {
 
   // Exposed as a static constant so tests can assert the current version
   // without instantiating the singleton (which requires native sqlite3).
-  static const int currentSchemaVersion = 17;
+  static const int currentSchemaVersion = 18;
 
   // The declared migration ceiling versions in the order they appear in
   // onUpgrade.  Must be non-decreasing — tested in migration_order_test.dart.
-  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -414,6 +418,19 @@ class AppDatabase extends _$AppDatabase {
             created_at INTEGER NOT NULL
           )
         ''');
+      }
+      if (from < 18) {
+        // v18 adds an optional weight goal to each goal snapshot. Additive only.
+        // Idempotent like the v17 CREATE IF NOT EXISTS: skip columns already present.
+        final existing = (await customSelect('PRAGMA table_info(goal_history)').get())
+            .map((r) => r.read<String>('name'))
+            .toSet();
+        if (!existing.contains('target_weight_lb')) {
+          await migrator.addColumn(goalHistory, goalHistory.targetWeightLb);
+        }
+        if (!existing.contains('weight_direction')) {
+          await migrator.addColumn(goalHistory, goalHistory.weightDirection);
+        }
       }
     },
   );

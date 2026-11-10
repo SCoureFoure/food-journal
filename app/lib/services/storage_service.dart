@@ -936,6 +936,8 @@ class StorageService {
         carbsG: Value(goals.carbsG),
         fatG: Value(goals.fatG),
         waterMl: Value(goals.waterMl),
+        targetWeightLb: Value(goals.targetWeightLb),
+        weightDirection: Value(goals.weightDirection?.name),
         createdAt: at,
       ),
     );
@@ -960,10 +962,15 @@ class StorageService {
                 carbsG: r.carbsG,
                 fatG: r.fatG,
                 waterMl: r.waterMl,
+                targetWeightLb: r.targetWeightLb,
+                weightDirection: _direction(r.weightDirection),
               ),
             ))
         .toList();
   }
+
+  static WeightDirection? _direction(String? name) =>
+      name == null ? null : WeightDirection.values.asNameMap()[name];
 
   /// goalsForDate(await getGoalHistory(), day).
   Future<DailyGoals> getGoalsForDate(DateTime day) async =>

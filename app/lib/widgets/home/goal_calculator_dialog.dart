@@ -32,7 +32,14 @@ class _GoalCalculatorDialogState extends State<GoalCalculatorDialog> {
   BodyFormula? _formula;
   ActivityLevel _activity = ActivityLevel.light;
   WeightGoal _goal = WeightGoal.maintain;
+  final _target = TextEditingController();
   final Map<String, String> _errors = {};
+
+  WeightDirection? get _direction => switch (_goal) {
+        WeightGoal.lose1 || WeightGoal.lose05 => WeightDirection.lose,
+        WeightGoal.gain05 => WeightDirection.gain,
+        _ => null,
+      };
 
   static String _formatWeight(double lb) =>
       lb == lb.truncateToDouble() ? lb.toInt().toString() : lb.toStringAsFixed(1);
@@ -62,6 +69,7 @@ class _GoalCalculatorDialogState extends State<GoalCalculatorDialog> {
     _heightFt.dispose();
     _heightIn.dispose();
     _age.dispose();
+    _target.dispose();
     super.dispose();
   }
 
@@ -83,6 +91,20 @@ class _GoalCalculatorDialogState extends State<GoalCalculatorDialog> {
     if (age == null || age < 18 || age > 100) errors['age'] = 'Enter an age from 18 to 100';
 
     if (_formula == null) errors['formula'] = 'Pick a formula';
+
+    final targetText = _target.text.trim();
+    if (_direction != null && targetText.isNotEmpty) {
+      final target = double.tryParse(targetText);
+      if (target == null || target < 50 || target > 700) {
+        errors['target'] = 'Enter 50–700 lb';
+      } else if (!errors.containsKey('weight') && weight != null) {
+        if (_direction == WeightDirection.lose && target >= weight) {
+          errors['target'] = 'Target must be below your current weight';
+        } else if (_direction == WeightDirection.gain && target <= weight) {
+          errors['target'] = 'Target must be above your current weight';
+        }
+      }
+    }
 
     if (errors.isNotEmpty) {
       if (showErrors) {
@@ -106,7 +128,18 @@ class _GoalCalculatorDialogState extends State<GoalCalculatorDialog> {
     final p = _read(showErrors: true);
     if (p == null) return;
     await widget.settings.setGoalProfile(p);
-    if (mounted) Navigator.pop(context, estimateGoals(p));
+    if (!mounted) return;
+    final g = estimateGoals(p);
+    final target = _direction == null ? null : double.tryParse(_target.text.trim());
+    Navigator.pop(
+        context,
+        DailyGoals(
+            calories: g.calories,
+            proteinG: g.proteinG,
+            carbsG: g.carbsG,
+            fatG: g.fatG,
+            targetWeightLb: target,
+            weightDirection: target == null ? null : _direction));
   }
 
   Widget _numberField(String input, String label, TextEditingController controller,
@@ -180,6 +213,8 @@ class _GoalCalculatorDialogState extends State<GoalCalculatorDialog> {
                   (v) => v.label, (v) => _activity = v ?? _activity),
               _dropdown<WeightGoal>('goal', 'Goal', _goal, WeightGoal.values, (v) => v.label,
                   (v) => _goal = v ?? _goal),
+              if (_direction != null)
+                _numberField('target', 'Target weight (lb, optional)', _target, decimal: true),
               const SizedBox(height: 12),
               Semantics(
                 identifier: 'calc-result',

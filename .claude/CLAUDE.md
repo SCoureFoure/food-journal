@@ -163,7 +163,7 @@ The modes above are executed by concrete tooling — use it, don't reinvent it.
 
 ## Data model (core)
 
-Schema version **17** (`AppDatabase.currentSchemaVersion`). Ground truth: `app/lib/services/database/app_database.dart`.
+Schema version **18** (`AppDatabase.currentSchemaVersion`). Ground truth: `app/lib/services/database/app_database.dart`.
 
 ```text
 Meals         { id, date, time, mealType, overallSymptoms, rawInput, createdAt, imageData }
@@ -179,10 +179,10 @@ WaterLogs     { id, date, time, amountMl, notes, createdAt }
 WeightLogs    { id, date, time, weightValue, unit, notes, createdAt }
 SavedItems    { id, name, calories, protein, carbs, fat, componentsJson, createdAt }
 PantryItems   { id, name, canonicalName, quantity, unit, source, rawText, addedAt, createdAt }
-GoalHistory   { id, effectiveDate, calories, proteinG, carbsG, fatG, waterMl, createdAt }
+GoalHistory   { id, effectiveDate, calories, proteinG, carbsG, fatG, waterMl, targetWeightLb, weightDirection, createdAt }
 ```
 
-**Planned, not implemented:** BodyOutput { id, date, time, outputType, urgency, consistency, notes } — no table, no model as of schema v17.
+**Planned, not implemented:** BodyOutput { id, date, time, outputType, urgency, consistency, notes } — no table, no model as of schema v18.
 
 ## Dev commands
 

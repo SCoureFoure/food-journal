@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
@@ -9,12 +10,14 @@ import '../../models/medication.dart';
 import '../../models/pet_feed.dart';
 import '../../models/reaction_log.dart';
 import '../../models/water_log.dart';
+import '../../models/weight_goal.dart';
 import '../../models/weight_log.dart';
 import '../../screens/log_water/log_water_sheet.dart';
 import '../../services/settings_service.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/error_display.dart';
 import '../../widgets/home/edit_goals_dialog.dart';
+import '../../widgets/home/goal_calculator_dialog.dart';
 import '../../widgets/home/goals_panel.dart';
 import '../../widgets/home/week_summary_section.dart';
 
@@ -43,6 +46,7 @@ class HomeScreenState extends State<HomeScreen> {
   List<DateTime> _sortedDates = [];
   List<GoalSnapshot> _goalHistory = [];
   GoalIntake _todayIntake = const GoalIntake();
+  WeightGoalMet? _weightGoalMet;
   bool _goalsLoaded = false;
   bool _loading = true;
   String? _errorMessage;
@@ -145,8 +149,19 @@ class HomeScreenState extends State<HomeScreen> {
       final todayWaterMl =
           (waterByDate[todayKey] ?? []).fold(0, (s, l) => s + l.amountMl);
 
+      final met = weightGoalMet(goalHistory, weightLogs, now);
+      int? dismissed;
+      try {
+        dismissed = await _settings.weightGoalDismissedLogId;
+      } catch (_) {
+        // Settings unreadable (no plugin in some widget tests) — treat as never dismissed.
+      }
+      final latestLogId = weightLogs.fold<int>(0, (m, l) => math.max(m, l.id ?? 0));
+      final showMet = met != null && (dismissed == null || latestLogId > dismissed) ? met : null;
+
       if (!mounted) return;
       setState(() {
+        _weightGoalMet = showMet;
         _goalHistory = goalHistory;
         _todayIntake = GoalIntake(
           calories: t.cal,
@@ -248,6 +263,33 @@ class HomeScreenState extends State<HomeScreen> {
     unawaited(_load());
   }
 
+  Future<void> _dismissWeightGoal() async {
+    final latestLogId = _weightByDate.values
+        .expand((logs) => logs)
+        .fold<int>(0, (m, l) => math.max(m, l.id ?? 0));
+    await _settings.setWeightGoalDismissedLogId(latestLogId);
+    if (mounted) setState(() => _weightGoalMet = null);
+  }
+
+  Future<void> _newWeightGoal() async {
+    _closeFab();
+    final calc = await showGoalCalculator(context, latestWeightLb: _latestWeightLb());
+    if (calc == null || !mounted) return;
+    final prefill = DailyGoals(
+      calories: calc.calories,
+      proteinG: calc.proteinG,
+      carbsG: calc.carbsG,
+      fatG: calc.fatG,
+      waterMl: _todayGoals.waterMl,
+      targetWeightLb: calc.targetWeightLb,
+      weightDirection: calc.weightDirection,
+    );
+    final updated = await showEditGoalsDialog(context, prefill, latestWeightLb: _latestWeightLb());
+    if (updated == null || !mounted) return;
+    await _storage.saveGoals(updated);
+    unawaited(_load());
+  }
+
   /// Called by the shell after the settings dialog closes — left-handed mode
   /// moves the FAB, so the journal must re-read settings.
   Future<void> reloadSettings() async {
@@ -278,6 +320,9 @@ class HomeScreenState extends State<HomeScreen> {
                     intake: _todayIntake,
                     onEdit: _editGoals,
                     animateBars: _goalBarsAnimated,
+                    weightGoalMet: _weightGoalMet,
+                    onNewWeightGoal: _newWeightGoal,
+                    onDismissWeightGoal: _dismissWeightGoal,
                   ),
                 Expanded(child: _buildBody()),
               ],

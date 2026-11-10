@@ -93,4 +93,16 @@ class SettingsService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyGoalProfile, profile.encode());
   }
+
+  static const _keyWeightGoalDismissedLogId = 'weight_goal_dismissed_log_id';
+
+  Future<int?> get weightGoalDismissedLogId async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_keyWeightGoalDismissedLogId);
+  }
+
+  Future<void> setWeightGoalDismissedLogId(int id) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keyWeightGoalDismissedLogId, id);
+  }
 }
