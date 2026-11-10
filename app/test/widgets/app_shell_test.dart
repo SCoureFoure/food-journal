@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:food_journal/models/daily_goals.dart';
 import 'package:food_journal/models/meal_entry.dart';
 import 'package:food_journal/models/medication.dart';
 import 'package:food_journal/models/reaction_log.dart';
@@ -31,6 +32,9 @@ class _FakeStorage extends StorageService {
 
   @override
   Future<List<WeightLog>> getAllWeightLogs() async => [];
+
+  @override
+  Future<List<GoalSnapshot>> getGoalHistory() async => [];
 }
 
 Widget _shell() => MaterialApp(home: AppShell(journalStorageOverride: _FakeStorage()));

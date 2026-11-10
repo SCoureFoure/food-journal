@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../models/daily_goals.dart';
+
 class DayTotalsBar extends StatelessWidget {
   final int cal;
   final double prot;
   final double carbs;
   final double fat;
+  final DailyGoals goals;
 
   const DayTotalsBar({
     super.key,
@@ -12,6 +15,7 @@ class DayTotalsBar extends StatelessWidget {
     required this.prot,
     required this.carbs,
     required this.fat,
+    this.goals = DailyGoals.none,
   });
 
   @override
@@ -48,12 +52,43 @@ class DayTotalsBar extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          Row(
+          Wrap(
+            runSpacing: 4,
             children: [
-              if (cal > 0) _TotalCell(label: 'CAL', value: '$cal', labelStyle: labelStyle, theme: theme),
-              if (prot > 0) _TotalCell(label: 'PROT', value: '${prot.toInt()}g', labelStyle: labelStyle, theme: theme),
-              if (carbs > 0) _TotalCell(label: 'CARBS', value: '${carbs.toInt()}g', labelStyle: labelStyle, theme: theme),
-              if (fat > 0) _TotalCell(label: 'FAT', value: '${fat.toInt()}g', labelStyle: labelStyle, theme: theme),
+              if (cal > 0 || goals.calories != null)
+                _TotalCell(
+                  label: 'CAL',
+                  value: goals.calories == null ? '$cal' : '$cal / ${goals.calories}',
+                  labelStyle: labelStyle,
+                  theme: theme,
+                ),
+              if (prot > 0 || goals.proteinG != null)
+                _TotalCell(
+                  label: 'PROT',
+                  value: goals.proteinG == null
+                      ? '${prot.toInt()}g'
+                      : '${prot.toInt()} / ${goals.proteinG}g',
+                  labelStyle: labelStyle,
+                  theme: theme,
+                ),
+              if (carbs > 0 || goals.carbsG != null)
+                _TotalCell(
+                  label: 'CARBS',
+                  value: goals.carbsG == null
+                      ? '${carbs.toInt()}g'
+                      : '${carbs.toInt()} / ${goals.carbsG}g',
+                  labelStyle: labelStyle,
+                  theme: theme,
+                ),
+              if (fat > 0 || goals.fatG != null)
+                _TotalCell(
+                  label: 'FAT',
+                  value: goals.fatG == null
+                      ? '${fat.toInt()}g'
+                      : '${fat.toInt()} / ${goals.fatG}g',
+                  labelStyle: labelStyle,
+                  theme: theme,
+                ),
             ],
           ),
         ],

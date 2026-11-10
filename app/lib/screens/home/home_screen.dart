@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../models/daily_goals.dart';
+import '../../models/goal_estimate.dart';
 import '../../models/meal_entry.dart';
 import '../../models/medication.dart';
 import '../../models/reaction_log.dart';
@@ -11,6 +13,8 @@ import '../../screens/log_water/log_water_sheet.dart';
 import '../../services/settings_service.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/error_display.dart';
+import '../../widgets/home/edit_goals_dialog.dart';
+import '../../widgets/home/goals_panel.dart';
 import '../../widgets/home/week_summary_section.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -33,10 +37,16 @@ class HomeScreenState extends State<HomeScreen> {
   Map<DateTime, List<WaterLog>> _waterByDate = {};
   Map<DateTime, List<WeightLog>> _weightByDate = {};
   List<DateTime> _sortedDates = [];
+  List<GoalSnapshot> _goalHistory = [];
+  GoalIntake _todayIntake = const GoalIntake();
+  bool _goalsLoaded = false;
   bool _loading = true;
   String? _errorMessage;
   bool _fabOpen = false;
   bool _leftHanded = false;
+  bool _goalBarsAnimated = true;
+
+  DailyGoals get _todayGoals => goalsForDate(_goalHistory, DateTime.now());
 
   @override
   void initState() {
@@ -47,7 +57,13 @@ class HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadSettings() async {
     final lh = await _settings.isLeftHanded;
-    if (mounted) setState(() => _leftHanded = lh);
+    final animated = await _settings.isGoalBarsAnimated;
+    if (mounted) {
+      setState(() {
+        _leftHanded = lh;
+        _goalBarsAnimated = animated;
+      });
+    }
   }
 
   @override
@@ -68,12 +84,14 @@ class HomeScreenState extends State<HomeScreen> {
         _storage.getStandaloneReactionLogs(),
         _storage.getAllWaterLogs(),
         _storage.getAllWeightLogs(),
+        _storage.getGoalHistory(),
       ]);
       final meals = results[0] as List<MealEntry>;
       final meds = results[1] as List<Medication>;
       final feelings = results[2] as List<ReactionLog>;
       final waterLogs = results[3] as List<WaterLog>;
       final weightLogs = results[4] as List<WeightLog>;
+      final goalHistory = results[5] as List<GoalSnapshot>;
 
       final mealsByDate = <DateTime, List<MealEntry>>{};
       for (final meal in meals) {
@@ -113,8 +131,27 @@ class HomeScreenState extends State<HomeScreen> {
         ...weightByDate.keys,
       }.toList()..sort((a, b) => b.compareTo(a));
 
+      final now = DateTime.now();
+      final todayKey = DateTime(now.year, now.month, now.day);
+      final todayMealIds = (mealsByDate[todayKey] ?? [])
+          .where((m) => m.id != null)
+          .map((m) => m.id!)
+          .toList();
+      final t = await _storage.getMacroTotalsForMeals(todayMealIds);
+      final todayWaterMl =
+          (waterByDate[todayKey] ?? []).fold(0, (s, l) => s + l.amountMl);
+
       if (!mounted) return;
       setState(() {
+        _goalHistory = goalHistory;
+        _todayIntake = GoalIntake(
+          calories: t.cal,
+          proteinG: t.prot.round(),
+          carbsG: t.carbs.round(),
+          fatG: t.fat.round(),
+          waterMl: todayWaterMl,
+        );
+        _goalsLoaded = true;
         _mealsByDate = mealsByDate;
         _medsByDate = medsByDate;
         _feelingsByDate = feelingsByDate;
@@ -174,6 +211,31 @@ class HomeScreenState extends State<HomeScreen> {
     unawaited(_load());
   }
 
+  double? _latestWeightLb() {
+    WeightLog? latest;
+    for (final log in _weightByDate.values.expand((logs) => logs)) {
+      if (latest == null) {
+        latest = log;
+        continue;
+      }
+      final byDate = log.date.compareTo(latest.date);
+      if (byDate > 0 || (byDate == 0 && log.createdAt.compareTo(latest.createdAt) > 0)) {
+        latest = log;
+      }
+    }
+    if (latest == null) return null;
+    return latest.unit == 'kg' ? latest.weightValue * kLbPerKg : latest.weightValue;
+  }
+
+  Future<void> _editGoals() async {
+    _closeFab();
+    final updated =
+        await showEditGoalsDialog(context, _todayGoals, latestWeightLb: _latestWeightLb());
+    if (updated == null || !mounted) return;
+    await _storage.saveGoals(updated);
+    unawaited(_load());
+  }
+
   /// Called by the shell after the settings dialog closes — left-handed mode
   /// moves the FAB, so the journal must re-read settings.
   Future<void> reloadSettings() async {
@@ -193,7 +255,18 @@ class HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.transparent,
         body: Stack(
           children: [
-            _buildBody(),
+            Column(
+              children: [
+                if (_goalsLoaded)
+                  GoalsPanel(
+                    goals: _todayGoals,
+                    intake: _todayIntake,
+                    onEdit: _editGoals,
+                    animateBars: _goalBarsAnimated,
+                  ),
+                Expanded(child: _buildBody()),
+              ],
+            ),
             if (_fabOpen)
               Positioned.fill(
                 child: GestureDetector(
@@ -261,6 +334,7 @@ class HomeScreenState extends State<HomeScreen> {
             storage: _storage,
             isToday: _isToday,
             onReload: _load,
+            goalsFor: (d) => goalsForDate(_goalHistory, d),
           );
         },
       ),

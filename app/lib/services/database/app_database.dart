@@ -169,9 +169,20 @@ class PantryItems extends Table {
   DateTimeColumn get createdAt => dateTime()();
 }
 
+class GoalHistory extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  DateTimeColumn get effectiveDate => dateTime()();
+  IntColumn get calories => integer().nullable()();
+  IntColumn get proteinG => integer().nullable()();
+  IntColumn get carbsG => integer().nullable()();
+  IntColumn get fatG => integer().nullable()();
+  IntColumn get waterMl => integer().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
 // ─── Database ─────────────────────────────────────────────────────────────────
 
-@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories, Medications, MealFingerprints, WaterLogs, WeightLogs, SavedItems, FoodSuspicions, SuspicionExclusions, PantryItems])
+@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories, Medications, MealFingerprints, WaterLogs, WeightLogs, SavedItems, FoodSuspicions, SuspicionExclusions, PantryItems, GoalHistory])
 class AppDatabase extends _$AppDatabase {
   static final AppDatabase _instance = AppDatabase._internal();
 
@@ -184,11 +195,11 @@ class AppDatabase extends _$AppDatabase {
 
   // Exposed as a static constant so tests can assert the current version
   // without instantiating the singleton (which requires native sqlite3).
-  static const int currentSchemaVersion = 16;
+  static const int currentSchemaVersion = 17;
 
   // The declared migration ceiling versions in the order they appear in
   // onUpgrade.  Must be non-decreasing — tested in migration_order_test.dart.
-  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -385,6 +396,21 @@ class AppDatabase extends _$AppDatabase {
             source TEXT NOT NULL,
             raw_text TEXT,
             added_at INTEGER NOT NULL,
+            created_at INTEGER NOT NULL
+          )
+        ''');
+      }
+      if (from < 17) {
+        // v17 adds daily goal history (calorie/macro/water targets). Additive only.
+        await customStatement('''
+          CREATE TABLE IF NOT EXISTS goal_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            effective_date INTEGER NOT NULL,
+            calories INTEGER,
+            protein_g INTEGER,
+            carbs_g INTEGER,
+            fat_g INTEGER,
+            water_ml INTEGER,
             created_at INTEGER NOT NULL
           )
         ''');

@@ -145,7 +145,7 @@ void main() {
     test('AC16: fresh install has pantry_items at v16', () async {
       final db = AppDatabase.forTesting(NativeDatabase.memory());
       addTearDown(db.close);
-      expect(AppDatabase.currentSchemaVersion, 16);
+      expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(16));
       final t = await db
           .customSelect("SELECT name FROM sqlite_master WHERE type='table' AND name='pantry_items'")
           .get();
@@ -173,7 +173,8 @@ void main() {
       final meal = await db.customSelect('SELECT meal_type FROM meals').getSingle();
       expect(meal.read<String>('meal_type'), 'breakfast');
       final v = await db.customSelect('PRAGMA user_version').getSingle();
-      expect(v.read<int>('user_version'), 16);
+      // Upgrades run to the current version, not just the v16 step.
+      expect(v.read<int>('user_version'), AppDatabase.currentSchemaVersion);
     });
   });
 }
