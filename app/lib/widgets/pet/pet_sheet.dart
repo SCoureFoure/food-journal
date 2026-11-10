@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:food_journal/models/daily_goals.dart';
-import 'package:food_journal/models/pet_feed.dart';
-import 'package:food_journal/widgets/goal_fill_bar.dart';
-import 'package:food_journal/widgets/pet/pet_block.dart';
+import '../../models/daily_goals.dart';
+import '../../models/pet_feed.dart';
+import '../goal_fill_bar.dart';
+import 'pet_block.dart';
 
 Future<void> showPetSheet(BuildContext context, PetFeed feed,
         {bool animateBars = true, VoidCallback? onSetGoal}) =>
