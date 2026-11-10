@@ -1,5 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/goal_estimate.dart';
+
 class SettingsService {
   static const _keyAiEnabled = 'ai_enabled';
   static const _keyLeftHanded = 'left_handed';
@@ -22,6 +24,18 @@ class SettingsService {
   Future<void> setLeftHanded(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyLeftHanded, value);
+  }
+
+  static const _keyGoalBarsAnimated = 'goal_bars_animated';
+
+  Future<bool> get isGoalBarsAnimated async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyGoalBarsAnimated) ?? true;
+  }
+
+  Future<void> setGoalBarsAnimated(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyGoalBarsAnimated, value);
   }
 
   /// Whether a Meal Planning card ([card] is `pantry` or `grocery`) is collapsed.
@@ -54,5 +68,17 @@ class SettingsService {
   Future<void> clearGroceryDraft() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_keyGroceryDraft);
+  }
+
+  static const _keyGoalProfile = 'goal_profile';
+
+  Future<GoalProfile?> get goalProfile async {
+    final prefs = await SharedPreferences.getInstance();
+    return GoalProfile.decode(prefs.getString(_keyGoalProfile));
+  }
+
+  Future<void> setGoalProfile(GoalProfile profile) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyGoalProfile, profile.encode());
   }
 }

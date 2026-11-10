@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../models/daily_goals.dart';
 import '../../models/meal_entry.dart';
 import '../../models/medication.dart';
 import '../../models/reaction_log.dart';
@@ -29,6 +30,7 @@ class WeekSummarySection extends StatefulWidget {
   // When provided, replaces storage.getMacroTotalsForMeals for the week header.
   // Required when storage is null (tests that inject a fetcher directly).
   final MacroFetcher? macroFetcher;
+  final DailyGoals Function(DateTime date)? goalsFor;
 
   const WeekSummarySection({
     super.key,
@@ -43,6 +45,7 @@ class WeekSummarySection extends StatefulWidget {
     required this.isToday,
     required this.onReload,
     this.macroFetcher,
+    this.goalsFor,
   }) : assert(storage != null || macroFetcher != null,
             'Provide storage or macroFetcher');
 
@@ -153,6 +156,7 @@ class _WeekSummarySectionState extends State<WeekSummarySection>
                   storage: storage,
                   isToday: widget.isToday(date),
                   onReload: widget.onReload,
+                  goals: widget.goalsFor?.call(date) ?? DailyGoals.none,
                 ),
               ),
             const SizedBox(height: 4),

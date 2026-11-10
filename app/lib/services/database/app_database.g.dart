@@ -6607,6 +6607,513 @@ class PantryItemsCompanion extends UpdateCompanion<PantryItem> {
   }
 }
 
+class $GoalHistoryTable extends GoalHistory
+    with TableInfo<$GoalHistoryTable, GoalHistoryData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GoalHistoryTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _effectiveDateMeta = const VerificationMeta(
+    'effectiveDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> effectiveDate =
+      GeneratedColumn<DateTime>(
+        'effective_date',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _caloriesMeta = const VerificationMeta(
+    'calories',
+  );
+  @override
+  late final GeneratedColumn<int> calories = GeneratedColumn<int>(
+    'calories',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _proteinGMeta = const VerificationMeta(
+    'proteinG',
+  );
+  @override
+  late final GeneratedColumn<int> proteinG = GeneratedColumn<int>(
+    'protein_g',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _carbsGMeta = const VerificationMeta('carbsG');
+  @override
+  late final GeneratedColumn<int> carbsG = GeneratedColumn<int>(
+    'carbs_g',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _fatGMeta = const VerificationMeta('fatG');
+  @override
+  late final GeneratedColumn<int> fatG = GeneratedColumn<int>(
+    'fat_g',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _waterMlMeta = const VerificationMeta(
+    'waterMl',
+  );
+  @override
+  late final GeneratedColumn<int> waterMl = GeneratedColumn<int>(
+    'water_ml',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    effectiveDate,
+    calories,
+    proteinG,
+    carbsG,
+    fatG,
+    waterMl,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'goal_history';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GoalHistoryData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('effective_date')) {
+      context.handle(
+        _effectiveDateMeta,
+        effectiveDate.isAcceptableOrUnknown(
+          data['effective_date']!,
+          _effectiveDateMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_effectiveDateMeta);
+    }
+    if (data.containsKey('calories')) {
+      context.handle(
+        _caloriesMeta,
+        calories.isAcceptableOrUnknown(data['calories']!, _caloriesMeta),
+      );
+    }
+    if (data.containsKey('protein_g')) {
+      context.handle(
+        _proteinGMeta,
+        proteinG.isAcceptableOrUnknown(data['protein_g']!, _proteinGMeta),
+      );
+    }
+    if (data.containsKey('carbs_g')) {
+      context.handle(
+        _carbsGMeta,
+        carbsG.isAcceptableOrUnknown(data['carbs_g']!, _carbsGMeta),
+      );
+    }
+    if (data.containsKey('fat_g')) {
+      context.handle(
+        _fatGMeta,
+        fatG.isAcceptableOrUnknown(data['fat_g']!, _fatGMeta),
+      );
+    }
+    if (data.containsKey('water_ml')) {
+      context.handle(
+        _waterMlMeta,
+        waterMl.isAcceptableOrUnknown(data['water_ml']!, _waterMlMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  GoalHistoryData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GoalHistoryData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      effectiveDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}effective_date'],
+      )!,
+      calories: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}calories'],
+      ),
+      proteinG: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}protein_g'],
+      ),
+      carbsG: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}carbs_g'],
+      ),
+      fatG: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}fat_g'],
+      ),
+      waterMl: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}water_ml'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $GoalHistoryTable createAlias(String alias) {
+    return $GoalHistoryTable(attachedDatabase, alias);
+  }
+}
+
+class GoalHistoryData extends DataClass implements Insertable<GoalHistoryData> {
+  final int id;
+  final DateTime effectiveDate;
+  final int? calories;
+  final int? proteinG;
+  final int? carbsG;
+  final int? fatG;
+  final int? waterMl;
+  final DateTime createdAt;
+  const GoalHistoryData({
+    required this.id,
+    required this.effectiveDate,
+    this.calories,
+    this.proteinG,
+    this.carbsG,
+    this.fatG,
+    this.waterMl,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['effective_date'] = Variable<DateTime>(effectiveDate);
+    if (!nullToAbsent || calories != null) {
+      map['calories'] = Variable<int>(calories);
+    }
+    if (!nullToAbsent || proteinG != null) {
+      map['protein_g'] = Variable<int>(proteinG);
+    }
+    if (!nullToAbsent || carbsG != null) {
+      map['carbs_g'] = Variable<int>(carbsG);
+    }
+    if (!nullToAbsent || fatG != null) {
+      map['fat_g'] = Variable<int>(fatG);
+    }
+    if (!nullToAbsent || waterMl != null) {
+      map['water_ml'] = Variable<int>(waterMl);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  GoalHistoryCompanion toCompanion(bool nullToAbsent) {
+    return GoalHistoryCompanion(
+      id: Value(id),
+      effectiveDate: Value(effectiveDate),
+      calories: calories == null && nullToAbsent
+          ? const Value.absent()
+          : Value(calories),
+      proteinG: proteinG == null && nullToAbsent
+          ? const Value.absent()
+          : Value(proteinG),
+      carbsG: carbsG == null && nullToAbsent
+          ? const Value.absent()
+          : Value(carbsG),
+      fatG: fatG == null && nullToAbsent ? const Value.absent() : Value(fatG),
+      waterMl: waterMl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(waterMl),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory GoalHistoryData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GoalHistoryData(
+      id: serializer.fromJson<int>(json['id']),
+      effectiveDate: serializer.fromJson<DateTime>(json['effectiveDate']),
+      calories: serializer.fromJson<int?>(json['calories']),
+      proteinG: serializer.fromJson<int?>(json['proteinG']),
+      carbsG: serializer.fromJson<int?>(json['carbsG']),
+      fatG: serializer.fromJson<int?>(json['fatG']),
+      waterMl: serializer.fromJson<int?>(json['waterMl']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'effectiveDate': serializer.toJson<DateTime>(effectiveDate),
+      'calories': serializer.toJson<int?>(calories),
+      'proteinG': serializer.toJson<int?>(proteinG),
+      'carbsG': serializer.toJson<int?>(carbsG),
+      'fatG': serializer.toJson<int?>(fatG),
+      'waterMl': serializer.toJson<int?>(waterMl),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  GoalHistoryData copyWith({
+    int? id,
+    DateTime? effectiveDate,
+    Value<int?> calories = const Value.absent(),
+    Value<int?> proteinG = const Value.absent(),
+    Value<int?> carbsG = const Value.absent(),
+    Value<int?> fatG = const Value.absent(),
+    Value<int?> waterMl = const Value.absent(),
+    DateTime? createdAt,
+  }) => GoalHistoryData(
+    id: id ?? this.id,
+    effectiveDate: effectiveDate ?? this.effectiveDate,
+    calories: calories.present ? calories.value : this.calories,
+    proteinG: proteinG.present ? proteinG.value : this.proteinG,
+    carbsG: carbsG.present ? carbsG.value : this.carbsG,
+    fatG: fatG.present ? fatG.value : this.fatG,
+    waterMl: waterMl.present ? waterMl.value : this.waterMl,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  GoalHistoryData copyWithCompanion(GoalHistoryCompanion data) {
+    return GoalHistoryData(
+      id: data.id.present ? data.id.value : this.id,
+      effectiveDate: data.effectiveDate.present
+          ? data.effectiveDate.value
+          : this.effectiveDate,
+      calories: data.calories.present ? data.calories.value : this.calories,
+      proteinG: data.proteinG.present ? data.proteinG.value : this.proteinG,
+      carbsG: data.carbsG.present ? data.carbsG.value : this.carbsG,
+      fatG: data.fatG.present ? data.fatG.value : this.fatG,
+      waterMl: data.waterMl.present ? data.waterMl.value : this.waterMl,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoalHistoryData(')
+          ..write('id: $id, ')
+          ..write('effectiveDate: $effectiveDate, ')
+          ..write('calories: $calories, ')
+          ..write('proteinG: $proteinG, ')
+          ..write('carbsG: $carbsG, ')
+          ..write('fatG: $fatG, ')
+          ..write('waterMl: $waterMl, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    effectiveDate,
+    calories,
+    proteinG,
+    carbsG,
+    fatG,
+    waterMl,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GoalHistoryData &&
+          other.id == this.id &&
+          other.effectiveDate == this.effectiveDate &&
+          other.calories == this.calories &&
+          other.proteinG == this.proteinG &&
+          other.carbsG == this.carbsG &&
+          other.fatG == this.fatG &&
+          other.waterMl == this.waterMl &&
+          other.createdAt == this.createdAt);
+}
+
+class GoalHistoryCompanion extends UpdateCompanion<GoalHistoryData> {
+  final Value<int> id;
+  final Value<DateTime> effectiveDate;
+  final Value<int?> calories;
+  final Value<int?> proteinG;
+  final Value<int?> carbsG;
+  final Value<int?> fatG;
+  final Value<int?> waterMl;
+  final Value<DateTime> createdAt;
+  const GoalHistoryCompanion({
+    this.id = const Value.absent(),
+    this.effectiveDate = const Value.absent(),
+    this.calories = const Value.absent(),
+    this.proteinG = const Value.absent(),
+    this.carbsG = const Value.absent(),
+    this.fatG = const Value.absent(),
+    this.waterMl = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  GoalHistoryCompanion.insert({
+    this.id = const Value.absent(),
+    required DateTime effectiveDate,
+    this.calories = const Value.absent(),
+    this.proteinG = const Value.absent(),
+    this.carbsG = const Value.absent(),
+    this.fatG = const Value.absent(),
+    this.waterMl = const Value.absent(),
+    required DateTime createdAt,
+  }) : effectiveDate = Value(effectiveDate),
+       createdAt = Value(createdAt);
+  static Insertable<GoalHistoryData> custom({
+    Expression<int>? id,
+    Expression<DateTime>? effectiveDate,
+    Expression<int>? calories,
+    Expression<int>? proteinG,
+    Expression<int>? carbsG,
+    Expression<int>? fatG,
+    Expression<int>? waterMl,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (effectiveDate != null) 'effective_date': effectiveDate,
+      if (calories != null) 'calories': calories,
+      if (proteinG != null) 'protein_g': proteinG,
+      if (carbsG != null) 'carbs_g': carbsG,
+      if (fatG != null) 'fat_g': fatG,
+      if (waterMl != null) 'water_ml': waterMl,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  GoalHistoryCompanion copyWith({
+    Value<int>? id,
+    Value<DateTime>? effectiveDate,
+    Value<int?>? calories,
+    Value<int?>? proteinG,
+    Value<int?>? carbsG,
+    Value<int?>? fatG,
+    Value<int?>? waterMl,
+    Value<DateTime>? createdAt,
+  }) {
+    return GoalHistoryCompanion(
+      id: id ?? this.id,
+      effectiveDate: effectiveDate ?? this.effectiveDate,
+      calories: calories ?? this.calories,
+      proteinG: proteinG ?? this.proteinG,
+      carbsG: carbsG ?? this.carbsG,
+      fatG: fatG ?? this.fatG,
+      waterMl: waterMl ?? this.waterMl,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (effectiveDate.present) {
+      map['effective_date'] = Variable<DateTime>(effectiveDate.value);
+    }
+    if (calories.present) {
+      map['calories'] = Variable<int>(calories.value);
+    }
+    if (proteinG.present) {
+      map['protein_g'] = Variable<int>(proteinG.value);
+    }
+    if (carbsG.present) {
+      map['carbs_g'] = Variable<int>(carbsG.value);
+    }
+    if (fatG.present) {
+      map['fat_g'] = Variable<int>(fatG.value);
+    }
+    if (waterMl.present) {
+      map['water_ml'] = Variable<int>(waterMl.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoalHistoryCompanion(')
+          ..write('id: $id, ')
+          ..write('effectiveDate: $effectiveDate, ')
+          ..write('calories: $calories, ')
+          ..write('proteinG: $proteinG, ')
+          ..write('carbsG: $carbsG, ')
+          ..write('fatG: $fatG, ')
+          ..write('waterMl: $waterMl, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -6626,6 +7133,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SuspicionExclusionsTable suspicionExclusions =
       $SuspicionExclusionsTable(this);
   late final $PantryItemsTable pantryItems = $PantryItemsTable(this);
+  late final $GoalHistoryTable goalHistory = $GoalHistoryTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -6644,6 +7152,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     foodSuspicions,
     suspicionExclusions,
     pantryItems,
+    goalHistory,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -11104,6 +11613,259 @@ typedef $$PantryItemsTableProcessedTableManager =
       PantryItem,
       PrefetchHooks Function()
     >;
+typedef $$GoalHistoryTableCreateCompanionBuilder =
+    GoalHistoryCompanion Function({
+      Value<int> id,
+      required DateTime effectiveDate,
+      Value<int?> calories,
+      Value<int?> proteinG,
+      Value<int?> carbsG,
+      Value<int?> fatG,
+      Value<int?> waterMl,
+      required DateTime createdAt,
+    });
+typedef $$GoalHistoryTableUpdateCompanionBuilder =
+    GoalHistoryCompanion Function({
+      Value<int> id,
+      Value<DateTime> effectiveDate,
+      Value<int?> calories,
+      Value<int?> proteinG,
+      Value<int?> carbsG,
+      Value<int?> fatG,
+      Value<int?> waterMl,
+      Value<DateTime> createdAt,
+    });
+
+class $$GoalHistoryTableFilterComposer
+    extends Composer<_$AppDatabase, $GoalHistoryTable> {
+  $$GoalHistoryTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get effectiveDate => $composableBuilder(
+    column: $table.effectiveDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get calories => $composableBuilder(
+    column: $table.calories,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get proteinG => $composableBuilder(
+    column: $table.proteinG,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get carbsG => $composableBuilder(
+    column: $table.carbsG,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get fatG => $composableBuilder(
+    column: $table.fatG,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get waterMl => $composableBuilder(
+    column: $table.waterMl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$GoalHistoryTableOrderingComposer
+    extends Composer<_$AppDatabase, $GoalHistoryTable> {
+  $$GoalHistoryTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get effectiveDate => $composableBuilder(
+    column: $table.effectiveDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get calories => $composableBuilder(
+    column: $table.calories,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get proteinG => $composableBuilder(
+    column: $table.proteinG,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get carbsG => $composableBuilder(
+    column: $table.carbsG,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get fatG => $composableBuilder(
+    column: $table.fatG,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get waterMl => $composableBuilder(
+    column: $table.waterMl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$GoalHistoryTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GoalHistoryTable> {
+  $$GoalHistoryTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get effectiveDate => $composableBuilder(
+    column: $table.effectiveDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get calories =>
+      $composableBuilder(column: $table.calories, builder: (column) => column);
+
+  GeneratedColumn<int> get proteinG =>
+      $composableBuilder(column: $table.proteinG, builder: (column) => column);
+
+  GeneratedColumn<int> get carbsG =>
+      $composableBuilder(column: $table.carbsG, builder: (column) => column);
+
+  GeneratedColumn<int> get fatG =>
+      $composableBuilder(column: $table.fatG, builder: (column) => column);
+
+  GeneratedColumn<int> get waterMl =>
+      $composableBuilder(column: $table.waterMl, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$GoalHistoryTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $GoalHistoryTable,
+          GoalHistoryData,
+          $$GoalHistoryTableFilterComposer,
+          $$GoalHistoryTableOrderingComposer,
+          $$GoalHistoryTableAnnotationComposer,
+          $$GoalHistoryTableCreateCompanionBuilder,
+          $$GoalHistoryTableUpdateCompanionBuilder,
+          (
+            GoalHistoryData,
+            BaseReferences<_$AppDatabase, $GoalHistoryTable, GoalHistoryData>,
+          ),
+          GoalHistoryData,
+          PrefetchHooks Function()
+        > {
+  $$GoalHistoryTableTableManager(_$AppDatabase db, $GoalHistoryTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GoalHistoryTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GoalHistoryTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GoalHistoryTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<DateTime> effectiveDate = const Value.absent(),
+                Value<int?> calories = const Value.absent(),
+                Value<int?> proteinG = const Value.absent(),
+                Value<int?> carbsG = const Value.absent(),
+                Value<int?> fatG = const Value.absent(),
+                Value<int?> waterMl = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => GoalHistoryCompanion(
+                id: id,
+                effectiveDate: effectiveDate,
+                calories: calories,
+                proteinG: proteinG,
+                carbsG: carbsG,
+                fatG: fatG,
+                waterMl: waterMl,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required DateTime effectiveDate,
+                Value<int?> calories = const Value.absent(),
+                Value<int?> proteinG = const Value.absent(),
+                Value<int?> carbsG = const Value.absent(),
+                Value<int?> fatG = const Value.absent(),
+                Value<int?> waterMl = const Value.absent(),
+                required DateTime createdAt,
+              }) => GoalHistoryCompanion.insert(
+                id: id,
+                effectiveDate: effectiveDate,
+                calories: calories,
+                proteinG: proteinG,
+                carbsG: carbsG,
+                fatG: fatG,
+                waterMl: waterMl,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$GoalHistoryTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $GoalHistoryTable,
+      GoalHistoryData,
+      $$GoalHistoryTableFilterComposer,
+      $$GoalHistoryTableOrderingComposer,
+      $$GoalHistoryTableAnnotationComposer,
+      $$GoalHistoryTableCreateCompanionBuilder,
+      $$GoalHistoryTableUpdateCompanionBuilder,
+      (
+        GoalHistoryData,
+        BaseReferences<_$AppDatabase, $GoalHistoryTable, GoalHistoryData>,
+      ),
+      GoalHistoryData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -11134,4 +11896,6 @@ class $AppDatabaseManager {
       $$SuspicionExclusionsTableTableManager(_db, _db.suspicionExclusions);
   $$PantryItemsTableTableManager get pantryItems =>
       $$PantryItemsTableTableManager(_db, _db.pantryItems);
+  $$GoalHistoryTableTableManager get goalHistory =>
+      $$GoalHistoryTableTableManager(_db, _db.goalHistory);
 }

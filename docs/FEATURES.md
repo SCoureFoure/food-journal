@@ -30,6 +30,7 @@ Status: ✅ Built · 🟡 Partial · ⬜ Planned — verified against the codeba
 - Day filter: tap a date to see only that day
 - Week filter: see current or past week
 - Daily totals bar: calories, protein, carbs, fat (sum of all meals)
+- Goals panel: collapsible panel fixed above the journal list. Shows today's calories, protein, carbs, fat and water against optional targets as fill bars. Targets are saved as dated history (schema v17, goal_history). A calculator in the edit dialog estimates calorie and macro targets from weight, height, age, activity and goal (Mifflin-St Jeor, 1200 kcal floor); it only pre-fills the fields.
 - Weekly totals summary card
 - Reaction badges on foods flagged in food memory
 
@@ -189,6 +190,6 @@ Status: ✅ Built · 🟡 Partial · ⬜ Planned — verified against the codeba
 
 - No cloud sync / backend
 - No social features
-- No calorie goals or diet plans
+- Calorie, macro and water goals: yes (see specs/calorie_goals.spec.md). Prescriptive diet plans or meal prescriptions: still no.
 - No barcode scanning (possible future)
 - No web version

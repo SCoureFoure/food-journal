@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../models/daily_goals.dart';
 import '../../models/meal_entry.dart';
 import '../../models/medication.dart';
 import '../../models/reaction_log.dart';
@@ -27,6 +28,7 @@ class DateSection extends StatefulWidget {
   final StorageService? storage;
   final bool isToday;
   final VoidCallback onReload;
+  final DailyGoals goals;
 
   const DateSection({
     super.key,
@@ -39,6 +41,7 @@ class DateSection extends StatefulWidget {
     this.storage,
     required this.isToday,
     required this.onReload,
+    this.goals = DailyGoals.none,
   });
 
   @override
@@ -158,9 +161,19 @@ class _DateSectionState extends State<DateSection> {
               ),
               children: [
                 if (_totals != null && widget.meals.isNotEmpty)
-                  DayTotalsBar(cal: _totals!.cal, prot: _totals!.prot, carbs: _totals!.carbs, fat: _totals!.fat),
+                  DayTotalsBar(
+                    cal: _totals!.cal,
+                    prot: _totals!.prot,
+                    carbs: _totals!.carbs,
+                    fat: _totals!.fat,
+                    goals: widget.goals,
+                  ),
                 if (widget.waterLogs.isNotEmpty)
-                  WaterSummary(logs: widget.waterLogs, onReload: widget.onReload),
+                  WaterSummary(
+                    logs: widget.waterLogs,
+                    onReload: widget.onReload,
+                    goalMl: widget.goals.effectiveWaterMl,
+                  ),
                 ..._buildSortedEntries(),
               ],
             ),

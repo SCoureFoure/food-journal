@@ -13,6 +13,7 @@ class SettingsDialog extends StatefulWidget {
 class _SettingsDialogState extends State<SettingsDialog> {
   bool? _aiEnabled;
   bool? _leftHanded;
+  bool? _goalBarsAnimated;
 
   @override
   void initState() {
@@ -20,11 +21,13 @@ class _SettingsDialogState extends State<SettingsDialog> {
     Future.wait([
       widget.settings.isAiEnabled,
       widget.settings.isLeftHanded,
+      widget.settings.isGoalBarsAnimated,
     ]).then((values) {
       if (mounted) {
         setState(() {
           _aiEnabled = values[0];
           _leftHanded = values[1];
+          _goalBarsAnimated = values[2];
         });
       }
     });
@@ -32,7 +35,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final loading = _aiEnabled == null || _leftHanded == null;
+    final loading = _aiEnabled == null || _leftHanded == null || _goalBarsAnimated == null;
     return AlertDialog(
       title: const Text('Settings'),
       content: loading
@@ -57,6 +60,19 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     await widget.settings.setLeftHanded(v);
                     if (mounted) setState(() => _leftHanded = v);
                   },
+                ),
+                Semantics(
+                  identifier: 'switch-goal-bars-animated',
+                  container: true,
+                  child: SwitchListTile(
+                    title: const Text('Moving goal bars'),
+                    subtitle: const Text('Wavy fill in the Goals panel'),
+                    value: _goalBarsAnimated!,
+                    onChanged: (v) async {
+                      await widget.settings.setGoalBarsAnimated(v);
+                      if (mounted) setState(() => _goalBarsAnimated = v);
+                    },
+                  ),
                 ),
               ],
             ),

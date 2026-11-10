@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
+import '../models/daily_goals.dart';
 import '../models/food_entity.dart';
 import '../models/food_item.dart';
 import '../models/food_memory.dart';
@@ -920,6 +921,53 @@ class StorageService {
         .get();
     return rows.map(_weightLogFromRow).toList();
   }
+
+  // ── Goals ────────────────────────────────────────────────────────────────────
+
+  /// Saves [goals] as a new snapshot effective from the local day of [now]
+  /// (default DateTime.now()). Returns the new row id. Never updates old rows.
+  Future<int> saveGoals(DailyGoals goals, {DateTime? now}) async {
+    final at = now ?? DateTime.now();
+    return _db.into(_db.goalHistory).insert(
+      db.GoalHistoryCompanion.insert(
+        effectiveDate: DateTime(at.year, at.month, at.day),
+        calories: Value(goals.calories),
+        proteinG: Value(goals.proteinG),
+        carbsG: Value(goals.carbsG),
+        fatG: Value(goals.fatG),
+        waterMl: Value(goals.waterMl),
+        createdAt: at,
+      ),
+    );
+  }
+
+  /// Every snapshot, ordered by effectiveDate ascending, then id ascending.
+  Future<List<GoalSnapshot>> getGoalHistory() async {
+    final rows = await (_db.select(_db.goalHistory)
+          ..orderBy([
+            (t) => OrderingTerm.asc(t.effectiveDate),
+            (t) => OrderingTerm.asc(t.id),
+          ]))
+        .get();
+    return rows
+        .map((r) => GoalSnapshot(
+              id: r.id,
+              effectiveDate: r.effectiveDate,
+              createdAt: r.createdAt,
+              goals: DailyGoals(
+                calories: r.calories,
+                proteinG: r.proteinG,
+                carbsG: r.carbsG,
+                fatG: r.fatG,
+                waterMl: r.waterMl,
+              ),
+            ))
+        .toList();
+  }
+
+  /// goalsForDate(await getGoalHistory(), day).
+  Future<DailyGoals> getGoalsForDate(DateTime day) async =>
+      goalsForDate(await getGoalHistory(), day);
 
   // ── Saved Items ──────────────────────────────────────────────────────────────
 

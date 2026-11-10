@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:food_journal/models/daily_goals.dart';
 import 'package:food_journal/widgets/day_totals_bar.dart';
 
 Widget _wrap(Widget child) =>
@@ -69,6 +70,63 @@ void main() {
       expect(find.text('PROT'), findsOneWidget);
       expect(find.text('CARBS'), findsOneWidget);
       expect(find.text('FAT'), findsOneWidget);
+    });
+  });
+
+  group('[MFT] DayTotalsBar — goals', () {
+    // testTheory: MFT
+    // contract: a set goal renders as "value / goal"; a null goal leaves the value bare.
+    // implication: if this fails, the day's totals lose their target or show a wrong one.
+    testWidgets('cells with a goal show "value / goal", CARBS hidden when unset and zero', (tester) async {
+      await tester.pumpWidget(_wrap(
+        const DayTotalsBar(
+          cal: 1450,
+          prot: 98,
+          carbs: 0,
+          fat: 0,
+          goals: DailyGoals(calories: 2000, fatG: 70),
+        ),
+      ));
+      expect(find.text('1450 / 2000'), findsOneWidget);
+      expect(find.text('98g'), findsOneWidget);
+      expect(find.text('0 / 70g'), findsOneWidget);
+      expect(find.text('CARBS'), findsNothing);
+    });
+
+    // testTheory: INV
+    // contract: with no goals the totals render exactly as before (no " / ").
+    // implication: if this fails, users without goals see changed day totals.
+    testWidgets('no goals arg renders bare totals with no " / "', (tester) async {
+      await tester.pumpWidget(_wrap(
+        const DayTotalsBar(cal: 1450, prot: 98, carbs: 0, fat: 0),
+      ));
+      expect(find.text('1450'), findsOneWidget);
+      expect(find.text('98g'), findsOneWidget);
+      expect(find.textContaining(' / '), findsNothing);
+    });
+
+    // testTheory: BVA
+    // contract: all four goal cells fit a 320-px-wide surface without overflow.
+    // implication: if this fails, narrow phones clip or throw on the day totals row.
+    testWidgets('all four goal cells fit 320 px wide with no overflow', (tester) async {
+      tester.view.physicalSize = const Size(320, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(_wrap(
+        const DayTotalsBar(
+          cal: 1450,
+          prot: 98,
+          carbs: 180,
+          fat: 60,
+          goals: DailyGoals(calories: 2000, proteinG: 140, carbsG: 250, fatG: 70),
+        ),
+      ));
+      expect(tester.takeException(), isNull);
+      expect(find.text('1450 / 2000'), findsOneWidget);
+      expect(find.text('98 / 140g'), findsOneWidget);
+      expect(find.text('180 / 250g'), findsOneWidget);
+      expect(find.text('60 / 70g'), findsOneWidget);
     });
   });
 }

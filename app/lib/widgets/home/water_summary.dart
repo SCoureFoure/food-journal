@@ -1,25 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_progress_indicator_v2/liquid_progress_indicator.dart';
 
+import '../../models/daily_goals.dart';
 import '../../models/water_log.dart';
 import '../../screens/log_water/log_water_sheet.dart';
-
-const _kGoalMl = 1893; // 64 oz
 
 class WaterSummary extends StatelessWidget {
   final List<WaterLog> logs;
   final VoidCallback onReload;
+  final int goalMl;
 
-  const WaterSummary({super.key, required this.logs, required this.onReload});
+  const WaterSummary({
+    super.key,
+    required this.logs,
+    required this.onReload,
+    this.goalMl = kDefaultWaterGoalMl,
+  });
 
   int get _totalMl => logs.fold(0, (sum, l) => sum + l.amountMl);
   int get _totalOz => (_totalMl / 29.5735).round();
-  int get _goalOz => (_kGoalMl / 29.5735).round();
+  int get _goalOz => (goalMl / 29.5735).round();
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final progress = (_totalMl / _kGoalMl).clamp(0.0, 1.0);
+    final progress = (_totalMl / goalMl).clamp(0.0, 1.0);
     final labelStyle = theme.textTheme.labelSmall?.copyWith(
       color: theme.colorScheme.outline,
       letterSpacing: 0.6,
@@ -41,7 +46,7 @@ class WaterSummary extends StatelessWidget {
                 '$_totalOz / $_goalOz oz',
                 style: theme.textTheme.labelSmall?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: _totalMl >= _kGoalMl ? Colors.blue.shade700 : null,
+                  color: _totalMl >= goalMl ? Colors.blue.shade700 : null,
                 ),
               ),
             ],

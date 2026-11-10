@@ -40,6 +40,20 @@ touches and links back here; it does not redefine meaning or fallback.
 | Meal Planning| `meal-planning-screen`          | Meal Planning tab body root (meal_planning) |
 | Meal Planning| `planner-stub-card`             | Inert "This week's meals" placeholder — copy only, no controls; the planner itself is a later slice (meal_planning) |
 | Home         | `home-meal-list`                | Has meals — home screen ready                  |
+| Journal — Goals panel | `goals-panel`          | Goals panel root — fixed above `home-meal-list` |
+| Journal — Goals panel | `item-header-goals`    | CardExpansionTile title — tap to collapse/expand |
+| Journal — Goals panel | `btn-edit-goals`       | Edit button, first row of expanded panel — opens edit dialog |
+| Journal — Goals panel | `btn-set-goals`        | Empty-state button — shown when no targets set |
+| Journal — Goals panel | `goal-row-<metric>`    | GoalFillBar; metric = calories, protein, carbs, fat, water. `container: true` |
+| Settings | `switch-goal-bars-animated` | Settings dialog switch: moving vs still goal bars. SwitchListTile may absorb the id ✱ — fallback: tap by text `Moving goal bars` |
+| Journal — Goals panel | `edit-goals-dialog`    | Edit dialog root |
+| Journal — Goals panel | `field-goal-<metric>`  | Dialog TextField; same metric names |
+| Journal — Goals panel | `btn-save-goals`       | Dialog save button |
+| Journal — Goals calculator | `btn-calc-goals`       | Edit dialog button — opens calculator |
+| Journal — Goals calculator | `goal-calculator-dialog` | Calculator root |
+| Journal — Goals calculator | `field-calc-<input>`   | input = weight, height-ft, height-in, age, formula, activity, goal; dropdowns may absorb the id ✱ — fallback: tap by label text |
+| Journal — Goals calculator | `calc-result`          | Live estimate text |
+| Journal — Goals calculator | `btn-calc-apply`       | "Use these" — pre-fills edit dialog |
 | App shell    | `btn-export`                    | Export icon in app bar — app-shell app bar, journal tab only (absent on Meal Planning) |
 | Home         | `home-loading`                  | Still loading                                  |
 | Home         | `home-error`                    | Error state                                    |
