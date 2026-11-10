@@ -14,6 +14,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
   bool? _aiEnabled;
   bool? _leftHanded;
   bool? _goalBarsAnimated;
+  bool? _petEnabled;
 
   @override
   void initState() {
@@ -22,12 +23,14 @@ class _SettingsDialogState extends State<SettingsDialog> {
       widget.settings.isAiEnabled,
       widget.settings.isLeftHanded,
       widget.settings.isGoalBarsAnimated,
+      widget.settings.isPetEnabled,
     ]).then((values) {
       if (mounted) {
         setState(() {
           _aiEnabled = values[0];
           _leftHanded = values[1];
           _goalBarsAnimated = values[2];
+          _petEnabled = values[3];
         });
       }
     });
@@ -35,7 +38,10 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final loading = _aiEnabled == null || _leftHanded == null || _goalBarsAnimated == null;
+    final loading = _aiEnabled == null ||
+        _leftHanded == null ||
+        _goalBarsAnimated == null ||
+        _petEnabled == null;
     return AlertDialog(
       title: const Text('Settings'),
       content: loading
@@ -71,6 +77,19 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     onChanged: (v) async {
                       await widget.settings.setGoalBarsAnimated(v);
                       if (mounted) setState(() => _goalBarsAnimated = v);
+                    },
+                  ),
+                ),
+                Semantics(
+                  identifier: 'switch-pet-enabled',
+                  container: true,
+                  child: SwitchListTile(
+                    title: const Text('Show pet'),
+                    subtitle: const Text('Companion in the bottom corner'),
+                    value: _petEnabled!,
+                    onChanged: (v) async {
+                      await widget.settings.setPetEnabled(v);
+                      if (mounted) setState(() => _petEnabled = v);
                     },
                   ),
                 ),

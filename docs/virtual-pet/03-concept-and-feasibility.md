@@ -131,6 +131,11 @@ If needs = your goals, sensitivities = your suspects, and hunger = your logging,
 
 ## 4d. Rendering direction (2026-11-05)
 
+> **Superseded (2026-11-10):** the pet uses the user's own hand-drawn pixel art, not the Craftpix
+> pack below, and no generated images. Until that art exists, the creature is a code-drawn
+> placeholder block. The sprite-strip format and `FilterQuality.none` playback notes still apply.
+> Layer 1 happy path: `specs/virtual_pet.spec.md`.
+
 - **2D, not 3D.** The feel is a mini Tamagotchi plus a Clippy-style corner companion that reacts to what you just logged and talks in a speech bubble. The bubble is ordinary Flutter UI, not a rendering problem.
 - **Chosen starting asset:** the Craftpix "free pixel art tiny hero sprites" pack, **Pink_Monster**. Location: `C:\Users\SCora\Downloads\free-pixel-art-tiny-hero-sprites\1 Pink_Monster\`. It isn't in the repo yet; when it's needed, copy it in together with its license.
 - **Format:** horizontal PNG sprite strips. Frames are 32×32: the height is 32px, and the width is 32 × the frame count, per the pack's readme. The frame count is in the file name (`Pink_Monster_Idle_4.png` = 4 frames). Strips: Idle 4, Walk 6, Run 6, Jump 8, Climb 4, Push 6, Throw 4, Hurt 4, Death 8 (ends as a ghost), Attack1 4, Attack2 6, Walk+Attack 6.

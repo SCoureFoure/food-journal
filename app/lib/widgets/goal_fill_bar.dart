@@ -15,6 +15,7 @@ class GoalFillBar extends StatelessWidget {
   final Color? fillColor;
   final Color? trackColor;
   final bool animated;
+  final String? semanticsId;
 
   const GoalFillBar({
     super.key,
@@ -26,6 +27,7 @@ class GoalFillBar extends StatelessWidget {
     this.fillColor,
     this.trackColor,
     this.animated = true,
+    this.semanticsId,
   });
 
   double get progress {
@@ -44,7 +46,7 @@ class GoalFillBar extends StatelessWidget {
     final valueStyle = theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600);
 
     return Semantics(
-      identifier: 'goal-row-$metric',
+      identifier: semanticsId ?? 'goal-row-$metric',
       container: true,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 3),

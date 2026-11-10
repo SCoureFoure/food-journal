@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../models/pet_feed.dart';
 import '../../services/settings_service.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/folder_tab_bar.dart';
 import '../../widgets/lined_paper_background.dart';
+import '../../widgets/pet/pet_avatar.dart';
+import '../../widgets/pet/pet_sheet.dart';
 import '../../widgets/settings_dialog.dart';
 import '../home/home_screen.dart';
 import '../meal_planning/meal_planning_screen.dart';
@@ -35,7 +38,40 @@ class _AppShellState extends State<AppShell> {
 
   final _homeKey = GlobalKey<HomeScreenState>();
   final _settings = SettingsService();
+  final _petFeed = ValueNotifier<PetFeed?>(null);
   int _index = 0;
+  bool _petEnabled = false;
+  bool _leftHanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPetSettings();
+  }
+
+  @override
+  void dispose() {
+    _petFeed.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadPetSettings() async {
+    final enabled = await _settings.isPetEnabled;
+    final lh = await _settings.isLeftHanded;
+    if (mounted) {
+      setState(() {
+        _petEnabled = enabled;
+        _leftHanded = lh;
+      });
+    }
+  }
+
+  Future<void> _openPet() async {
+    final animated = await _settings.isGoalBarsAnimated;
+    if (!mounted) return;
+    await showPetSheet(context, _petFeed.value ?? PetFeed.empty,
+        animateBars: animated);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,14 +100,28 @@ class _AppShellState extends State<AppShell> {
                 ),
                 actions: _actions(),
               ),
-              body: IndexedStack(
-                index: _index,
+              body: Stack(
+                fit: StackFit.expand,
                 children: [
-                  HomeScreen(
-                    key: _homeKey,
-                    storageOverride: widget.journalStorageOverride,
+                  IndexedStack(
+                    index: _index,
+                    children: [
+                      HomeScreen(
+                        key: _homeKey,
+                        storageOverride: widget.journalStorageOverride,
+                        petFeed: _petFeed,
+                      ),
+                      const MealPlanningScreen(),
+                    ],
                   ),
-                  const MealPlanningScreen(),
+                  if (_petEnabled)
+                    Positioned(
+                      // Opposite corner from the journal's + button, which flips in left-handed mode.
+                      left: _leftHanded ? null : 16,
+                      right: _leftHanded ? 16 : null,
+                      bottom: 16 + MediaQuery.paddingOf(context).bottom,
+                      child: PetAvatar(feed: _petFeed, onTap: _openPet),
+                    ),
                 ],
               ),
             ),
@@ -120,6 +170,7 @@ class _AppShellState extends State<AppShell> {
       builder: (_) => SettingsDialog(settings: _settings),
     );
     await _homeKey.currentState?.reloadSettings();
+    await _loadPetSettings();
   }
 }
 

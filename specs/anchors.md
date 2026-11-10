@@ -37,6 +37,10 @@ touches and links back here; it does not redefine meaning or fallback.
 | App shell    | `tab-food-journal`              | Folder tab 0 — selects the journal. Verified on device 2026-08-30: surfaces its own resource-id, directly ADB-tappable (content-desc "Food Journal") (meal_planning) |
 | App shell    | `tab-meal-planning`             | Folder tab 1 — selects the planning surface. Verified on device 2026-08-30: surfaces its own resource-id, directly ADB-tappable (content-desc "Meal Planning") (meal_planning) |
 | App shell    | `btn-settings`                  | Settings icon in the app-shell app bar — shell-level, present on BOTH tabs (meal_planning) |
+| App shell    | `pet-avatar`                    | Floating pet avatar, shell-level, on BOTH tabs, bottom corner opposite the + button (flips in left-handed mode). Tap opens the pet sheet. `container: true` (virtual_pet) |
+| Pet sheet    | `pet-sheet`                     | Bottom sheet root, opened from `pet-avatar` (virtual_pet) |
+| Pet sheet    | `pet-meter-food`                | Food meter, GoalFillBar with custom id; reads `<n> / 3 meals`. `container: true` |
+| Pet sheet    | `pet-meter-water`               | Water meter, GoalFillBar with custom id; reads `<oz> / <goal> oz`. Distinct from `goal-row-water`, which is on screen under the sheet. `container: true` |
 | Meal Planning| `meal-planning-screen`          | Meal Planning tab body root (meal_planning) |
 | Meal Planning| `planner-stub-card`             | Inert "This week's meals" placeholder — copy only, no controls; the planner itself is a later slice (meal_planning) |
 | Home         | `home-meal-list`                | Has meals — home screen ready                  |
@@ -46,6 +50,7 @@ touches and links back here; it does not redefine meaning or fallback.
 | Journal — Goals panel | `btn-set-goals`        | Empty-state button — shown when no targets set |
 | Journal — Goals panel | `goal-row-<metric>`    | GoalFillBar; metric = calories, protein, carbs, fat, water. `container: true` |
 | Settings | `switch-goal-bars-animated` | Settings dialog switch: moving vs still goal bars. SwitchListTile may absorb the id ✱ — fallback: tap by text `Moving goal bars` |
+| Settings | `switch-pet-enabled`        | Settings dialog switch: show/hide the pet (default on). SwitchListTile may absorb the id ✱ — fallback: tap by text `Show pet` |
 | Journal — Goals panel | `edit-goals-dialog`    | Edit dialog root |
 | Journal — Goals panel | `field-goal-<metric>`  | Dialog TextField; same metric names |
 | Journal — Goals panel | `btn-save-goals`       | Dialog save button |

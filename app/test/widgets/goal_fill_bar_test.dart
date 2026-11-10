@@ -210,4 +210,36 @@ void main() {
       expect(find.byType(LiquidLinearProgressIndicator), findsOneWidget);
     });
   });
+
+  // ── Custom semantics id ───────────────────────────────────────────────────
+
+  group('[MFT] GoalFillBar — custom semantics id', () {
+    testWidgets('semanticsId replaces the goal-row anchor', (tester) async {
+      // testTheory: minimum functionality — caller-supplied anchor id is used.
+      // contract: semanticsId 'pet-meter-water' → _id('pet-meter-water') found; 'goal-row-water' absent.
+      // implication: pet meters are reachable by their own anchor, not the goal-row one.
+      await tester.pumpWidget(_wrap(
+        const GoalFillBar(
+          metric: 'water',
+          semanticsId: 'pet-meter-water',
+          label: 'WATER',
+          current: 32,
+          target: 64,
+          unit: 'oz',
+        ),
+      ));
+      expect(_id('pet-meter-water'), findsOneWidget);
+      expect(_id('goal-row-water'), findsNothing);
+    });
+
+    testWidgets('without semanticsId the goal-row anchor is kept', (tester) async {
+      // testTheory: invariance — omitting semanticsId leaves the anchor unchanged.
+      // contract: no semanticsId → _id('goal-row-water') findsOneWidget.
+      // implication: existing callers keep their anchor ids.
+      await tester.pumpWidget(_wrap(
+        const GoalFillBar(metric: 'water', label: 'WATER', current: 32, target: 64, unit: 'oz'),
+      ));
+      expect(_id('goal-row-water'), findsOneWidget);
+    });
+  });
 }

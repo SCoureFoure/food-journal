@@ -6,6 +6,7 @@ import '../../models/daily_goals.dart';
 import '../../models/goal_estimate.dart';
 import '../../models/meal_entry.dart';
 import '../../models/medication.dart';
+import '../../models/pet_feed.dart';
 import '../../models/reaction_log.dart';
 import '../../models/water_log.dart';
 import '../../models/weight_log.dart';
@@ -20,7 +21,10 @@ import '../../widgets/home/week_summary_section.dart';
 class HomeScreen extends StatefulWidget {
   final StorageService? storageOverride; // test seam — fake storage
 
-  const HomeScreen({super.key, this.storageOverride});
+  /// Shell-owned; set to today's feeding after every successful load.
+  final ValueNotifier<PetFeed?>? petFeed;
+
+  const HomeScreen({super.key, this.storageOverride, this.petFeed});
 
   @override
   State<HomeScreen> createState() => HomeScreenState();
@@ -160,6 +164,11 @@ class HomeScreenState extends State<HomeScreen> {
         _sortedDates = allDates;
         _loading = false;
       });
+      widget.petFeed?.value = PetFeed(
+        mealsToday: (mealsByDate[todayKey] ?? const <MealEntry>[]).length,
+        waterMl: todayWaterMl,
+        waterGoalMl: goalsForDate(goalHistory, now).effectiveWaterMl,
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() {

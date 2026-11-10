@@ -38,6 +38,18 @@ class SettingsService {
     await prefs.setBool(_keyGoalBarsAnimated, value);
   }
 
+  static const _keyPetEnabled = 'pet_enabled';
+
+  Future<bool> get isPetEnabled async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyPetEnabled) ?? true;
+  }
+
+  Future<void> setPetEnabled(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyPetEnabled, value);
+  }
+
   /// Whether a Meal Planning card ([card] is `pantry` or `grocery`) is collapsed.
   /// Cards start expanded.
   Future<bool> isCardCollapsed(String card) async {
