@@ -26,6 +26,7 @@ class PetSheet extends StatelessWidget {
       letterSpacing: 0.6,
       fontWeight: FontWeight.w600,
     );
+    final goal = feed.calorieGoal;
     return Semantics(
       identifier: 'pet-sheet',
       container: true,
@@ -40,18 +41,18 @@ class PetSheet extends StatelessWidget {
                 Text(
                   'Your pet',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: theme.textTheme.titleMedium,
                 ),
                 const SizedBox(height: 16),
                 const Center(child: PetBlock(size: 128)),
                 const SizedBox(height: 24),
-                if (feed.calorieGoal != null)
+                if (goal != null)
                   GoalFillBar(
                     metric: 'food',
                     semanticsId: 'pet-meter-food',
                     label: 'FOOD',
                     current: feed.caloriesToday,
-                    target: feed.calorieGoal!,
+                    target: goal,
                     unit: 'kcal',
                     animated: animateBars,
                   )

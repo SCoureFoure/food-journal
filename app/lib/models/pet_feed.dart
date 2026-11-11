@@ -29,8 +29,8 @@ class PetFeed {
     return (waterMl / waterGoalMl).clamp(0.0, 1.0).toDouble();
   }
 
-  /// False when [previous] is null. True when meals or water went up since
-  /// [previous]; false otherwise (equal, or fewer meals with no more water).
+  /// False when [previous] is null. True when meals, calories or water went up
+  /// since [previous]; false otherwise (nothing went up).
   bool fedSince(PetFeed? previous) {
     if (previous == null) return false;
     return mealsToday > previous.mealsToday ||
