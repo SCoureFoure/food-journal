@@ -18,17 +18,6 @@ class PetFeed {
 
   static const empty = PetFeed(mealsToday: 0, waterMl: 0, waterGoalMl: kDefaultWaterGoalMl);
 
-  double get foodLevel {
-    final goal = calorieGoal;
-    if (goal == null || goal <= 0) return 0.0;
-    return (caloriesToday / goal).clamp(0.0, 1.0).toDouble();
-  }
-
-  double get waterLevel {
-    if (waterGoalMl <= 0) return 0.0;
-    return (waterMl / waterGoalMl).clamp(0.0, 1.0).toDouble();
-  }
-
   /// False when [previous] is null. True when meals, calories or water went up
   /// since [previous]; false otherwise (nothing went up).
   bool fedSince(PetFeed? previous) {

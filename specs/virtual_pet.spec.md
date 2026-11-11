@@ -64,7 +64,7 @@ pass.
   today. The `created_at` question is part of the sad-path design. *(intent: one source
   with the Goals panel)*
 - **Data flow (seam):** `app/lib/models/pet_feed.dart` defines `PetFeed { mealsToday,
-  waterMl, waterGoalMl, caloriesToday, calorieGoal? }` with `foodLevel`, `waterLevel` (0.0–1.0) and
+  waterMl, waterGoalMl, caloriesToday, calorieGoal? }` with
   `bool fedSince(PetFeed? previous)`. The shell owns a `ValueNotifier<PetFeed?>` and
   passes it to `HomeScreen` (new optional param `petFeed`); `HomeScreenState._load`
   sets it at the end of every successful load. No second database read. *(intent)*
@@ -87,10 +87,9 @@ pass.
 
 ## Acceptance criteria (Given / When / Then)
 
-1. **AC1: food level.** Given calorie goal 2000 and `caloriesToday` 0, 1450, 2000, 2150,
-   then `foodLevel` is 0.0, 0.725, 1.0, 1.0. Given no calorie goal, it is 0.0.
-2. **AC2: water level.** Given 946 ml of a 1893 ml target, `waterLevel` ≈ 0.4997; given
-   2000 ml of 1893, it is 1.0. Given a target of 0 (defensive), it is 0.0.
+1. **AC1: food level.** *(removed 2026-11-11: the sheet's `GoalFillBar` computes the fill,
+   calorie_goals AC5. `PetFeed.foodLevel` is gone until the mood layer needs it.)*
+2. **AC2: water level.** *(removed 2026-11-11, as AC1: `PetFeed.waterLevel` is gone.)*
 3. **AC3: fed since.** Given previous `PetFeed(2 meals, 946 ml, 1893, 650 kcal)`: a meal
    more gives true; 250 ml more water gives true; more calories with the same meal count
    (an edit) gives true; the same values give false; fewer meals and calories (delete,
@@ -144,7 +143,7 @@ foods (layer 3) · stats · the user's own pixel art and sprite-strip player · 
 
 ## Verifies-with
 
-- Unit: `app/test/models/pet_feed_test.dart` (AC1–AC3)
+- Unit: `app/test/models/pet_feed_test.dart` (AC3)
 - Widget: `app/test/screens/home_pet_feed_test.dart` (AC4),
   `app/test/widgets/pet_avatar_test.dart` (AC8), `app/test/widgets/pet_sheet_test.dart`
   (AC6), `app/test/screens/app_shell_pet_test.dart` (AC5, AC7, AC9, AC10, AC11)
