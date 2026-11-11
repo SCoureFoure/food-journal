@@ -21,11 +21,6 @@ class PetSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final foodLabelStyle = theme.textTheme.labelSmall?.copyWith(
-      color: theme.colorScheme.outline,
-      letterSpacing: 0.6,
-      fontWeight: FontWeight.w600,
-    );
     final goal = feed.calorieGoal;
     return Semantics(
       identifier: 'pet-sheet',
@@ -46,42 +41,27 @@ class PetSheet extends StatelessWidget {
                 const SizedBox(height: 16),
                 const Center(child: PetBlock(size: 128)),
                 const SizedBox(height: 24),
-                if (goal != null)
-                  GoalFillBar(
-                    metric: 'food',
-                    semanticsId: 'pet-meter-food',
-                    label: 'FOOD',
-                    current: feed.caloriesToday,
-                    target: goal,
-                    unit: 'kcal',
-                    animated: animateBars,
-                  )
-                else ...[
+                GoalFillBar(
+                  metric: 'food',
+                  semanticsId: 'pet-meter-food',
+                  label: 'FOOD',
+                  current: feed.caloriesToday,
+                  target: goal,
+                  unit: 'kcal',
+                  animated: animateBars,
+                ),
+                if (goal == null && onSetGoal != null)
                   Semantics(
-                    identifier: 'pet-meter-food',
+                    identifier: 'btn-pet-set-goal',
                     container: true,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 6, 12, 6),
-                      child: Row(children: [
-                        Text('FOOD', style: foodLabelStyle),
-                        const Spacer(),
-                        Text('${feed.caloriesToday} kcal today'),
-                      ]),
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        onSetGoal!();
+                      },
+                      child: const Text('Set a calorie goal'),
                     ),
                   ),
-                  if (onSetGoal != null)
-                    Semantics(
-                      identifier: 'btn-pet-set-goal',
-                      container: true,
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          onSetGoal!();
-                        },
-                        child: const Text('Set a calorie goal'),
-                      ),
-                    ),
-                ],
                 GoalFillBar(
                   metric: 'water',
                   semanticsId: 'pet-meter-water',

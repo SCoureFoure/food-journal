@@ -62,6 +62,20 @@ void main() {
       expect(widget.progress, 0.0);
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('null target shows "650 kcal today" over an empty track', (tester) async {
+      // testTheory: boundary value — no target at all.
+      // contract: target null → progress 0.0; text "650 kcal today"; no "/" text; default id goal-row-<metric>.
+      // implication: virtual_pet AC10 — a metric with no goal shows the day's total on the same bar.
+      await tester.pumpWidget(_wrap(
+        const GoalFillBar(metric: 'food', label: 'FOOD', current: 650, target: null, unit: 'kcal'),
+      ));
+      expect(tester.widget<GoalFillBar>(find.byType(GoalFillBar)).progress, 0.0);
+      expect(_indicator(tester).value, 0.0);
+      expect(find.text('650 kcal today'), findsOneWidget);
+      expect(find.textContaining('/'), findsNothing);
+      expect(_id('goal-row-food'), findsOneWidget);
+    });
   });
 
   // ── Over-target styling ───────────────────────────────────────────────────

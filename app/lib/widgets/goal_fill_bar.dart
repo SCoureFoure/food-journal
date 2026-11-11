@@ -10,7 +10,8 @@ class GoalFillBar extends StatelessWidget {
   final String metric;
   final String label;
   final int current;
-  final int target;
+  /// Null draws the empty track and reads "[current] [unit] today".
+  final int? target;
   final String unit;
   final Color? fillColor;
   final Color? trackColor;
@@ -31,8 +32,9 @@ class GoalFillBar extends StatelessWidget {
   });
 
   double get progress {
-    if (target <= 0) return 0.0;
-    return (current / target).clamp(0.0, 1.0).toDouble();
+    final t = target;
+    if (t == null || t <= 0) return 0.0;
+    return (current / t).clamp(0.0, 1.0).toDouble();
   }
 
   @override
@@ -85,7 +87,10 @@ class GoalFillBar extends StatelessWidget {
                 children: [
                   Text(label, style: labelStyle),
                   const Spacer(),
-                  Text('$current / $target $unit', style: valueStyle),
+                  Text(
+                    target == null ? '$current $unit today' : '$current / $target $unit',
+                    style: valueStyle,
+                  ),
                 ],
               ),
             ),

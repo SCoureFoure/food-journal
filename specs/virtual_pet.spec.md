@@ -47,7 +47,7 @@ pass.
   every entry (snacks, drinks) is logged as a meal, so a count means nothing. *(user)*
   This pulls layer 2 (proportional feeding) forward; risks 1–4 in doc 03 §3 apply and
   the no-judgement rule covers over-target days.
-- **No calorie goal:** the Food meter is replaced by `<kcal> kcal today` and a
+- **No calorie goal:** the Food meter is an empty bar reading `<kcal> kcal today` (amended 2026-11-11: same `GoalFillBar`, null target), with a
   "Set a calorie goal" button that closes the sheet and opens the existing goals editor.
   No default calorie number is invented. *(user)*
 - **Set goal from Meal Planning (amended 2026-11-11):** the button first switches the shell
@@ -117,8 +117,9 @@ pass.
    "Show pet" in Settings and closes the dialog, then no `pet-avatar` is shown on either
    tab, and it stays hidden after the shell is rebuilt (setting persists).
 10. **AC10: no calorie goal.** Given no calorie goal and 650 kcal today, the sheet shows
-    `650 kcal today` in `pet-meter-food` and a `btn-pet-set-goal` button, with no food
-    bar. Tapping it closes the sheet and opens the edit-goals dialog (`edit-goals-dialog`).
+    `650 kcal today` in `pet-meter-food` and a `btn-pet-set-goal` button, over an
+    empty food bar. Tapping it closes the sheet and opens the edit-goals dialog
+    (`edit-goals-dialog`).
 11. **AC11: set goal from Meal Planning.** Given the shell on Meal Planning and no calorie
     goal, when "Set a calorie goal" is tapped in the pet sheet, then the shell shows the
     journal tab and `edit-goals-dialog` is open.
@@ -128,7 +129,7 @@ pass.
 - `pet-avatar`: floating avatar, tap to open the sheet
 - `pet-sheet`: bottom sheet root
 - `pet-meter-food`: Food meter (`GoalFillBar`, `container: true`); with no calorie goal,
-  the `<kcal> kcal today` row
+  the same bar reading `<kcal> kcal today`
 - `btn-pet-set-goal`: "Set a calorie goal" button, shown only with no calorie goal
 - `pet-meter-water`: Water meter (`GoalFillBar`, `container: true`)
 - `switch-pet-enabled`: Settings "Show pet" switch. SwitchListTile may absorb the id ✱;

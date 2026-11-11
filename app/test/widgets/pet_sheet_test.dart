@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:food_journal/models/pet_feed.dart';
 import 'package:food_journal/widgets/goal_fill_bar.dart';
 import 'package:food_journal/widgets/pet/pet_sheet.dart';
-import 'package:liquid_progress_indicator_v2/liquid_progress_indicator.dart';
 
 Widget _wrap(Widget child) =>
     MaterialApp(home: Scaffold(body: child));
@@ -93,11 +92,11 @@ void main() {
   });
 
   group('[MFT] PetSheet — no calorie goal', () {
-    testWidgets('shows "650 kcal today" and the set-goal button, with no fill bar', (tester) async {
+    testWidgets('shows "650 kcal today" and the set-goal button, over an empty food bar', (tester) async {
       // testTheory: minimum functionality — without a calorie goal the food row shows the day's total and a goal prompt.
-      // contract: text "650 kcal today" inside pet-meter-food; btn-pet-set-goal found; no FractionallySizedBox
-      //   and no LiquidLinearProgressIndicator under pet-meter-food.
-      // implication: AC6/AC10 — with no goal the food meter is a plain total, and the user is offered a way to set one.
+      // contract: text "650 kcal today" inside pet-meter-food; btn-pet-set-goal found; food fill
+      //   FractionallySizedBox under pet-meter-food has widthFactor 0.0 (empty GoalFillBar track).
+      // implication: AC10 — with no goal the food meter is an empty bar reading the day's total, and the user is offered a way to set one.
       await tester.pumpWidget(_wrap(
         PetSheet(
           feed: const PetFeed(mealsToday: 1, waterMl: 0, waterGoalMl: 1893, caloriesToday: 650),
@@ -111,17 +110,10 @@ void main() {
         findsOneWidget,
       );
       expect(_id('btn-pet-set-goal'), findsOneWidget);
-      expect(
+      final fill = tester.widget<FractionallySizedBox>(
         find.descendant(of: _id('pet-meter-food'), matching: find.byType(FractionallySizedBox)),
-        findsNothing,
       );
-      expect(
-        find.descendant(
-          of: _id('pet-meter-food'),
-          matching: find.byType(LiquidLinearProgressIndicator),
-        ),
-        findsNothing,
-      );
+      expect(fill.widthFactor, 0.0);
     });
   });
 
