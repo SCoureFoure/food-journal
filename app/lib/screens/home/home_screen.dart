@@ -150,12 +150,7 @@ class HomeScreenState extends State<HomeScreen> {
           (waterByDate[todayKey] ?? []).fold(0, (s, l) => s + l.amountMl);
 
       final met = weightGoalMet(goalHistory, weightLogs, now);
-      int? dismissed;
-      try {
-        dismissed = await _settings.weightGoalDismissedLogId;
-      } catch (_) {
-        // Settings unreadable (no plugin in some widget tests) — treat as never dismissed.
-      }
+      final dismissed = await _settings.weightGoalDismissedLogId;
       final latestLogId = weightLogs.fold<int>(0, (m, l) => math.max(m, l.id ?? 0));
       final showMet = met != null && (dismissed == null || latestLogId > dismissed) ? met : null;
 
