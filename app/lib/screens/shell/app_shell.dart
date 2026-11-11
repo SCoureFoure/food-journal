@@ -71,7 +71,11 @@ class _AppShellState extends State<AppShell> {
     if (!mounted) return;
     await showPetSheet(context, _petFeed.value ?? PetFeed.empty,
         animateBars: animated,
-        onSetGoal: () => _homeKey.currentState?.editGoals());
+        onSetGoal: () {
+          // Goals live on the journal tab; show it so the saved goal is visible.
+          if (_index != 0) setState(() => _index = 0);
+          _homeKey.currentState?.editGoals();
+        });
   }
 
   @override

@@ -50,6 +50,9 @@ pass.
 - **No calorie goal:** the Food meter is replaced by `<kcal> kcal today` and a
   "Set a calorie goal" button that closes the sheet and opens the existing goals editor.
   No default calorie number is invented. *(user)*
+- **Set goal from Meal Planning (amended 2026-11-11):** the button first switches the shell
+  to the journal tab, then opens the goals editor, so the saved goal shows in the Goals
+  panel. *(user)*
 - **Meals with no calories** (AI parse skipped or failed) add 0 kcal, as in the Goals
   panel. They still count as feeding for the bounce. *(intent: one source with Goals panel)*
 - **Water meter:** today's water ÷ today's water target (`effectiveWaterMl`, 64 oz
@@ -117,6 +120,9 @@ pass.
 10. **AC10: no calorie goal.** Given no calorie goal and 650 kcal today, the sheet shows
     `650 kcal today` in `pet-meter-food` and a `btn-pet-set-goal` button, with no food
     bar. Tapping it closes the sheet and opens the edit-goals dialog (`edit-goals-dialog`).
+11. **AC11: set goal from Meal Planning.** Given the shell on Meal Planning and no calorie
+    goal, when "Set a calorie goal" is tapped in the pet sheet, then the shell shows the
+    journal tab and `edit-goals-dialog` is open.
 
 ## Anchors (explore rig)
 
@@ -141,6 +147,6 @@ foods (layer 3) · stats · the user's own pixel art and sprite-strip player · 
 - Unit: `app/test/models/pet_feed_test.dart` (AC1–AC3)
 - Widget: `app/test/screens/home_pet_feed_test.dart` (AC4),
   `app/test/widgets/pet_avatar_test.dart` (AC8), `app/test/widgets/pet_sheet_test.dart`
-  (AC6), `app/test/screens/app_shell_pet_test.dart` (AC5, AC7, AC9)
+  (AC6), `app/test/screens/app_shell_pet_test.dart` (AC5, AC7, AC9, AC10, AC11)
 - e2e: explore rig screenshot of the avatar on both tabs, plus the open sheet, in both
   handedness modes

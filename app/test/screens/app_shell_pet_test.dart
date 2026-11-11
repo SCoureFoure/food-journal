@@ -6,6 +6,7 @@ import 'package:food_journal/models/medication.dart';
 import 'package:food_journal/models/reaction_log.dart';
 import 'package:food_journal/models/water_log.dart';
 import 'package:food_journal/models/weight_log.dart';
+import 'package:food_journal/screens/home/home_screen.dart';
 import 'package:food_journal/screens/shell/app_shell.dart';
 import 'package:food_journal/services/storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -188,6 +189,35 @@ void main() {
       await tester.pumpAndSettle();
       expect(_anchor('pet-sheet'), findsNothing);
       expect(_anchor('edit-goals-dialog'), findsOneWidget);
+    });
+  });
+
+  group('[DIR] set a calorie goal from Meal Planning (AC11)', () {
+    // testTheory: DIR
+    // contract: tapping Set a calorie goal while on Meal Planning switches the shell to the journal tab and opens the goals dialog.
+    // implication: AC11 — if this fails, the saved goal lands on a tab the user cannot see.
+    testWidgets('switches to the journal tab before opening the dialog',
+        (tester) async {
+      SharedPreferences.setMockInitialValues({'goal_bars_animated': false});
+      await tester.pumpWidget(_shell());
+      await tester.pumpAndSettle();
+      await _openMealPlanning(tester);
+
+      await tester.tap(_anchor('pet-avatar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Set a calorie goal'));
+      await tester.pumpAndSettle();
+
+      expect(_anchor('edit-goals-dialog'), findsOneWidget);
+      final stack = tester.widget<IndexedStack>(
+        find
+            .ancestor(
+              of: find.byType(HomeScreen, skipOffstage: false),
+              matching: find.byType(IndexedStack),
+            )
+            .first,
+      );
+      expect(stack.index, 0);
     });
   });
 
