@@ -47,6 +47,7 @@ class HomeScreenState extends State<HomeScreen> {
   List<GoalSnapshot> _goalHistory = [];
   GoalIntake _todayIntake = const GoalIntake();
   WeightGoalMet? _weightGoalMet;
+  int _latestWeightLogId = 0;
   bool _goalsLoaded = false;
   bool _loading = true;
   String? _errorMessage;
@@ -157,6 +158,7 @@ class HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       setState(() {
         _weightGoalMet = showMet;
+        _latestWeightLogId = latestLogId;
         _goalHistory = goalHistory;
         _todayIntake = GoalIntake(
           calories: t.cal,
@@ -259,10 +261,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _dismissWeightGoal() async {
-    final latestLogId = _weightByDate.values
-        .expand((logs) => logs)
-        .fold<int>(0, (m, l) => math.max(m, l.id ?? 0));
-    await _settings.setWeightGoalDismissedLogId(latestLogId);
+    await _settings.setWeightGoalDismissedLogId(_latestWeightLogId);
     if (mounted) setState(() => _weightGoalMet = null);
   }
 
