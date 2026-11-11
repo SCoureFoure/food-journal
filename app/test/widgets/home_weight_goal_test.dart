@@ -140,7 +140,7 @@ void main() {
     });
 
     // testTheory: DIR
-    // contract: a weigh-in logged after dismissal brings the prompt back.
+    // contract: a weigh-in logged after dismissal that meets the target brings the prompt back.
     // implication: if this fails, a dismissal silences the prompt forever (AC25).
     testWidgets('new weigh-in revives the prompt', (tester) async {
       _mockPrefs();
@@ -152,6 +152,29 @@ void main() {
       expect(_anchor('goal-weight-met'), findsNothing);
 
       fake.weightLogs.add(_weigh(2, 168, 0));
+      await _pumpHome(tester, fake);
+      expect(_anchor('goal-weight-met'), findsOneWidget);
+    });
+  });
+
+  group('[DIR] journal weight-goal rebound after dismissal (AC27)', () {
+    // testTheory: DIR
+    // contract: after Not now, a newer weigh-in above a lose target keeps the prompt hidden; a later one at or below it brings it back.
+    // implication: AC27 — if this fails, the prompt says the goal is reached while the user is above it.
+    testWidgets('172 lb after dismissal stays hidden, 168 lb revives',
+        (tester) async {
+      _mockPrefs();
+      final fake = _metFake();
+      await _pumpHome(tester, fake);
+
+      await tester.tap(find.text('Not now'));
+      await tester.pumpAndSettle();
+
+      fake.weightLogs.add(_weigh(2, 172, 0));
+      await _pumpHome(tester, fake);
+      expect(_anchor('goal-weight-met'), findsNothing);
+
+      fake.weightLogs.add(_weigh(3, 168, 0));
       await _pumpHome(tester, fake);
       expect(_anchor('goal-weight-met'), findsOneWidget);
     });

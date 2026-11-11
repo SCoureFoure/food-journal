@@ -150,14 +150,14 @@ class HomeScreenState extends State<HomeScreen> {
       final todayWaterMl =
           (waterByDate[todayKey] ?? []).fold(0, (s, l) => s + l.amountMl);
 
-      final met = weightGoalMet(goalHistory, weightLogs, now);
       final dismissed = await _settings.weightGoalDismissedLogId;
+      // After "Not now", only a newer weigh-in that itself meets the target re-shows the prompt.
+      final met = weightGoalMet(goalHistory, weightLogs, now, afterLogId: dismissed);
       final latestLogId = weightLogs.fold<int>(0, (m, l) => math.max(m, l.id ?? 0));
-      final showMet = met != null && (dismissed == null || latestLogId > dismissed) ? met : null;
 
       if (!mounted) return;
       setState(() {
-        _weightGoalMet = showMet;
+        _weightGoalMet = met;
         _latestWeightLogId = latestLogId;
         _goalHistory = goalHistory;
         _todayIntake = GoalIntake(

@@ -171,8 +171,10 @@ Decisions:
   the edit dialog pre-filled with its result plus today's water target. Saving stores a new
   snapshot; the new pace/target replaces the old one, so the prompt goes away. Cancel at
   either step changes nothing and the prompt stays. *(intent)*
-- **Not now:** hides the prompt until a newer weigh-in exists (SharedPreferences
-  `weight_goal_dismissed_log_id` = highest weight-log id at dismissal). *(user)*
+- **Not now:** hides the prompt until a newer weigh-in itself meets the target
+  (SharedPreferences `weight_goal_dismissed_log_id` = highest weight-log id at dismissal;
+  weigh-ins at or below that id stop counting). A rebound above the target does not bring
+  it back. *(user, amended 2026-11-11)*
 - **Pet:** the pet sheet does not show the prompt. *(user)*
 
 19. **AC19 — migration.** Given a v17 database with goal rows, when the app opens at v18,
@@ -194,10 +196,13 @@ Decisions:
     (same target carried), and a 169 lb weigh-in on 11-03, then the goal is met.
 25. **AC25 — prompt.** Given a met goal, the Goals panel shows `goal-weight-met` with
     "You reached 170 lb! Set a new goal?". "Not now" hides it; it stays hidden after a
-    reload and comes back after a newer weigh-in.
+    reload and comes back after a newer weigh-in that meets the target (AC27).
 26. **AC26 — set new goal.** Given the prompt, tapping "Set new goal" opens the calculator;
     "Use these" then opens the edit dialog with the estimate and today's water; Save stores
     a snapshot with the new target (or none for maintain) and the prompt disappears.
+27. **AC27 — rebound after dismissal.** Given lose target 170, a 169 lb weigh-in, and
+    "Not now", when a newer 172 lb weigh-in is logged, the prompt stays hidden; when a
+    later 168 lb weigh-in is logged, it shows again. *(amendment 2026-11-11)*
 
 ## Anchors (explore rig)
 
@@ -225,4 +230,5 @@ Decisions:
 
 - Service: `app/test/services/goals_storage_test.dart` (AC2–AC4), `migration_order_test.dart` + `app/test/services/migration_v17_goals_test.dart` (AC1)
 - Widget: `app/test/widgets/goal_fill_bar_test.dart` (AC5), `app/test/widgets/goals_panel_test.dart` (AC6–AC9, AC12), home layout test (AC10–AC11)
+- Weight goal: `app/test/models/weight_goal_test.dart` (AC22–AC24), `app/test/widgets/home_weight_goal_test.dart` (AC25–AC27)
 - e2e: explore rig screenshot of the journal tab with goals set, collapsed and expanded

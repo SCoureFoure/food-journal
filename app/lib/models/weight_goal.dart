@@ -23,8 +23,10 @@ class WeightGoalMet {
 }
 
 /// Null when today's goal has no target or no qualifying weigh-in exists.
+/// Weigh-ins with an id at or below [afterLogId] do not count.
 WeightGoalMet? weightGoalMet(
-    List<GoalSnapshot> history, List<WeightLog> logs, DateTime today) {
+    List<GoalSnapshot> history, List<WeightLog> logs, DateTime today,
+    {int? afterLogId}) {
   final dayStart = DateTime(today.year, today.month, today.day);
   final eligible = history
       .where((s) => !s.effectiveDate.isAfter(dayStart))
@@ -50,6 +52,7 @@ WeightGoalMet? weightGoalMet(
   }
 
   for (final log in logs) {
+    if (afterLogId != null && (log.id ?? 0) <= afterLogId) continue;
     final logDay = DateTime(log.date.year, log.date.month, log.date.day);
     if (logDay.isBefore(runStart) || logDay.isAfter(dayStart)) continue;
     final lb = log.unit == 'kg' ? log.weightValue * kLbPerKg : log.weightValue;
