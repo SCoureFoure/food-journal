@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../models/daily_goals.dart';
 import '../../models/goal_estimate.dart';
+import '../../models/weight_goal.dart' show formatWeightLb;
 import '../../services/settings_service.dart';
 
 /// Opens the calculator. Returns the estimated targets, or null on cancel.
@@ -41,14 +42,11 @@ class _GoalCalculatorDialogState extends State<GoalCalculatorDialog> {
         _ => null,
       };
 
-  static String _formatWeight(double lb) =>
-      lb == lb.truncateToDouble() ? lb.toInt().toString() : lb.toStringAsFixed(1);
-
   @override
   void initState() {
     super.initState();
     final latest = widget.latestWeightLb;
-    if (latest != null) _weight.text = _formatWeight(latest);
+    if (latest != null) _weight.text = formatWeightLb(latest);
     widget.settings.goalProfile.then((p) {
       if (p == null || !mounted) return;
       setState(() {
@@ -58,7 +56,7 @@ class _GoalCalculatorDialogState extends State<GoalCalculatorDialog> {
         _formula = p.formula;
         _activity = p.activity;
         _goal = p.goal;
-        if (latest == null) _weight.text = _formatWeight(p.weightLb);
+        if (latest == null) _weight.text = formatWeightLb(p.weightLb);
       });
     });
   }
