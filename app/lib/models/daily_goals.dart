@@ -4,6 +4,9 @@ const int kDefaultWaterGoalMl = 1893;
 
 const double kMlPerOz = 29.5735;
 
+/// Millilitres to whole fluid ounces, rounded.
+int mlToOz(int ml) => (ml / kMlPerOz).round();
+
 enum WeightDirection { lose, gain }
 
 /// Daily targets. Every target is optional; null means "not set" and the

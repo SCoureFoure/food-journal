@@ -193,8 +193,8 @@ class _GoalsPanelState extends State<GoalsPanel> {
         GoalFillBar(
           metric: 'water',
           label: 'WATER',
-          current: (intake.waterMl / kMlPerOz).round(),
-          target: (goals.waterMl! / kMlPerOz).round(),
+          current: mlToOz(intake.waterMl),
+          target: mlToOz(goals.waterMl!),
           unit: 'oz',
           fillColor: GoalFillBar.blueFill,
           trackColor: GoalFillBar.blueTrack,

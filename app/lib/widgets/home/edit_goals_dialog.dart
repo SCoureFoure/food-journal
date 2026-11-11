@@ -41,7 +41,7 @@ class _EditGoalsDialogState extends State<EditGoalsDialog> {
     _carbs = TextEditingController(text: g.carbsG?.toString() ?? '');
     _fat = TextEditingController(text: g.fatG?.toString() ?? '');
     _water = TextEditingController(
-      text: g.waterMl == null ? '' : (g.waterMl! / kMlPerOz).round().toString(),
+      text: g.waterMl == null ? '' : mlToOz(g.waterMl!).toString(),
     );
     _targetWeightLb = g.targetWeightLb;
     _weightDirection = g.weightDirection;
