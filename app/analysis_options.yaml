@@ -26,6 +26,7 @@ linter:
     require_trailing_commas: true
     directives_ordering: true
     eol_at_end_of_file: true
+    prefer_relative_imports: true
 
     # Bug prevention
     avoid_print: true
