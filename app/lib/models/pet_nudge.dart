@@ -97,3 +97,52 @@ List<PetNudgeKind> dueNudges(PetNudgeState s, DateTime now) {
 
   return out;
 }
+
+/// When a nudge would otherwise fire now (already overdue), push it out so it
+/// only reaches the user if they stay away this much longer.
+const Duration kOverdueDefer = Duration(hours: 2);
+
+/// Which nudges to schedule (with their future fire times) and which to cancel.
+class PetNudgePlan {
+  final Map<PetNudgeKind, DateTime> schedule;
+  final Set<PetNudgeKind> cancel;
+  const PetNudgePlan(this.schedule, this.cancel);
+}
+
+/// Move a fire time out of the quiet window to the next [kQuietEndHour].
+DateTime bumpPastQuiet(DateTime t) {
+  if (!isQuietHour(t)) return t;
+  var morning = DateTime(t.year, t.month, t.day, kQuietEndHour);
+  if (t.hour >= kQuietStartHour) {
+    morning = morning.add(const Duration(days: 1)); // after 22:00 → next morning
+  }
+  return morning;
+}
+
+/// Decide the future fire times for the pet's reminders. Pure: the service
+/// applies the result. Hungry is always kept pending (and rescheduled as the
+/// user logs); thirsty is scheduled only while under target, else cancelled.
+PetNudgePlan planPetNudges(PetNudgeState s, DateTime now) {
+  if (!s.petEnabled || s.paused) {
+    return const PetNudgePlan({}, {PetNudgeKind.hungry, PetNudgeKind.thirsty});
+  }
+
+  final schedule = <PetNudgeKind, DateTime>{};
+  final cancel = <PetNudgeKind>{};
+
+  final hungryBase = (s.lastMealLog ?? now).add(kHungryAfter);
+  schedule[PetNudgeKind.hungry] = bumpPastQuiet(
+    hungryBase.isAfter(now) ? hungryBase : now.add(kOverdueDefer),
+  );
+
+  if (s.waterGoal > 0 && s.waterToday * 2 < s.waterGoal) {
+    final thirstyBase = DateTime(now.year, now.month, now.day, kThirstyAfterHour);
+    schedule[PetNudgeKind.thirsty] = bumpPastQuiet(
+      thirstyBase.isAfter(now) ? thirstyBase : now.add(kOverdueDefer),
+    );
+  } else {
+    cancel.add(PetNudgeKind.thirsty);
+  }
+
+  return PetNudgePlan(schedule, cancel);
+}

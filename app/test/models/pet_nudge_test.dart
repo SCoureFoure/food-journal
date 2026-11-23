@@ -185,4 +185,75 @@ void main() {
       );
     });
   });
+
+  group('[DIR] planPetNudges — schedule and cancel', () {
+    final afternoon = DateTime(2026, 11, 23, 16, 0);
+
+    test('a recent meal reschedules hungry into the future', () {
+      // testTheory: directional — logging defers the hungry nudge, not cancels it.
+      // contract: lastMealLog 1 h ago → hungry scheduled ~5 h after that meal, after now.
+      // implication: AC7 — logging a meal pushes the next hungry reminder out.
+      final s = _state(
+        lastMealLog: _now.subtract(const Duration(hours: 1)),
+        waterToday: 2000,
+      );
+      final plan = planPetNudges(s, _now);
+      expect(plan.schedule.containsKey(PetNudgeKind.hungry), isTrue);
+      expect(plan.schedule[PetNudgeKind.hungry]!.isAfter(_now), isTrue);
+    });
+
+    test('an overdue meal defers hungry rather than firing now', () {
+      // testTheory: boundary value — an already-crossed threshold still fires later.
+      // contract: lastMealLog 8 h ago → hungry scheduled at now + defer, after now.
+      // implication: AC7 — a stale gap only nags on continued absence.
+      final s = _state(lastMealLog: _now.subtract(const Duration(hours: 8)));
+      final at = planPetNudges(s, _now).schedule[PetNudgeKind.hungry]!;
+      expect(at.isAfter(_now), isTrue);
+    });
+
+    test('meeting the water target cancels thirsty', () {
+      // testTheory: directional — enough water removes the thirsty nudge.
+      // contract: water ≥ target → cancel has thirsty, schedule has none.
+      // implication: AC7 — logging enough water clears the thirsty reminder.
+      final s = _state(
+        lastMealLog: afternoon.subtract(const Duration(hours: 1)),
+        waterToday: 1893,
+        waterGoal: 1893,
+      );
+      final plan = planPetNudges(s, afternoon);
+      expect(plan.cancel, contains(PetNudgeKind.thirsty));
+      expect(plan.schedule.containsKey(PetNudgeKind.thirsty), isFalse);
+    });
+
+    test('being under target schedules thirsty', () {
+      // testTheory: directional — a dry day keeps a thirsty nudge pending.
+      // contract: water < 50% of target → schedule has thirsty.
+      // implication: AC7 — an unmet water target leaves the reminder armed.
+      final s = _state(
+        lastMealLog: afternoon.subtract(const Duration(hours: 1)),
+        waterToday: 300,
+        waterGoal: 1893,
+      );
+      expect(planPetNudges(s, afternoon).schedule, contains(PetNudgeKind.thirsty));
+    });
+
+    test('paused or pet-off cancels both and schedules nothing', () {
+      // testTheory: invariance — either switch off means no pending nudges.
+      // contract: paused → empty schedule, cancel both; same for petEnabled false.
+      // implication: AC6/AC7 — pausing or hiding the pet clears armed reminders.
+      final paused = planPetNudges(
+        _state(lastMealLog: _now, paused: true),
+        _now,
+      );
+      expect(paused.schedule, isEmpty);
+      expect(paused.cancel, {PetNudgeKind.hungry, PetNudgeKind.thirsty});
+
+      final off = planPetNudges(
+        _state(lastMealLog: _now, petEnabled: false),
+        _now,
+      );
+      expect(off.schedule, isEmpty);
+      expect(off.cancel, {PetNudgeKind.hungry, PetNudgeKind.thirsty});
+    });
+  });
 }

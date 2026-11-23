@@ -50,6 +50,19 @@ class SettingsService {
     await prefs.setBool(_keyPetEnabled, value);
   }
 
+  static const _keyPetNudgesPaused = 'pet_nudges_paused';
+
+  /// Whether the pet's log reminders are paused (illness, travel). Default off.
+  Future<bool> get isPetNudgesPaused async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyPetNudgesPaused) ?? false;
+  }
+
+  Future<void> setPetNudgesPaused(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyPetNudgesPaused, value);
+  }
+
   /// Whether a Meal Planning card ([card] is `pantry` or `grocery`) is collapsed.
   /// Cards start expanded.
   Future<bool> isCardCollapsed(String card) async {

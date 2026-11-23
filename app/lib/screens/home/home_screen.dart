@@ -8,11 +8,13 @@ import '../../models/goal_estimate.dart';
 import '../../models/meal_entry.dart';
 import '../../models/medication.dart';
 import '../../models/pet_feed.dart';
+import '../../models/pet_nudge.dart';
 import '../../models/reaction_log.dart';
 import '../../models/water_log.dart';
 import '../../models/weight_goal.dart';
 import '../../models/weight_log.dart';
 import '../../screens/log_water/log_water_sheet.dart';
+import '../../services/notification_service.dart';
 import '../../services/settings_service.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/error_display.dart';
@@ -27,7 +29,16 @@ class HomeScreen extends StatefulWidget {
   /// Shell-owned; set to today's feeding after every successful load.
   final ValueNotifier<PetFeed?>? petFeed;
 
-  const HomeScreen({super.key, this.storageOverride, this.petFeed});
+  /// Shell-owned; when set, each load (re)schedules the pet's log reminders.
+  /// Null in tests so no local notifications are touched.
+  final NotificationService? petNotifications;
+
+  const HomeScreen({
+    super.key,
+    this.storageOverride,
+    this.petFeed,
+    this.petNotifications,
+  });
 
   @override
   State<HomeScreen> createState() => HomeScreenState();
@@ -184,6 +195,33 @@ class HomeScreenState extends State<HomeScreen> {
         caloriesToday: t.cal,
         calorieGoal: todayGoals.calories,
       );
+
+      // (Re)schedule the pet's gentle reminders. Best-effort: a notification
+      // failure must never break the journal load (and keeps plugin-less tests
+      // unaffected).
+      final nudges = widget.petNotifications;
+      if (nudges != null) {
+        try {
+          final lastMealLog = meals.isEmpty
+              ? null
+              : meals
+                  .map((m) => m.createdAt)
+                  .reduce((a, b) => a.isAfter(b) ? a : b);
+          final plan = planPetNudges(
+            PetNudgeState(
+              lastMealLog: lastMealLog,
+              waterToday: todayWaterMl,
+              waterGoal: todayGoals.effectiveWaterMl,
+              paused: await _settings.isPetNudgesPaused,
+              petEnabled: await _settings.isPetEnabled,
+            ),
+            now,
+          );
+          await nudges.applyNudgePlan(plan);
+        } catch (_) {
+          // nudges are best-effort; ignore scheduling failures.
+        }
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {

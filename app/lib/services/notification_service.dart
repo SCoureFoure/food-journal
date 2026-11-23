@@ -169,4 +169,17 @@ class NotificationService {
   Future<void> cancelPetNudge(PetNudgeKind kind) async {
     await _plugin.cancel(_nudgeId(kind));
   }
+
+  /// Apply a [PetNudgePlan]: cancel what it says to cancel, then (re)schedule the
+  /// rest. Each scheduled kind is cancelled first so a reschedule replaces the
+  /// pending one rather than stacking.
+  Future<void> applyNudgePlan(PetNudgePlan plan) async {
+    for (final kind in plan.cancel) {
+      await cancelPetNudge(kind);
+    }
+    for (final entry in plan.schedule.entries) {
+      await cancelPetNudge(entry.key);
+      await schedulePetNudge(entry.key, entry.value);
+    }
+  }
 }

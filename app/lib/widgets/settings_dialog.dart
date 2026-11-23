@@ -15,6 +15,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
   bool? _leftHanded;
   bool? _goalBarsAnimated;
   bool? _petEnabled;
+  bool? _petNudgesPaused;
 
   @override
   void initState() {
@@ -24,6 +25,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
       widget.settings.isLeftHanded,
       widget.settings.isGoalBarsAnimated,
       widget.settings.isPetEnabled,
+      widget.settings.isPetNudgesPaused,
     ]).then((values) {
       if (mounted) {
         setState(() {
@@ -31,6 +33,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
           _leftHanded = values[1];
           _goalBarsAnimated = values[2];
           _petEnabled = values[3];
+          _petNudgesPaused = values[4];
         });
       }
     });
@@ -41,7 +44,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
     final loading = _aiEnabled == null ||
         _leftHanded == null ||
         _goalBarsAnimated == null ||
-        _petEnabled == null;
+        _petEnabled == null ||
+        _petNudgesPaused == null;
     return AlertDialog(
       title: const Text('Settings'),
       content: loading
@@ -90,6 +94,19 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     onChanged: (v) async {
                       await widget.settings.setPetEnabled(v);
                       if (mounted) setState(() => _petEnabled = v);
+                    },
+                  ),
+                ),
+                Semantics(
+                  identifier: 'switch-pet-nudges-paused',
+                  container: true,
+                  child: SwitchListTile(
+                    title: const Text('Pause pet reminders'),
+                    subtitle: const Text('Mute the pet\'s log reminders'),
+                    value: _petNudgesPaused!,
+                    onChanged: (v) async {
+                      await widget.settings.setPetNudgesPaused(v);
+                      if (mounted) setState(() => _petNudgesPaused = v);
                     },
                   ),
                 ),

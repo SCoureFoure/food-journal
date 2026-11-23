@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/pet_feed.dart';
+import '../../services/notification_service.dart';
 import '../../services/settings_service.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/folder_tab_bar.dart';
@@ -16,7 +17,11 @@ class AppShell extends StatefulWidget {
   /// the shell without a real sqlite3 connection. Null in production.
   final StorageService? journalStorageOverride;
 
-  const AppShell({super.key, this.journalStorageOverride});
+  /// Test seam — a fake keeps widget tests off the real notifications plugin.
+  /// Null in production, where a real service is created.
+  final NotificationService? notifications;
+
+  const AppShell({super.key, this.journalStorageOverride, this.notifications});
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -38,6 +43,8 @@ class _AppShellState extends State<AppShell> {
 
   final _homeKey = GlobalKey<HomeScreenState>();
   final _settings = SettingsService();
+  late final NotificationService _notifications =
+      widget.notifications ?? NotificationService();
   final _petFeed = ValueNotifier<PetFeed?>(null);
   int _index = 0;
   bool _petEnabled = false;
@@ -115,6 +122,7 @@ class _AppShellState extends State<AppShell> {
                         key: _homeKey,
                         storageOverride: widget.journalStorageOverride,
                         petFeed: _petFeed,
+                        petNotifications: _notifications,
                       ),
                       const MealPlanningScreen(),
                     ],
