@@ -17,6 +17,8 @@ import 'services/notification_service.dart';
 import 'services/seed_service.dart';
 import 'services/storage_service.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
@@ -28,7 +30,24 @@ Future<void> main() async {
   storage.dispose();
 
   await NotificationService().initialize();
+  NotificationService.onRoute = _routeNotification;
   runApp(const FoodJournalApp());
+}
+
+/// Navigate on a tapped notification (Fix B wiring; routing itself is pure in
+/// NotificationService.routeForPayload).
+void _routeNotification(NotificationRoute route) {
+  final nav = navigatorKey.currentState;
+  if (nav == null) return;
+  switch (route.kind) {
+    case NotificationRouteKind.checkin:
+      nav.pushNamed('/checkin', arguments: route.entryId);
+    case NotificationRouteKind.logMeal:
+      nav.pushNamed('/log');
+    case NotificationRouteKind.logWater:
+      // The water quick-entry lives on the journal shell; return there.
+      nav.popUntil((r) => r.isFirst);
+  }
 }
 
 class FoodJournalApp extends StatelessWidget {
@@ -38,6 +57,7 @@ class FoodJournalApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Food Journal',
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF42725C)),

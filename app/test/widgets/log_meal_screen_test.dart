@@ -87,7 +87,7 @@ class _FakeSettings extends SettingsService {
 class _FakeNotifications extends NotificationService {
   @override
   Future<void> scheduleCheckin(int entryId, String label, DateTime entryTime,
-          {int? delayMinutes}) async {}
+          {int? delayMinutes, bool isMedication = false}) async {}
 }
 
 // Storage is not exercised by the parse flow on a new meal; a bare subclass keeps

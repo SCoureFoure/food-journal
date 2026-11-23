@@ -261,11 +261,13 @@ class _LogMedicationScreenState extends State<LogMedicationScreen> {
         await _storage.updateMedication(med);
         // Reschedule: edits to time/delay must move the existing check-in,
         // not leave it firing at the original time. Cancel then re-arm.
-        await _notifications.cancelCheckin(medId);
-        await _notifications.scheduleCheckin(medId, name, entryTime, delayMinutes: delay);
+        await _notifications.cancelCheckin(medId, isMedication: true);
+        await _notifications.scheduleCheckin(medId, name, entryTime,
+            delayMinutes: delay, isMedication: true);
       } else {
         final medId = await _storage.saveMedication(med);
-        await _notifications.scheduleCheckin(medId, name, entryTime, delayMinutes: delay);
+        await _notifications.scheduleCheckin(medId, name, entryTime,
+            delayMinutes: delay, isMedication: true);
       }
 
       if (!mounted) return;

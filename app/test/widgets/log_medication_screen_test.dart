@@ -87,11 +87,12 @@ class _FakeNotifications extends NotificationService {
 
   @override
   Future<void> scheduleCheckin(int entryId, String label, DateTime entryTime,
-          {int? delayMinutes}) async =>
+          {int? delayMinutes, bool isMedication = false}) async =>
       scheduled.add(_Scheduled(entryId, delayMinutes));
 
   @override
-  Future<void> cancelCheckin(int entryId) async => cancelled.add(entryId);
+  Future<void> cancelCheckin(int entryId, {bool isMedication = false}) async =>
+      cancelled.add(entryId);
 }
 
 class _FakeSettings extends SettingsService {
