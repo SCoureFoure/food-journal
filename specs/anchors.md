@@ -71,6 +71,8 @@ touches and links back here; it does not redefine meaning or fallback.
 | Home         | `home-error`                    | Error state                                    |
 | Home         | `week-section-YYYY-MM-DD`       | Week summary header + its day sections         |
 | Home         | `date-section-YYYY-MM-DD`       | Collapsible date group card                    |
+| Home         | `biometrics-tile-<yyyy-mm-dd>`  | Per-day Biometrics line item (steps · sleep · heart rate), after day totals and water summary, before the time-sorted entries; absent when the day has no watch data (watch_import) |
+| Home         | `biometrics-tile-header-<yyyy-mm-dd>` | Biometrics tile title; tap target to expand the sleep / steps / heart-rate detail (watch_import) |
 | Home         | `meal-tile-<id>`                | Collapsible meal tile (whole tile)             |
 | Home         | `meal-tile-header-<id>`         | Meal tile header only — use this to tap toggle |
 | Home         | `feeling-tile-<id>`             | Collapsible feeling/check-in tile (whole tile) |
@@ -100,6 +102,10 @@ touches and links back here; it does not redefine meaning or fallback.
 | Export       | `toggle-include-photos`         | "Photos" switch — embed base64 images in export. Default **off** (export_import_size). ✱ absorbed (Switch); Dart: ancestor `SwitchListTile` of title "Photos" |
 | Export       | `btn-export-json`               | Export as JSON button                          |
 | Export       | `btn-import-json`               | Import-from-JSON button — opens OS file picker |
+| Export       | `watch-folder-path`             | Watch data card — linked Gadgetbridge folder label, or `Not set` (watch_import) |
+| Export       | `btn-watch-set-folder`          | Watch data card — Set folder button, opens Android folder picker (watch_import) |
+| Export       | `btn-watch-import-now`          | Watch data card — Import now button, imports `Gadgetbridge.db` from the linked folder; disabled when no folder (watch_import) |
+| Export       | `btn-import-watch`              | Watch data card — manual Import file… fallback, opens OS file picker for `Gadgetbridge.db` (watch_import) |
 | Export       | `toggle-include-meals`          | "Meals" switch — includes meal entries in export. Reach unverified. |
 | Export       | `toggle-include-medications`    | "Medications" switch — includes medication entries in export. Reach unverified. |
 | Export       | `toggle-include-memories`       | "Food Memories" switch — includes food memories in export. Reach unverified. |

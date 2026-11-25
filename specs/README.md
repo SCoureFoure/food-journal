@@ -72,3 +72,5 @@ Run the loop with the **`/spec`** skill (`.claude/skills/spec/SKILL.md`):
 | [food_entity_resolution](food_entity_resolution.spec.md) | Food/medication entity resolution (local canonical identity) | active |
 | [food_blame](food_blame.spec.md) | Food/medication blame (symptom→item suspicion ledger) | active |
 | [blame_history](blame_history.spec.md) | Blame history dashboard (review & dismiss accrued suspicion) | active |
+| [watch_import](watch_import.spec.md) | Gadgetbridge watch import — steps, sleep, heart rate per journal day | active |
+| [sticker_slots](sticker_slots.spec.md) | End-of-day sticker slot spin → coins → pet shop (variable reward) | idea |

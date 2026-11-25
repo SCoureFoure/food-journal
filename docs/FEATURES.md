@@ -177,8 +177,9 @@ Status: ✅ Built · 🟡 Partial · ⬜ Planned — verified against the codeba
 - Flag foods in food_memory that frequently precede urgent BM within configurable window
 - Requires enough logged entries to infer (5+ occurrences)
 
-### S6 — Biometrics / smart device sync — ⬜ Planned
+### S6 — Biometrics / smart device sync — 🟡 Partial
 
+- First slice shipped: Gadgetbridge DB import (steps, sleep, heart rate) — see specs/watch_import.spec.md
 - Capture or sync biometric data from wearables (heart rate, HRV, glucose, sleep)
 - Correlate with meal and reaction entries
 - Integration targets: Apple Health / Google Fit / Garmin Connect (platform-specific)
