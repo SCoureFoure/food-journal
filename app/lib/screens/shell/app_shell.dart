@@ -4,6 +4,8 @@ import '../../models/pet_feed.dart';
 import '../../services/notification_service.dart';
 import '../../services/settings_service.dart';
 import '../../services/storage_service.dart';
+import '../../services/watch_folder.dart';
+import '../../services/watch_sync_service.dart';
 import '../../widgets/folder_tab_bar.dart';
 import '../../widgets/lined_paper_background.dart';
 import '../../widgets/pet/pet_avatar.dart';
@@ -21,13 +23,22 @@ class AppShell extends StatefulWidget {
   /// Null in production, where a real service is created.
   final NotificationService? notifications;
 
-  const AppShell({super.key, this.journalStorageOverride, this.notifications});
+  /// Test seam — null in tests means no watch sync at all. In production a real
+  /// service is built (only when [journalStorageOverride] is null).
+  final WatchSyncService? watchSync;
+
+  const AppShell({
+    super.key,
+    this.journalStorageOverride,
+    this.notifications,
+    this.watchSync,
+  });
 
   @override
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   static const _tabs = [
     FolderTab(
       label: 'Food Journal',
@@ -49,17 +60,59 @@ class _AppShellState extends State<AppShell> {
   int _index = 0;
   bool _petEnabled = false;
   bool _leftHanded = false;
+  WatchSyncService? _watchSync;
+  StorageService? _ownedSyncStorage;
+  bool _syncing = false;
 
   @override
   void initState() {
     super.initState();
     _loadPetSettings();
+    _watchSync = widget.watchSync;
+    if (_watchSync == null && widget.journalStorageOverride == null) {
+      _ownedSyncStorage = StorageService();
+      _watchSync = WatchSyncService(
+        storage: _ownedSyncStorage!,
+        settings: _settings,
+        access: PlatformWatchFolderAccess(),
+      );
+    }
+    WidgetsBinding.instance.addObserver(this);
+    if (_watchSync != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _syncWatch());
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _ownedSyncStorage?.dispose();
     _petFeed.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _syncWatch();
+  }
+
+  Future<void> _syncWatch() async {
+    final sync = _watchSync;
+    if (sync == null || _syncing) return;
+    _syncing = true;
+    try {
+      final o = await sync.syncIfNewer();
+      if (o.state == WatchSyncState.imported && o.result!.changed > 0) {
+        await _homeKey.currentState?.reload();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Watch data updated')),
+          );
+        }
+      }
+    } finally {
+      _syncing = false;
+    }
   }
 
   Future<void> _loadPetSettings() async {

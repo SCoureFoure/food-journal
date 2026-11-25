@@ -3,11 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../services/export_service.dart';
+import '../../services/settings_service.dart';
 import '../../services/storage_service.dart';
+import '../../services/watch_folder.dart';
+import '../../services/watch_import_service.dart';
+import '../../services/watch_sync_service.dart';
 import '../import/import_wizard_screen.dart';
 
 class ExportScreen extends StatefulWidget {
-  const ExportScreen({super.key});
+  /// Test seams — fakes keep widget tests off the platform channel. Null in
+  /// production, where the real implementations are used.
+  final WatchFolderAccess? watchAccess;
+  final SettingsService? settings;
+
+  const ExportScreen({super.key, this.watchAccess, this.settings});
 
   @override
   State<ExportScreen> createState() => _ExportScreenState();
@@ -16,6 +25,15 @@ class ExportScreen extends StatefulWidget {
 class _ExportScreenState extends State<ExportScreen> {
   late final StorageService _storage;
   late final ExportService _export;
+  late final SettingsService _settings = widget.settings ?? SettingsService();
+  late final WatchFolderAccess _watchAccess =
+      widget.watchAccess ?? PlatformWatchFolderAccess();
+  late final WatchSyncService _watchSync = WatchSyncService(
+    storage: _storage,
+    settings: _settings,
+    access: _watchAccess,
+  );
+  String? _watchLabel;
 
   DateTime? _from;
   DateTime? _to;
@@ -33,6 +51,16 @@ class _ExportScreenState extends State<ExportScreen> {
     super.initState();
     _storage = StorageService();
     _export = ExportService(_storage);
+    _loadWatchLabel();
+  }
+
+  Future<void> _loadWatchLabel() async {
+    try {
+      final label = await _settings.watchFolderLabel;
+      if (mounted) setState(() => _watchLabel = label);
+    } catch (_) {
+      // Prefs unavailable: the card just reads "Not set".
+    }
   }
 
   @override
@@ -182,6 +210,77 @@ class _ExportScreenState extends State<ExportScreen> {
                         label: const Text('Import from JSON'),
                       ),
                     ),
+                    const SizedBox(height: 12),
+
+                    // ── Watch data card ─────────────────────────────────
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.fromLTRB(4, 0, 4, 4),
+                              child: Text(
+                                'Watch data (Gadgetbridge)',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                            Semantics(
+                              identifier: 'watch-folder-path',
+                              child: ListTile(
+                                leading: const Icon(Icons.folder_outlined),
+                                title: const Text('Folder'),
+                                subtitle: Text(_watchLabel ?? 'Not set'),
+                              ),
+                            ),
+                            Wrap(
+                              spacing: 8,
+                              children: [
+                                Semantics(
+                                  identifier: 'btn-watch-set-folder',
+                                  child: OutlinedButton.icon(
+                                    onPressed: _setWatchFolder,
+                                    icon: const Icon(Icons.drive_folder_upload),
+                                    label: const Text('Set folder'),
+                                  ),
+                                ),
+                                Semantics(
+                                  identifier: 'btn-watch-import-now',
+                                  child: FilledButton.tonalIcon(
+                                    onPressed:
+                                        _watchLabel == null ? null : _importWatchNow,
+                                    icon: const Icon(Icons.sync),
+                                    label: const Text('Import now'),
+                                  ),
+                                ),
+                                Semantics(
+                                  identifier: 'btn-import-watch',
+                                  child: TextButton.icon(
+                                    onPressed: _pickAndImportWatch,
+                                    icon: const Icon(Icons.file_open_outlined),
+                                    label: const Text('Import file…'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
+                              child: Text(
+                                'Gadgetbridge.db in this folder is imported automatically when the app opens.',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .outline),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -225,6 +324,76 @@ class _ExportScreenState extends State<ExportScreen> {
           images: _includePhotos,
         ),
       );
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _setWatchFolder() async {
+    final link = await _watchAccess.pickFolder();
+    if (link == null) return;
+    await _settings.setWatchFolder(link);
+    if (!mounted) return;
+    setState(() => _watchLabel = link.label);
+    await _importWatchNow();
+  }
+
+  Future<void> _importWatchNow() async {
+    setState(() {
+      _error = null;
+      _isLoading = true;
+    });
+    try {
+      final o = await _watchSync.syncIfNewer(force: true);
+      if (!mounted) return;
+      final String message;
+      switch (o.state) {
+        case WatchSyncState.imported:
+          final r = o.result!;
+          message = r.changed == 0
+              ? 'No new watch data'
+              : 'Imported ${r.changed} watch samples (${_fmt.format(r.first!)} – ${_fmt.format(r.last!)})';
+        case WatchSyncState.missing:
+          message = 'Gadgetbridge.db not found in that folder';
+        case WatchSyncState.noAccess:
+          message = 'Folder access was lost — set the folder again';
+        case WatchSyncState.failed:
+          message = o.error ?? 'Import failed';
+        // UNDECIDED: Import now message for notLinked/unchanged (unreachable: button disabled without folder, force skips unchanged)
+        case WatchSyncState.notLinked:
+        case WatchSyncState.unchanged:
+          message = 'No new watch data';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _pickAndImportWatch() async {
+    final picked = await FilePicker.platform.pickFiles(type: FileType.any);
+    final path = picked?.files.single.path;
+    if (path == null) return;
+    if (!mounted) return;
+    setState(() {
+      _error = null;
+      _isLoading = true;
+    });
+    try {
+      final r = await WatchImportService(_storage).importGadgetbridge(path);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(r.changed == 0
+              ? 'No new watch data'
+              : 'Imported ${r.changed} watch samples (${_fmt.format(r.first!)} – ${_fmt.format(r.last!)})'),
+        ));
+      }
+    } on WatchImportException catch (e) {
+      if (mounted) setState(() => _error = e.message);
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
     } finally {

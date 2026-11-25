@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/goal_estimate.dart';
+import 'watch_folder.dart';
 
 class SettingsService {
   static const _keyAiEnabled = 'ai_enabled';
@@ -117,5 +118,36 @@ class SettingsService {
   Future<void> setWeightGoalDismissedLogId(int id) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_keyWeightGoalDismissedLogId, id);
+  }
+
+  static const _keyWatchFolderUri = 'watch_folder_uri';
+  static const _keyWatchFolderLabel = 'watch_folder_label';
+  static const _keyWatchDbLastModified = 'watch_db_last_modified';
+
+  Future<String?> get watchFolderUri async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyWatchFolderUri);
+  }
+
+  Future<String?> get watchFolderLabel async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyWatchFolderLabel);
+  }
+
+  Future<void> setWatchFolder(WatchFolderLink link) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyWatchFolderUri, link.uri);
+    await prefs.setString(_keyWatchFolderLabel, link.label);
+  }
+
+  /// Last-modified time (ms) of the Gadgetbridge.db that was last imported.
+  Future<int?> get watchDbLastModified async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_keyWatchDbLastModified);
+  }
+
+  Future<void> setWatchDbLastModified(int value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keyWatchDbLastModified, value);
   }
 }
