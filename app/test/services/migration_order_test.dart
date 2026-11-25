@@ -17,17 +17,17 @@ void main() {
   // tests.  This file covers what we CAN verify at pure-Dart level.
 
   group('[REGRESSION] AppDatabase schema version', () {
-    test('schemaVersion is 18 after v18 weight-goal migration', () {
+    test('schemaVersion is 19 after v19 watch-samples migration', () {
       // AppDatabase is a singleton — we can't instantiate it in tests without
       // native sqlite3.  We verify the declared schemaVersion constant instead.
       // If this breaks, the DB won't open at all on first launch.
-      // v18 adds the weight-goal columns to goal_history (additive).
-      expect(AppDatabase.currentSchemaVersion, 18);
+      // v19 adds the watch_samples table (additive).
+      expect(AppDatabase.currentSchemaVersion, 19);
     });
 
-    test('migrationStepVersions includes the v18 step', () {
-      expect(AppDatabase.migrationStepVersions.last, 18,
-          reason: 'weight-goal migration step must be declared');
+    test('migrationStepVersions includes the v19 step', () {
+      expect(AppDatabase.migrationStepVersions.last, 19,
+          reason: 'watch-samples migration step must be declared');
     });
   });
 

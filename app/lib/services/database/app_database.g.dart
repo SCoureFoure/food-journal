@@ -7226,6 +7226,360 @@ class GoalHistoryCompanion extends UpdateCompanion<GoalHistoryData> {
   }
 }
 
+class $WatchSamplesTable extends WatchSamples
+    with TableInfo<$WatchSamplesTable, WatchSample> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WatchSamplesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _timestampMeta = const VerificationMeta(
+    'timestamp',
+  );
+  @override
+  late final GeneratedColumn<DateTime> timestamp = GeneratedColumn<DateTime>(
+    'timestamp',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<int> value = GeneratedColumn<int>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _importedAtMeta = const VerificationMeta(
+    'importedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> importedAt = GeneratedColumn<DateTime>(
+    'imported_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    kind,
+    timestamp,
+    value,
+    importedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'watch_samples';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<WatchSample> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    if (data.containsKey('timestamp')) {
+      context.handle(
+        _timestampMeta,
+        timestamp.isAcceptableOrUnknown(data['timestamp']!, _timestampMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_timestampMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('imported_at')) {
+      context.handle(
+        _importedAtMeta,
+        importedAt.isAcceptableOrUnknown(data['imported_at']!, _importedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_importedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {kind, timestamp},
+  ];
+  @override
+  WatchSample map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WatchSample(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      timestamp: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}timestamp'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}value'],
+      )!,
+      importedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}imported_at'],
+      )!,
+    );
+  }
+
+  @override
+  $WatchSamplesTable createAlias(String alias) {
+    return $WatchSamplesTable(attachedDatabase, alias);
+  }
+}
+
+class WatchSample extends DataClass implements Insertable<WatchSample> {
+  final int id;
+  final String kind;
+  final DateTime timestamp;
+  final int value;
+  final DateTime importedAt;
+  const WatchSample({
+    required this.id,
+    required this.kind,
+    required this.timestamp,
+    required this.value,
+    required this.importedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['kind'] = Variable<String>(kind);
+    map['timestamp'] = Variable<DateTime>(timestamp);
+    map['value'] = Variable<int>(value);
+    map['imported_at'] = Variable<DateTime>(importedAt);
+    return map;
+  }
+
+  WatchSamplesCompanion toCompanion(bool nullToAbsent) {
+    return WatchSamplesCompanion(
+      id: Value(id),
+      kind: Value(kind),
+      timestamp: Value(timestamp),
+      value: Value(value),
+      importedAt: Value(importedAt),
+    );
+  }
+
+  factory WatchSample.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WatchSample(
+      id: serializer.fromJson<int>(json['id']),
+      kind: serializer.fromJson<String>(json['kind']),
+      timestamp: serializer.fromJson<DateTime>(json['timestamp']),
+      value: serializer.fromJson<int>(json['value']),
+      importedAt: serializer.fromJson<DateTime>(json['importedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'kind': serializer.toJson<String>(kind),
+      'timestamp': serializer.toJson<DateTime>(timestamp),
+      'value': serializer.toJson<int>(value),
+      'importedAt': serializer.toJson<DateTime>(importedAt),
+    };
+  }
+
+  WatchSample copyWith({
+    int? id,
+    String? kind,
+    DateTime? timestamp,
+    int? value,
+    DateTime? importedAt,
+  }) => WatchSample(
+    id: id ?? this.id,
+    kind: kind ?? this.kind,
+    timestamp: timestamp ?? this.timestamp,
+    value: value ?? this.value,
+    importedAt: importedAt ?? this.importedAt,
+  );
+  WatchSample copyWithCompanion(WatchSamplesCompanion data) {
+    return WatchSample(
+      id: data.id.present ? data.id.value : this.id,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      timestamp: data.timestamp.present ? data.timestamp.value : this.timestamp,
+      value: data.value.present ? data.value.value : this.value,
+      importedAt: data.importedAt.present
+          ? data.importedAt.value
+          : this.importedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WatchSample(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('timestamp: $timestamp, ')
+          ..write('value: $value, ')
+          ..write('importedAt: $importedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, kind, timestamp, value, importedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WatchSample &&
+          other.id == this.id &&
+          other.kind == this.kind &&
+          other.timestamp == this.timestamp &&
+          other.value == this.value &&
+          other.importedAt == this.importedAt);
+}
+
+class WatchSamplesCompanion extends UpdateCompanion<WatchSample> {
+  final Value<int> id;
+  final Value<String> kind;
+  final Value<DateTime> timestamp;
+  final Value<int> value;
+  final Value<DateTime> importedAt;
+  const WatchSamplesCompanion({
+    this.id = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.timestamp = const Value.absent(),
+    this.value = const Value.absent(),
+    this.importedAt = const Value.absent(),
+  });
+  WatchSamplesCompanion.insert({
+    this.id = const Value.absent(),
+    required String kind,
+    required DateTime timestamp,
+    required int value,
+    required DateTime importedAt,
+  }) : kind = Value(kind),
+       timestamp = Value(timestamp),
+       value = Value(value),
+       importedAt = Value(importedAt);
+  static Insertable<WatchSample> custom({
+    Expression<int>? id,
+    Expression<String>? kind,
+    Expression<DateTime>? timestamp,
+    Expression<int>? value,
+    Expression<DateTime>? importedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (kind != null) 'kind': kind,
+      if (timestamp != null) 'timestamp': timestamp,
+      if (value != null) 'value': value,
+      if (importedAt != null) 'imported_at': importedAt,
+    });
+  }
+
+  WatchSamplesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? kind,
+    Value<DateTime>? timestamp,
+    Value<int>? value,
+    Value<DateTime>? importedAt,
+  }) {
+    return WatchSamplesCompanion(
+      id: id ?? this.id,
+      kind: kind ?? this.kind,
+      timestamp: timestamp ?? this.timestamp,
+      value: value ?? this.value,
+      importedAt: importedAt ?? this.importedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (timestamp.present) {
+      map['timestamp'] = Variable<DateTime>(timestamp.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<int>(value.value);
+    }
+    if (importedAt.present) {
+      map['imported_at'] = Variable<DateTime>(importedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WatchSamplesCompanion(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('timestamp: $timestamp, ')
+          ..write('value: $value, ')
+          ..write('importedAt: $importedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -7246,6 +7600,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $SuspicionExclusionsTable(this);
   late final $PantryItemsTable pantryItems = $PantryItemsTable(this);
   late final $GoalHistoryTable goalHistory = $GoalHistoryTable(this);
+  late final $WatchSamplesTable watchSamples = $WatchSamplesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -7265,6 +7620,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     suspicionExclusions,
     pantryItems,
     goalHistory,
+    watchSamples,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -12020,6 +12376,202 @@ typedef $$GoalHistoryTableProcessedTableManager =
       GoalHistoryData,
       PrefetchHooks Function()
     >;
+typedef $$WatchSamplesTableCreateCompanionBuilder =
+    WatchSamplesCompanion Function({
+      Value<int> id,
+      required String kind,
+      required DateTime timestamp,
+      required int value,
+      required DateTime importedAt,
+    });
+typedef $$WatchSamplesTableUpdateCompanionBuilder =
+    WatchSamplesCompanion Function({
+      Value<int> id,
+      Value<String> kind,
+      Value<DateTime> timestamp,
+      Value<int> value,
+      Value<DateTime> importedAt,
+    });
+
+class $$WatchSamplesTableFilterComposer
+    extends Composer<_$AppDatabase, $WatchSamplesTable> {
+  $$WatchSamplesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get timestamp => $composableBuilder(
+    column: $table.timestamp,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get importedAt => $composableBuilder(
+    column: $table.importedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$WatchSamplesTableOrderingComposer
+    extends Composer<_$AppDatabase, $WatchSamplesTable> {
+  $$WatchSamplesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get timestamp => $composableBuilder(
+    column: $table.timestamp,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get importedAt => $composableBuilder(
+    column: $table.importedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$WatchSamplesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $WatchSamplesTable> {
+  $$WatchSamplesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get timestamp =>
+      $composableBuilder(column: $table.timestamp, builder: (column) => column);
+
+  GeneratedColumn<int> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get importedAt => $composableBuilder(
+    column: $table.importedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$WatchSamplesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $WatchSamplesTable,
+          WatchSample,
+          $$WatchSamplesTableFilterComposer,
+          $$WatchSamplesTableOrderingComposer,
+          $$WatchSamplesTableAnnotationComposer,
+          $$WatchSamplesTableCreateCompanionBuilder,
+          $$WatchSamplesTableUpdateCompanionBuilder,
+          (
+            WatchSample,
+            BaseReferences<_$AppDatabase, $WatchSamplesTable, WatchSample>,
+          ),
+          WatchSample,
+          PrefetchHooks Function()
+        > {
+  $$WatchSamplesTableTableManager(_$AppDatabase db, $WatchSamplesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WatchSamplesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WatchSamplesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WatchSamplesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<DateTime> timestamp = const Value.absent(),
+                Value<int> value = const Value.absent(),
+                Value<DateTime> importedAt = const Value.absent(),
+              }) => WatchSamplesCompanion(
+                id: id,
+                kind: kind,
+                timestamp: timestamp,
+                value: value,
+                importedAt: importedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String kind,
+                required DateTime timestamp,
+                required int value,
+                required DateTime importedAt,
+              }) => WatchSamplesCompanion.insert(
+                id: id,
+                kind: kind,
+                timestamp: timestamp,
+                value: value,
+                importedAt: importedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$WatchSamplesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $WatchSamplesTable,
+      WatchSample,
+      $$WatchSamplesTableFilterComposer,
+      $$WatchSamplesTableOrderingComposer,
+      $$WatchSamplesTableAnnotationComposer,
+      $$WatchSamplesTableCreateCompanionBuilder,
+      $$WatchSamplesTableUpdateCompanionBuilder,
+      (
+        WatchSample,
+        BaseReferences<_$AppDatabase, $WatchSamplesTable, WatchSample>,
+      ),
+      WatchSample,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -12052,4 +12604,6 @@ class $AppDatabaseManager {
       $$PantryItemsTableTableManager(_db, _db.pantryItems);
   $$GoalHistoryTableTableManager get goalHistory =>
       $$GoalHistoryTableTableManager(_db, _db.goalHistory);
+  $$WatchSamplesTableTableManager get watchSamples =>
+      $$WatchSamplesTableTableManager(_db, _db.watchSamples);
 }

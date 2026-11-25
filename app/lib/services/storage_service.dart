@@ -14,6 +14,7 @@ import '../models/medication.dart';
 import '../models/pantry_item.dart';
 import '../models/reaction_log.dart';
 import '../models/saved_item.dart';
+import '../models/watch_sample.dart';
 import '../models/water_log.dart';
 import '../models/weight_log.dart';
 import '../utils/date_time_utils.dart';
@@ -920,6 +921,70 @@ class StorageService {
           ]))
         .get();
     return rows.map(_weightLogFromRow).toList();
+  }
+
+  // ── Watch ────────────────────────────────────────────────────────────────────
+
+  /// Upserts by (kind, timestamp). Returns how many rows were inserted or had their
+  /// value changed; rows already stored with the same value are not counted.
+  Future<int> upsertWatchSamples(List<WatchSample> samples) async {
+    if (samples.isEmpty) return 0;
+    var lo = samples.first.time;
+    var hi = samples.first.time;
+    for (final s in samples) {
+      if (s.time.isBefore(lo)) lo = s.time;
+      if (s.time.isAfter(hi)) hi = s.time;
+    }
+    final t = _db.watchSamples;
+    final existingRows =
+        await (_db.select(t)..where((r) => r.timestamp.isBetweenValues(lo, hi))).get();
+    final existing = {
+      for (final r in existingRows) '${r.kind}|${r.timestamp.millisecondsSinceEpoch}': r.value,
+    };
+    final changed = samples.where((s) {
+      final old = existing['${s.kind.name}|${s.time.millisecondsSinceEpoch}'];
+      return old == null || old != s.value;
+    }).toList();
+    if (changed.isEmpty) return 0;
+
+    final now = DateTime.now();
+    await _db.batch((b) {
+      for (final s in changed) {
+        b.insert(
+          t,
+          db.WatchSamplesCompanion.insert(
+            kind: s.kind.name,
+            timestamp: s.time,
+            value: s.value,
+            importedAt: now,
+          ),
+          onConflict: DoUpdate(
+            (old) => db.WatchSamplesCompanion(
+              value: Value(s.value),
+              importedAt: Value(now),
+            ),
+            target: [t.kind, t.timestamp],
+          ),
+        );
+      }
+    });
+    return changed.length;
+  }
+
+  /// Samples with time >= from and time < to, ordered by time asc.
+  Future<List<WatchSample>> getWatchSamples({required DateTime from, required DateTime to}) async {
+    final rows = await (_db.select(_db.watchSamples)
+          ..where((t) =>
+              t.timestamp.isBiggerOrEqualValue(from) & t.timestamp.isSmallerThanValue(to))
+          ..orderBy([(t) => OrderingTerm.asc(t.timestamp)]))
+        .get();
+    return rows
+        .map((r) => WatchSample(
+              kind: WatchKind.values.byName(r.kind),
+              time: r.timestamp,
+              value: r.value,
+            ))
+        .toList();
   }
 
   // ── Goals ────────────────────────────────────────────────────────────────────

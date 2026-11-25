@@ -184,9 +184,22 @@ class GoalHistory extends Table {
   TextColumn get weightDirection => text().nullable()();
 }
 
+class WatchSamples extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get kind => text()();
+  DateTimeColumn get timestamp => dateTime()();
+  IntColumn get value => integer()();
+  DateTimeColumn get importedAt => dateTime()();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+        {kind, timestamp},
+      ];
+}
+
 // ─── Database ─────────────────────────────────────────────────────────────────
 
-@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories, Medications, MealFingerprints, WaterLogs, WeightLogs, SavedItems, FoodSuspicions, SuspicionExclusions, PantryItems, GoalHistory])
+@DriftDatabase(tables: [Meals, FoodItems, Ingredients, ReactionLogs, FoodMemories, Medications, MealFingerprints, WaterLogs, WeightLogs, SavedItems, FoodSuspicions, SuspicionExclusions, PantryItems, GoalHistory, WatchSamples])
 class AppDatabase extends _$AppDatabase {
   static final AppDatabase _instance = AppDatabase._internal();
 
@@ -199,11 +212,11 @@ class AppDatabase extends _$AppDatabase {
 
   // Exposed as a static constant so tests can assert the current version
   // without instantiating the singleton (which requires native sqlite3).
-  static const int currentSchemaVersion = 18;
+  static const int currentSchemaVersion = 19;
 
   // The declared migration ceiling versions in the order they appear in
   // onUpgrade.  Must be non-decreasing — tested in migration_order_test.dart.
-  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+  static const List<int> migrationStepVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -431,6 +444,10 @@ class AppDatabase extends _$AppDatabase {
         if (!existing.contains('weight_direction')) {
           await migrator.addColumn(goalHistory, goalHistory.weightDirection);
         }
+      }
+      if (from < 19) {
+        // v19 adds imported wearable samples (watch_import spec). Additive only.
+        await migrator.createTable(watchSamples);
       }
     },
   );
