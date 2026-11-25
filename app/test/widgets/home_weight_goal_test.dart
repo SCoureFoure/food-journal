@@ -5,6 +5,7 @@ import 'package:food_journal/models/goal_estimate.dart';
 import 'package:food_journal/models/meal_entry.dart';
 import 'package:food_journal/models/medication.dart';
 import 'package:food_journal/models/reaction_log.dart';
+import 'package:food_journal/models/watch_sample.dart';
 import 'package:food_journal/models/water_log.dart';
 import 'package:food_journal/models/weight_log.dart';
 import 'package:food_journal/screens/home/home_screen.dart';
@@ -34,6 +35,11 @@ class _FakeStorage extends StorageService {
 
   @override
   Future<List<WeightLog>> getAllWeightLogs() async => weightLogs;
+
+  @override
+  Future<List<WatchSample>> getWatchSamples(
+          {required DateTime from, required DateTime to}) async =>
+      const [];
 
   @override
   Future<List<GoalSnapshot>> getGoalHistory() async => history;

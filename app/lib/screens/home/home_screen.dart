@@ -10,6 +10,7 @@ import '../../models/medication.dart';
 import '../../models/pet_feed.dart';
 import '../../models/pet_nudge.dart';
 import '../../models/reaction_log.dart';
+import '../../models/watch_sample.dart';
 import '../../models/water_log.dart';
 import '../../models/weight_goal.dart';
 import '../../models/weight_log.dart';
@@ -54,6 +55,7 @@ class HomeScreenState extends State<HomeScreen> {
   Map<DateTime, List<ReactionLog>> _feelingsByDate = {};
   Map<DateTime, List<WaterLog>> _waterByDate = {};
   Map<DateTime, List<WeightLog>> _weightByDate = {};
+  Map<DateTime, WatchDaySummary> _watchByDate = {};
   List<DateTime> _sortedDates = [];
   List<GoalSnapshot> _goalHistory = [];
   GoalIntake _todayIntake = const GoalIntake();
@@ -91,6 +93,9 @@ class HomeScreenState extends State<HomeScreen> {
     if (widget.storageOverride == null) _storage.dispose();
     super.dispose();
   }
+
+  /// Reloads the journal; used by the shell after a watch sync.
+  Future<void> reload() => _load();
 
   Future<void> _load() async {
     setState(() {
@@ -143,16 +148,29 @@ class HomeScreenState extends State<HomeScreen> {
         weightByDate.putIfAbsent(key, () => []).add(log);
       }
 
+      final now = DateTime.now();
+      final todayKey = DateTime(now.year, now.month, now.day);
+      var watchByDate = <DateTime, WatchDaySummary>{};
+      try {
+        final samples = await _storage.getWatchSamples(
+          from: DateTime(2000),
+          to: DateTime(now.year, now.month, now.day + 1),
+        );
+        watchByDate = summarizeWatchDays(samples);
+      } catch (_) {
+        // Watch data is auxiliary: a failure must never break the journal load.
+      }
+
       final allDates = {
         ...mealsByDate.keys,
         ...medsByDate.keys,
         ...feelingsByDate.keys,
         ...waterByDate.keys,
         ...weightByDate.keys,
+        // An evening slot after 18:00 belongs to tomorrow's night; never show a future day.
+        ...watchByDate.keys.where((d) => !d.isAfter(todayKey)),
       }.toList()..sort((a, b) => b.compareTo(a));
 
-      final now = DateTime.now();
-      final todayKey = DateTime(now.year, now.month, now.day);
       final todayMealIds = (mealsByDate[todayKey] ?? [])
           .where((m) => m.id != null)
           .map((m) => m.id!)
@@ -184,6 +202,7 @@ class HomeScreenState extends State<HomeScreen> {
         _feelingsByDate = feelingsByDate;
         _waterByDate = waterByDate;
         _weightByDate = weightByDate;
+        _watchByDate = watchByDate;
         _sortedDates = allDates;
         _loading = false;
       });
@@ -423,6 +442,7 @@ class HomeScreenState extends State<HomeScreen> {
             feelingsByDate: _feelingsByDate,
             waterByDate: _waterByDate,
             weightByDate: _weightByDate,
+            watchByDate: _watchByDate,
             storage: _storage,
             isToday: _isToday,
             onReload: _load,

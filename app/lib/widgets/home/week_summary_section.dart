@@ -6,6 +6,7 @@ import '../../models/daily_goals.dart';
 import '../../models/meal_entry.dart';
 import '../../models/medication.dart';
 import '../../models/reaction_log.dart';
+import '../../models/watch_sample.dart';
 import '../../models/water_log.dart';
 import '../../models/weight_log.dart';
 import '../../services/storage_service.dart';
@@ -31,6 +32,7 @@ class WeekSummarySection extends StatefulWidget {
   // Required when storage is null (tests that inject a fetcher directly).
   final MacroFetcher? macroFetcher;
   final DailyGoals Function(DateTime date)? goalsFor;
+  final Map<DateTime, WatchDaySummary> watchByDate;
 
   const WeekSummarySection({
     super.key,
@@ -46,6 +48,7 @@ class WeekSummarySection extends StatefulWidget {
     required this.onReload,
     this.macroFetcher,
     this.goalsFor,
+    this.watchByDate = const {},
   }) : assert(storage != null || macroFetcher != null,
             'Provide storage or macroFetcher');
 
@@ -157,6 +160,7 @@ class _WeekSummarySectionState extends State<WeekSummarySection>
                   isToday: widget.isToday(date),
                   onReload: widget.onReload,
                   goals: widget.goalsFor?.call(date) ?? DailyGoals.none,
+                  watchSummary: widget.watchByDate[date],
                 ),
               ),
             const SizedBox(height: 4),

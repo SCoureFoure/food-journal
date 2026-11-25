@@ -6,12 +6,14 @@ import '../../models/daily_goals.dart';
 import '../../models/meal_entry.dart';
 import '../../models/medication.dart';
 import '../../models/reaction_log.dart';
+import '../../models/watch_sample.dart';
 import '../../models/water_log.dart';
 import '../../models/weight_log.dart';
 import '../../services/storage_service.dart';
 import '../../utils/date_time_utils.dart';
 import '../day_totals_bar.dart';
 import '../panel_container.dart';
+import 'biometrics_tile.dart';
 import 'feeling_tile.dart';
 import 'meal_tile.dart';
 import 'medication_tile.dart';
@@ -29,6 +31,7 @@ class DateSection extends StatefulWidget {
   final bool isToday;
   final VoidCallback onReload;
   final DailyGoals goals;
+  final WatchDaySummary? watchSummary;
 
   const DateSection({
     super.key,
@@ -42,6 +45,7 @@ class DateSection extends StatefulWidget {
     required this.isToday,
     required this.onReload,
     this.goals = DailyGoals.none,
+    this.watchSummary,
   });
 
   @override
@@ -133,7 +137,8 @@ class _DateSectionState extends State<DateSection> {
       if (totalWaterMl > 0) '💧 ${totalWaterOz}oz',
       if (weightCount > 0) '⚖ ${widget.weightLogs.first.displayWeight}',
     ];
-    final subtitle = parts.isEmpty ? 'No entries' : parts.join(' · ');
+    final hasWatch = widget.watchSummary != null && !widget.watchSummary!.isEmpty;
+    final subtitle = parts.isEmpty ? (hasWatch ? 'Biometrics' : 'No entries') : parts.join(' · ');
 
     return Semantics(
       identifier: 'date-section-${widget.date.toIso8601String().substring(0, 10)}',
@@ -174,6 +179,8 @@ class _DateSectionState extends State<DateSection> {
                     onReload: widget.onReload,
                     goalMl: widget.goals.effectiveWaterMl,
                   ),
+                if (widget.watchSummary case final s? when !s.isEmpty)
+                  BiometricsTile(date: widget.date, summary: s),
                 ..._buildSortedEntries(),
               ],
             ),

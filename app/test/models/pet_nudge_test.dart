@@ -159,7 +159,7 @@ void main() {
       // contract: meal id 5, med id 5+offset, and the two nudge ids are all different.
       // implication: AC8 — a meal and medication with the same entry id do not overwrite.
       const mealId = 5;
-      final medId = mealId + medCheckinIdOffset;
+      const medId = mealId + medCheckinIdOffset;
       final ids = {mealId, medId, nudgeHungryId, nudgeThirstyId};
       expect(ids.length, 4);
       expect(medCheckinIdOffset, 1000000);
